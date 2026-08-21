@@ -8,7 +8,7 @@ Guia para o Claude Code trabalhar neste repositório. Leia isto antes de gerar q
 
 Primeiro produto: **Obrion Orçamentos** (App #1) — medir, montar orçamento e enviar ao cliente por WhatsApp em poucos minutos. Próximos da fila: Obrion Materiais (#2), Obrion Diário (#3), Obrion Medições (#4), Obrion Calculadora (#5).
 
-**Estado atual: nada implementado.** A pasta contém apenas documentação. O próximo passo é a **Fase 0 — fundação mínima** (ver roadmap abaixo): projeto Flutter, navegação, tokens de tema, os componentes que o App #1 realmente usa, banco local (Drift) e Crashlytics.
+**Estado atual: Fase 0 quase concluída.** Já feito: projeto Flutter criado (`applicationId` fixado), tema (light/dark, tokens Material 3 em `lib/theme/`), navegação (`go_router`, `lib/routing/`), telas placeholder (`home_screen.dart`, `settings_screen.dart`), primeiro componente do Design System (`AppButton`), e banco local Drift/SQLite (`lib/database/`) com o schema inicial completo (`clients`, `projects`, `measurements`, `services`, `budgets`/`budget_items`, `app_settings`), exposto às telas via Riverpod (`lib/providers/database_provider.dart`). Falta para fechar a Fase 0: Crashlytics, e os demais componentes de Design System que a Fase 1 vai exigir (`AppTextField`, `AppCard`, `AppCurrencyInput` etc.). Ver `CHANGELOG.md` para o histórico exato.
 
 ## Documentos-fonte (ler antes de gerar módulos)
 
@@ -31,7 +31,7 @@ Três decisões do fundador que **substituem** o que está escrito nos documento
 
 | Fase | Conteúdo | Estado |
 |---|---|---|
-| **0 — Fundação mínima** (1 sprint) | Projeto Flutter, navegação, tokens de tema, componentes que o App #1 usa de fato, banco local (Drift), Crashlytics | ← **próximo passo** |
+| **0 — Fundação mínima** (1 sprint) | Projeto Flutter, navegação, tokens de tema, componentes que o App #1 usa de fato, banco local (Drift), Crashlytics | 🔶 **quase pronta** — falta só Crashlytics e componentes restantes |
 | **1 — O fluxo que vale dinheiro** (3–4 sprints) | Clientes → Medição → Lista de preços → Orçamento → PDF → Compartilhar. **Tudo local: sem conta, sem nuvem, sem billing** | |
 | **★ Validação** | 3–5 profissionais reais usando de verdade, antes de nuvem ou monetização | |
 | **2 — Conta e nuvem** (1–2 sprints) | Supabase, login anônimo→e-mail, sync push, backup | |
@@ -153,7 +153,8 @@ Ao criar um app/módulo novo:
 | Camada | Tecnologia |
 |---|---|
 | Front-end | Flutter (Android primeiro, iOS depois sem reescrever) |
-| **Banco local (fonte da verdade)** | **Drift / SQLite** |
+| **State management / DI** | **Riverpod** (`flutter_riverpod`) — decisão tomada ao implementar o banco local; provider expõe o `AppDatabase` e, na Fase 1, os repositórios |
+| **Banco local (fonte da verdade)** | **Drift / SQLite**, via `drift_flutter` (`sqlite3_flutter_libs` está obsoleto — não usar) |
 | Backend/BaaS | Supabase (Auth, PostgreSQL, storage, RLS) — backup e sync, não dependência de execução |
 | Analytics | Firebase Analytics |
 | **Crash reporting** | **Firebase Crashlytics** — para dev solo, vale mais que analytics |
