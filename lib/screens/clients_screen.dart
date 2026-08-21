@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/database.dart';
 import '../providers/clients_repository_provider.dart';
+import '../providers/measurements_repository_provider.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/app_text_field.dart';
 import 'client_form_screen.dart';
+import 'measurements_screen.dart';
 
 /// Lista de clientes — primeiro passo concreto da Fase 1.
 class ClientsScreen extends ConsumerStatefulWidget {
@@ -20,6 +22,27 @@ class ClientsScreen extends ConsumerStatefulWidget {
 
 class _ClientsScreenState extends ConsumerState<ClientsScreen> {
   String _query = '';
+
+  Future<void> _navigateToMeasurements(BuildContext context, Client client) async {
+    final repo = ref.read(measurementsRepositoryProvider);
+    final projects = await repo.watchProjectsByClient(client.id).first;
+    Project project;
+    if (projects.isEmpty) {
+      project = await repo.createProject(
+        clientId: client.id,
+        name: 'Obra Principal',
+      );
+    } else {
+      project = projects.first;
+    }
+    if (context.mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => MeasurementsScreen(projectId: project.id),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +98,13 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                   itemBuilder: (context, index) {
                     final client = clients[index];
                     return AppCard(
+                      onTap: () {
+                        // Ao clicar no cliente, leva à listagem/criação de obras.
+                        // Como os projetos são agrupadores de medições, criaremos um
+                        // projeto padrão "Obra Principal" automaticamente caso não existam
+                        // projetos para este cliente, simplificando o fluxo inicial.
+                        _navigateToMeasurements(context, client);
+                      },
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

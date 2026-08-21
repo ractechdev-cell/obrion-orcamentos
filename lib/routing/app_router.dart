@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../screens/client_form_screen.dart';
 import '../screens/clients_screen.dart';
 import '../screens/home_screen.dart';
+import '../screens/measurement_form_screen.dart';
+import '../screens/measurements_screen.dart';
 import '../screens/settings_screen.dart';
 import 'app_routes.dart';
 
@@ -27,6 +29,18 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/clients/new',
       builder: (context, state) => const ClientFormScreen(),
+    ),
+    GoRoute(
+      path: '/measurements/:projectId',
+      builder: (context, state) => MeasurementsScreen(
+        projectId: state.pathParameters['projectId']!,
+      ),
+    ),
+    GoRoute(
+      path: '/measurements/:projectId/new',
+      builder: (context, state) => MeasurementFormScreen(
+        projectId: state.pathParameters['projectId']!,
+      ),
     ),
   ],
 );
