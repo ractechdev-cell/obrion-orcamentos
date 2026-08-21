@@ -38,6 +38,9 @@ jobs:
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
       - name: Upload to Firebase App Distribution
         run: |
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-debug.apk \
