@@ -20,6 +20,11 @@ class HomeScreen extends StatelessWidget {
             tooltip: 'Clientes',
           ),
           IconButton(
+            onPressed: () => context.push(AppRoutes.services),
+            icon: const Icon(Icons.list_alt),
+            tooltip: 'Lista de preços',
+          ),
+          IconButton(
             onPressed: () => context.push(AppRoutes.settings),
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Configurações',

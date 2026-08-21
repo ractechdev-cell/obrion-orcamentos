@@ -7,4 +7,5 @@ class AppRoutes {
   static const settings = '/settings';
   static const clients = '/clients';
   static const clientNew = '/clients/new';
+  static const services = '/services';
 }

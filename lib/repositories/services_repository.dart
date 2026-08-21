@@ -1,0 +1,155 @@
+import 'package:drift/drift.dart';
+import '../database/database.dart';
+import '../database/enums.dart';
+
+/// Repositório de Serviços (Lista de Preços) — camada de acesso a dados.
+/// Permite o CRUD local para a lista de preços do profissional.
+class ServicesRepository {
+  ServicesRepository(this._db);
+
+  final AppDatabase _db;
+
+  /// Retorna Stream ativa de todos os serviços (não deletados) ordenados por nome.
+  Stream<List<Service>> watchAll() {
+    return (_db.select(_db.services)
+          ..where((s) => s.deletedAt.isNull())
+          ..orderBy([(s) => OrderingTerm.asc(s.name)]))
+        .watch();
+  }
+
+  /// Busca um serviço pelo ID.
+  Future<Service?> getById(String id) {
+    return (_db.select(_db.services)..where((s) => s.id.equals(id))).getSingleOrNull();
+  }
+
+  /// Cria um novo serviço na lista de preços.
+  Future<Service> create({
+    required String name,
+    required ServiceUnit unit,
+    int? defaultPriceCents,
+    bool includesMaterial = false,
+    String? defaultNote,
+  }) {
+    final now = DateTime.now();
+    return _db.into(_db.services).insertReturning(
+          ServicesCompanion.insert(
+            name: name,
+            unit: unit,
+            defaultPriceCents: Value(defaultPriceCents),
+            includesMaterial: Value(includesMaterial),
+            defaultNote: Value(defaultNote),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+  }
+
+  /// Atualiza as propriedades de um serviço.
+  Future<bool> update({
+    required String id,
+    String? name,
+    ServiceUnit? unit,
+    int? defaultPriceCents,
+    bool? includesMaterial,
+    String? defaultNote,
+  }) async {
+    final now = DateTime.now();
+    final companion = ServicesCompanion(
+      name: name == null ? const Value.absent() : Value(name),
+      unit: unit == null ? const Value.absent() : Value(unit),
+      defaultPriceCents: defaultPriceCents == null ? const Value.absent() : Value(defaultPriceCents),
+      includesMaterial: includesMaterial == null ? const Value.absent() : Value(includesMaterial),
+      defaultNote: defaultNote == null ? const Value.absent() : Value(defaultNote),
+      updatedAt: Value(now),
+    );
+    final count = await (_db.update(_db.services)..where((s) => s.id.equals(id))).write(companion);
+    return count > 0;
+  }
+
+  /// Exclusão lógica (soft delete).
+  Future<bool> softDelete(String id) async {
+    final count = await (_db.update(_db.services)..where((s) => s.id.equals(id)))
+        .write(ServicesCompanion(deletedAt: Value(DateTime.now())));
+    return count > 0;
+  }
+
+  /// Busca serviços contendo o termo no nome.
+  Future<List<Service>> search(String query) {
+    final term = '%$query%';
+    return (_db.select(_db.services)
+          ..where((s) => s.deletedAt.isNull() & s.name.like(term))
+          ..orderBy([(s) => OrderingTerm.asc(s.name)]))
+        .get();
+  }
+
+  /// Pre-popula a tabela de serviços com sugestões iniciais com preço em branco (nulo)
+  /// de acordo com a regra de negócio do Obrion MVP (ver CLAUDE.md).
+  /// Só insere o que ainda não existe, para não duplicar se o usuário tocar
+  /// no botão mais de uma vez.
+  Future<void> populateDefaultServices() async {
+    final now = DateTime.now();
+    final existingNames = (await (_db.select(_db.services)
+          ..where((s) => s.deletedAt.isNull())
+          ..addColumns([_db.services.name]))
+        .get())
+        .map((row) => row.name)
+        .toSet();
+
+    final defaults = [
+      // Pedreiro
+      _def('Alvenaria de bloco', ServiceUnit.squareMeter),
+      _def('Reboco de parede', ServiceUnit.squareMeter),
+      _def('Chapisco', ServiceUnit.squareMeter),
+      _def('Contrapiso', ServiceUnit.squareMeter),
+      _def('Demolição', ServiceUnit.squareMeter),
+      // Pintor
+      _def('Pintura acrílica (2 demãos)', ServiceUnit.squareMeter),
+      _def('Aplicação de massa corrida', ServiceUnit.squareMeter),
+      _def('Pintura de portas (madeira)', ServiceUnit.unit),
+      // Gesseiro
+      _def('Forro de gesso plaquinha', ServiceUnit.squareMeter),
+      _def('Forro de gesso acartonado (drywall)', ServiceUnit.squareMeter),
+      _def('Moldura de gesso', ServiceUnit.linearMeter),
+      // Azulejista
+      _def('Assentamento de piso cerâmico', ServiceUnit.squareMeter),
+      _def('Assentamento de porcelanato', ServiceUnit.squareMeter),
+      _def('Assentamento de revestimento de parede', ServiceUnit.squareMeter),
+      _def('Instalação de rodapé', ServiceUnit.linearMeter),
+      // Eletricista
+      _def('Instalação de ponto elétrico', ServiceUnit.point),
+      _def('Passagem de cabo elétrico', ServiceUnit.linearMeter),
+      _def('Instalação de luminária/spot', ServiceUnit.unit),
+      _def('Instalação de padrão de entrada', ServiceUnit.lumpSum),
+      // Encanador
+      _def('Ponto de água fria/quente', ServiceUnit.point),
+      _def('Ponto de esgoto', ServiceUnit.point),
+      _def('Instalação de bacia sanitária', ServiceUnit.unit),
+      _def('Instalação de torneira/misturador', ServiceUnit.unit),
+    ];
+
+    final missing = defaults.where((d) => !existingNames.contains(d.name)).toList();
+    if (missing.isEmpty) return;
+
+    await _db.batch((batch) {
+      batch.insertAll(
+        _db.services,
+        missing.map((d) => ServicesCompanion.insert(
+              name: d.name,
+              unit: d.unit,
+              defaultPriceCents: const Value(null),
+              includesMaterial: const Value(false),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            )),
+      );
+    });
+  }
+
+  _DefaultService _def(String name, ServiceUnit unit) => _DefaultService(name, unit);
+}
+
+class _DefaultService {
+  _DefaultService(this.name, this.unit);
+  final String name;
+  final ServiceUnit unit;
+}

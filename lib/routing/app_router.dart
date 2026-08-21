@@ -5,6 +5,7 @@ import '../screens/clients_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/measurement_form_screen.dart';
 import '../screens/measurements_screen.dart';
+import '../screens/services_screen.dart';
 import '../screens/settings_screen.dart';
 import 'app_routes.dart';
 
@@ -41,6 +42,10 @@ final appRouter = GoRouter(
       builder: (context, state) => MeasurementFormScreen(
         projectId: state.pathParameters['projectId']!,
       ),
+    ),
+    GoRoute(
+      path: AppRoutes.services,
+      builder: (context, state) => const ServicesScreen(),
     ),
   ],
 );
