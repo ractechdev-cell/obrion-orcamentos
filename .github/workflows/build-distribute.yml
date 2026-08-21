@@ -45,5 +45,5 @@ jobs:
         run: |
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-debug.apk \
             --app "${{ secrets.FIREBASE_APP_ID }}" \
-            --groups "testers" \
+            --groups "teste-1" \
             --release-notes "Build automático do Obrion Orçamentos"
