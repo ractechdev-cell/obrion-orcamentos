@@ -58,5 +58,6 @@ ios/Runner/GoogleService-Info.plist
 
 # Firebase App Distribution
 service-account.json
+**/*firebase-adminsdk*.json
 firebase-debug.log
 .firebase/

@@ -4,11 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../database/database.dart';
 import '../providers/clients_repository_provider.dart';
 import '../providers/measurements_repository_provider.dart';
+import '../widgets/app_bottom_sheet.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/app_text_field.dart';
+import 'budgets_screen.dart';
 import 'client_form_screen.dart';
 import 'measurements_screen.dart';
 
@@ -39,6 +41,29 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => MeasurementsScreen(projectId: project.id),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openClientActions(BuildContext context, Client client) async {
+    final action = await AppBottomSheet.showActions<String>(
+      context,
+      title: client.name,
+      actions: const [
+        AppBottomSheetAction(label: 'Medições', value: 'measurements', icon: Icons.straighten),
+        AppBottomSheetAction(label: 'Orçamentos', value: 'budgets', icon: Icons.request_quote_outlined),
+      ],
+    );
+
+    if (!context.mounted || action == null) return;
+
+    if (action == 'measurements') {
+      await _navigateToMeasurements(context, client);
+    } else if (action == 'budgets') {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => BudgetsScreen(clientId: client.id),
         ),
       );
     }
@@ -98,13 +123,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                   itemBuilder: (context, index) {
                     final client = clients[index];
                     return AppCard(
-                      onTap: () {
-                        // Ao clicar no cliente, leva à listagem/criação de obras.
-                        // Como os projetos são agrupadores de medições, criaremos um
-                        // projeto padrão "Obra Principal" automaticamente caso não existam
-                        // projetos para este cliente, simplificando o fluxo inicial.
-                        _navigateToMeasurements(context, client);
-                      },
+                      onTap: () => _openClientActions(context, client),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

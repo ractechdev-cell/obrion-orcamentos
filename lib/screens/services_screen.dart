@@ -11,25 +11,7 @@ import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/app_text_field.dart';
-
-String _serviceUnitLabel(ServiceUnit unit) {
-  switch (unit) {
-    case ServiceUnit.squareMeter:
-      return 'm²';
-    case ServiceUnit.linearMeter:
-      return 'm';
-    case ServiceUnit.cubicMeter:
-      return 'm³';
-    case ServiceUnit.unit:
-      return 'un';
-    case ServiceUnit.point:
-      return 'ponto';
-    case ServiceUnit.dailyRate:
-      return 'diária';
-    case ServiceUnit.lumpSum:
-      return 'verba';
-  }
-}
+import 'service_unit_label.dart';
 
 /// Tela de Lista de Preços (Serviços) — funcionalidade central do MVP.
 class ServicesScreen extends ConsumerStatefulWidget {
@@ -145,7 +127,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                                 Text(s.name, style: Theme.of(context).textTheme.titleMedium),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Unidade: ${_serviceUnitLabel(s.unit)} • $priceText',
+                                  'Unidade: ${serviceUnitLabel(s.unit)} • $priceText',
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ],
@@ -263,7 +245,7 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
                 items: ServiceUnit.values.map((u) {
                   return DropdownMenuItem(
                     value: u,
-                    child: Text(_serviceUnitLabel(u)),
+                    child: Text(serviceUnitLabel(u)),
                   );
                 }).toList(),
                 onChanged: (val) {

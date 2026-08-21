@@ -31,7 +31,7 @@ Três decisões do fundador que **substituem** o que está escrito nos documento
 
 | Fase | Conteúdo | Estado |
 |---|---|---|
-| **0 — Fundação mínima** (1 sprint) | Projeto Flutter, navegação, tokens de tema, componentes que o App #1 usa de fato, banco local (Drift), Crashlytics | ✅ **concluída em grande parte** — já há banco, DI, design system base e início da Fase 1 |\n| **1 — O fluxo que vale dinheiro** (3–4 sprints) | Clientes → Medição → Lista de preços → Orçamento → PDF → Compartilhar. **Tudo local: sem conta, sem nuvem, sem billing** | 🔶 **em andamento** — Clientes, Medições e Lista de Preços implementados |
+| **0 — Fundação mínima** (1 sprint) | Projeto Flutter, navegação, tokens de tema, componentes que o App #1 usa de fato, banco local (Drift), Crashlytics | ✅ **concluída em grande parte** — já há banco, DI, design system base e início da Fase 1 |\n| **1 — O fluxo que vale dinheiro** (3–4 sprints) | Clientes → Medição → Lista de preços → Orçamento → PDF → Compartilhar. **Tudo local: sem conta, sem nuvem, sem billing** | 🔶 **em andamento** — Clientes, Medições, Lista de Preços e Orçamentos implementados; falta PDF/Compartilhar |
 | **1 — O fluxo que vale dinheiro** (3–4 sprints) | Clientes → Medição → Lista de preços → Orçamento → PDF → Compartilhar. **Tudo local: sem conta, sem nuvem, sem billing** | |
 | **★ Validação** | 3–5 profissionais reais usando de verdade, antes de nuvem ou monetização | |
 | **2 — Conta e nuvem** (1–2 sprints) | Supabase, login anônimo→e-mail, sync push, backup | |
