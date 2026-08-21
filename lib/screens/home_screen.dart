@@ -15,6 +15,11 @@ class HomeScreen extends StatelessWidget {
         title: const Text('Obrion Orçamentos'),
         actions: [
           IconButton(
+            onPressed: () => context.push('/clients'),
+            icon: const Icon(Icons.people_outline),
+            tooltip: 'Clientes',
+          ),
+          IconButton(
             onPressed: () => context.push(AppRoutes.settings),
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Configurações',

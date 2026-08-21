@@ -8,7 +8,7 @@ Guia para o Claude Code trabalhar neste repositório. Leia isto antes de gerar q
 
 Primeiro produto: **Obrion Orçamentos** (App #1) — medir, montar orçamento e enviar ao cliente por WhatsApp em poucos minutos. Próximos da fila: Obrion Materiais (#2), Obrion Diário (#3), Obrion Medições (#4), Obrion Calculadora (#5).
 
-**Estado atual: Fase 0 quase concluída.** Já feito: projeto Flutter criado (`applicationId` fixado), tema (light/dark, tokens Material 3 em `lib/theme/`), navegação (`go_router`, `lib/routing/`), telas placeholder (`home_screen.dart`, `settings_screen.dart`), primeiro componente do Design System (`AppButton`), e banco local Drift/SQLite (`lib/database/`) com o schema inicial completo (`clients`, `projects`, `measurements`, `services`, `budgets`/`budget_items`, `app_settings`), exposto às telas via Riverpod (`lib/providers/database_provider.dart`). Falta para fechar a Fase 0: Crashlytics, e os demais componentes de Design System que a Fase 1 vai exigir (`AppTextField`, `AppCard`, `AppCurrencyInput` etc.). Ver `CHANGELOG.md` para o histórico exato.
+**Estado atual: Fase 1 em andamento.** Já feito: projeto Flutter criado (`applicationId` fixado), tema (light/dark, tokens Material 3 em `lib/theme/`), navegação (`go_router`, `lib/routing/`), banco local Drift/SQLite (`lib/database/`) com o schema inicial completo (`clients`, `projects`, `measurements`, `services`, `budgets`/`budget_items`, `app_settings`), estado/DI com Riverpod, design system básico e o primeiro módulo de negócio concreto: **Clientes** (repositório + listagem + formulário). Falta para completar a Fase 1: medições, lista de preços completa, orçamento e PDF. Ver `CHANGELOG.md` para o histórico exato.
 
 ## Documentos-fonte (ler antes de gerar módulos)
 
@@ -31,7 +31,7 @@ Três decisões do fundador que **substituem** o que está escrito nos documento
 
 | Fase | Conteúdo | Estado |
 |---|---|---|
-| **0 — Fundação mínima** (1 sprint) | Projeto Flutter, navegação, tokens de tema, componentes que o App #1 usa de fato, banco local (Drift), Crashlytics | 🔶 **quase pronta** — falta só Crashlytics e componentes restantes |
+| **0 — Fundação mínima** (1 sprint) | Projeto Flutter, navegação, tokens de tema, componentes que o App #1 usa de fato, banco local (Drift), Crashlytics | ✅ **concluída em grande parte** — já há banco, DI, design system base e início da Fase 1 |\n| **1 — O fluxo que vale dinheiro** (3–4 sprints) | Clientes → Medição → Lista de preços → Orçamento → PDF → Compartilhar. **Tudo local: sem conta, sem nuvem, sem billing** | 🔶 **em andamento** — Clientes iniciado |
 | **1 — O fluxo que vale dinheiro** (3–4 sprints) | Clientes → Medição → Lista de preços → Orçamento → PDF → Compartilhar. **Tudo local: sem conta, sem nuvem, sem billing** | |
 | **★ Validação** | 3–5 profissionais reais usando de verdade, antes de nuvem ou monetização | |
 | **2 — Conta e nuvem** (1–2 sprints) | Supabase, login anônimo→e-mail, sync push, backup | |

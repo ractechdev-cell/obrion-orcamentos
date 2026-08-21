@@ -1,0 +1,87 @@
+import 'package:drift/drift.dart';
+
+import '../database/database.dart';
+
+/// Repositório de clientes — camada de acesso a dados (ver CLAUDE.md,
+/// "Database — nunca abrir conexão própria"). Telas nunca falam com o
+/// banco direto; consomem este repositório injetado via Riverpod.
+class ClientsRepository {
+  ClientsRepository(this._db);
+
+  final AppDatabase _db;
+
+  /// Stream reativa de todos os clientes ativos (não deletados),
+  /// ordenados por nome — usado na lista da UI.
+  Stream<List<Client>> watchAll() {
+    return (_db.select(_db.clients)
+          ..where((c) => c.deletedAt.isNull())
+          ..orderBy([(c) => OrderingTerm.asc(c.name)]))
+        .watch();
+  }
+
+  /// Busca um cliente por ID (pode retornar nulo se deletado/inexistente).
+  Future<Client?> getById(String id) {
+    return (_db.select(_db.clients)..where((c) => c.id.equals(id))).getSingleOrNull();
+  }
+
+  /// Cria um novo cliente. Retorna o registro inserido (inclui id gerado).
+  Future<Client> create({
+    required String name,
+    String? phone,
+    String? address,
+    String? notes,
+  }) {
+    final now = DateTime.now();
+    return _db.into(_db.clients).insertReturning(
+          ClientsCompanion.insert(
+            name: name,
+            phone: Value(phone),
+            address: Value(address),
+            notes: Value(notes),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+  }
+
+  /// Atualiza campos do cliente. Retorna `true` se encontrou e atualizou.
+  Future<bool> update({
+    required String id,
+    String? name,
+    String? phone,
+    String? address,
+    String? notes,
+  }) async {
+    final now = DateTime.now();
+    final companion = ClientsCompanion(
+      name: name == null ? const Value.absent() : Value(name),
+      phone: phone == null ? const Value.absent() : Value(phone),
+      address: address == null ? const Value.absent() : Value(address),
+      notes: notes == null ? const Value.absent() : Value(notes),
+      updatedAt: Value(now),
+    );
+    final count = await (_db.update(_db.clients)..where((c) => c.id.equals(id))).write(companion);
+    return count > 0;
+  }
+
+  /// Exclusão lógica (soft delete) — define `deletedAt`. Não remove do
+  /// banco para permitir sincronização futura propagando a remoção.
+  Future<bool> softDelete(String id) async {
+    final count = await (_db.update(_db.clients)..where((c) => c.id.equals(id)))
+        .write(ClientsCompanion(deletedAt: Value(DateTime.now())));
+    return count > 0;
+  }
+
+  /// Busca clientes por termo (nome/telefone/endereço) — filtro local
+  /// para a lista da UI.
+  Future<List<Client>> search(String query) {
+    final term = '%$query%';
+    return (_db.select(_db.clients)
+          ..where((c) => c.deletedAt.isNull() &
+              (c.name.like(term) |
+                  c.phone.like(term) |
+                  c.address.like(term)))
+          ..orderBy([(c) => OrderingTerm.asc(c.name)]))
+        .get();
+  }
+}
