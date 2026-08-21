@@ -1,0 +1,9 @@
+{
+  "appdistribution": {
+    "service_account": "./service-account.json",
+    "android_artifact_type": "apk",
+    "android_artifact_path": "build/app/outputs/flutter-apk/app-debug.apk",
+    "groups": "testers",
+    "release_notes": "Build automático do Obrion Orçamentos via GitHub Actions"
+  }
+}
