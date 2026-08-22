@@ -104,6 +104,22 @@ void main() {
     expect(result.totals.discountCents, 2000);
   });
 
+  test('updateDetails saves notes and validUntil', () async {
+    final client = await clientsRepo.create(name: 'Bruno Encanador');
+    final budget = await budgetsRepo.create(clientId: client.id);
+    final validUntil = DateTime(2026, 12, 31);
+
+    await budgetsRepo.updateDetails(
+      budget.id,
+      notes: 'Pagamento em 2x',
+      validUntil: validUntil,
+    );
+
+    final result = await budgetsRepo.watchById(budget.id).first;
+    expect(result!.budget.notes, 'Pagamento em 2x');
+    expect(result.budget.validUntil, validUntil);
+  });
+
   test('soft delete excludes budget from watchByClient', () async {
     final client = await clientsRepo.create(name: 'Rafael Encanador');
     final budget = await budgetsRepo.create(clientId: client.id);

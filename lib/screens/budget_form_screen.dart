@@ -12,8 +12,10 @@ import '../repositories/budgets_repository.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_currency_input.dart';
+import '../widgets/app_date_picker.dart';
 import '../widgets/app_dialog.dart';
 import '../widgets/app_number_input.dart';
+import '../widgets/app_text_field.dart';
 import 'service_unit_label.dart';
 
 String statusLabel(BudgetStatus status) {
@@ -222,6 +224,61 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     );
   }
 
+  Future<void> _editDetails(Budget budget) async {
+    final notesController = TextEditingController(text: budget.notes ?? '');
+    DateTime? validUntil = budget.validUntil;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 24,
+            right: 24,
+            top: 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Detalhes do orçamento', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              AppTextField(
+                label: 'Observações',
+                hint: 'Condições de pagamento, prazo, garantia',
+                controller: notesController,
+                maxLines: 4,
+              ),
+              const SizedBox(height: 16),
+              AppDatePicker(
+                label: 'Válido até',
+                value: validUntil,
+                onChanged: (date) => setSheetState(() => validUntil = date),
+              ),
+              const SizedBox(height: 24),
+              AppButton(
+                label: 'Salvar',
+                onPressed: () async {
+                  final repo = ref.read(budgetsRepositoryProvider);
+                  final notes = notesController.text.trim();
+                  await repo.updateDetails(
+                    _budgetId!,
+                    notes: notes.isEmpty ? null : notes,
+                    validUntil: validUntil,
+                  );
+                  if (context.mounted) Navigator.of(context).pop();
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _advanceStatus(BudgetStatus current) async {
     final next = switch (current) {
       BudgetStatus.draft => BudgetStatus.sent,
@@ -291,6 +348,11 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                   icon: const Icon(Icons.share_outlined),
                   tooltip: 'Compartilhar PDF',
                 ),
+              IconButton(
+                onPressed: () => _editDetails(budget),
+                icon: const Icon(Icons.notes_outlined),
+                tooltip: 'Detalhes',
+              ),
               IconButton(
                 onPressed: () => _pickService(context),
                 icon: const Icon(Icons.add),

@@ -126,6 +126,23 @@ class BudgetsRepository {
     return count > 0;
   }
 
+  /// Atualiza observações e validade — texto que o profissional reaproveita
+  /// no PDF ("condições de pagamento", prazo, garantia).
+  Future<bool> updateDetails(
+    String budgetId, {
+    String? notes,
+    DateTime? validUntil,
+  }) async {
+    final count = await (_db.update(_db.budgets)..where((b) => b.id.equals(budgetId))).write(
+      BudgetsCompanion(
+        notes: Value(notes),
+        validUntil: Value(validUntil),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    return count > 0;
+  }
+
   /// Avança o status do orçamento em um toque — mecanismo de retenção
   /// central do produto (ver CLAUDE.md).
   Future<bool> updateStatus(String budgetId, BudgetStatus status) async {

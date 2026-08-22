@@ -27,7 +27,8 @@ void main() {
     );
 
     expect(find.text('Obrion Orçamentos'), findsOneWidget);
-    expect(find.text('Nenhum orçamento ainda.'), findsOneWidget);
+    expect(find.text('Novo Cliente'), findsOneWidget);
+    expect(find.text('Lista de Preços'), findsOneWidget);
   });
 
   testWidgets('Navigating to settings shows the settings screen',
@@ -46,7 +47,7 @@ void main() {
     await tester.tap(find.byTooltip('Configurações'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Configurações'), findsOneWidget);
+    expect(find.text('Seu perfil profissional'), findsOneWidget);
   });
 
   testWidgets('Light and dark themes both resolve without throwing',

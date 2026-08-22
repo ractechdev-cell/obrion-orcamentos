@@ -44,6 +44,63 @@ class BudgetsScreen extends ConsumerWidget {
 
   final String clientId;
 
+  Future<void> _openBudgetActions(BuildContext context, WidgetRef ref, Budget budget) async {
+    final repo = ref.read(budgetsRepositoryProvider);
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: const Text('Abrir orçamento'),
+              onTap: () => Navigator.of(context).pop('open'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.copy_outlined),
+              title: const Text('Duplicar como novo rascunho'),
+              onTap: () => Navigator.of(context).pop('duplicate'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline, color: Colors.red),
+              title: const Text('Excluir', style: TextStyle(color: Colors.red)),
+              onTap: () => Navigator.of(context).pop('delete'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!context.mounted || action == null) return;
+
+    if (action == 'open') {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => BudgetFormScreen(
+            clientId: clientId,
+            budgetId: budget.id,
+          ),
+        ),
+      );
+    } else if (action == 'duplicate') {
+      final duplicated = await repo.duplicate(budget.id);
+      if (context.mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => BudgetFormScreen(
+              clientId: clientId,
+              budgetId: duplicated.id,
+            ),
+          ),
+        );
+      }
+    } else if (action == 'delete') {
+      await repo.softDelete(budget.id);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final repo = ref.watch(budgetsRepositoryProvider);
@@ -87,14 +144,7 @@ class BudgetsScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final budget = budgets[index];
               return AppCard(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => BudgetFormScreen(
-                      clientId: clientId,
-                      budgetId: budget.id,
-                    ),
-                  ),
-                ),
+                onTap: () => _openBudgetActions(context, ref, budget),
                 child: Row(
                   children: [
                     Expanded(
@@ -124,7 +174,7 @@ class BudgetsScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right),
+                    const Icon(Icons.more_vert),
                   ],
                 ),
               );
