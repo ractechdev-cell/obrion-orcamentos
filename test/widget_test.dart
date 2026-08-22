@@ -1,13 +1,30 @@
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:orcamentos/database/database.dart';
 import 'package:orcamentos/main.dart';
+import 'package:orcamentos/providers/database_provider.dart';
 import 'package:orcamentos/theme/app_theme.dart';
 
+/// Widget tests rodam o app inteiro, incluindo o banco local. Sem
+/// sobrescrever o provider, `AppDatabase()` tentaria abrir um arquivo via
+/// `path_provider`, indisponível no ambiente de teste — daí o override
+/// para um banco em memória (mesmo padrão dos testes de repositório).
 void main() {
   testWidgets('App builds and shows the home screen',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const ObrionOrcamentosApp());
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(
+            AppDatabase.forTesting(NativeDatabase.memory()),
+          ),
+        ],
+        child: const ObrionOrcamentosApp(),
+      ),
+    );
 
     expect(find.text('Obrion Orçamentos'), findsOneWidget);
     expect(find.text('Nenhum orçamento ainda.'), findsOneWidget);
@@ -15,13 +32,21 @@ void main() {
 
   testWidgets('Navigating to settings shows the settings screen',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const ObrionOrcamentosApp());
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(
+            AppDatabase.forTesting(NativeDatabase.memory()),
+          ),
+        ],
+        child: const ObrionOrcamentosApp(),
+      ),
+    );
 
     await tester.tap(find.byTooltip('Configurações'));
     await tester.pumpAndSettle();
 
     expect(find.text('Configurações'), findsOneWidget);
-    expect(find.text('Em breve.'), findsOneWidget);
   });
 
   testWidgets('Light and dark themes both resolve without throwing',

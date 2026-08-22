@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/database.dart';
 import '../database/enums.dart';
+import '../pdf/budget_share_service.dart';
 import '../providers/budgets_repository_provider.dart';
+import '../providers/clients_repository_provider.dart';
+import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
 import '../repositories/budgets_repository.dart';
 import '../widgets/app_button.dart';
@@ -237,6 +240,26 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     await repo.updateStatus(_budgetId!, BudgetStatus.declined);
   }
 
+  Future<void> _shareBudget(BudgetWithItems data) async {
+    final clientsRepo = ref.read(clientsRepositoryProvider);
+    final profileRepo = ref.read(profileRepositoryProvider);
+
+    final client = await clientsRepo.getById(data.budget.clientId);
+    if (client == null) return;
+    final professional = await profileRepo.getProfile();
+
+    await BudgetShareService.shareAsPdf(
+      data: data,
+      client: client,
+      professional: professional,
+    );
+
+    if (data.budget.status == BudgetStatus.draft) {
+      final repo = ref.read(budgetsRepositoryProvider);
+      await repo.updateStatus(_budgetId!, BudgetStatus.sent);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_budgetId == null) {
@@ -245,28 +268,37 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
 
     final repo = ref.watch(budgetsRepositoryProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Orçamento'),
-        actions: [
-          IconButton(
-            onPressed: () => _pickService(context),
-            icon: const Icon(Icons.add),
-            tooltip: 'Adicionar item',
-          ),
-        ],
-      ),
-      body: StreamBuilder<BudgetWithItems?>(
-        stream: repo.watchById(_budgetId!),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData || snapshot.data == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final data = snapshot.data!;
-          final budget = data.budget;
-          final totals = data.totals;
+    return StreamBuilder<BudgetWithItems?>(
+      stream: repo.watchById(_budgetId!),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Orçamento')),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+        final data = snapshot.data!;
+        final budget = data.budget;
+        final totals = data.totals;
 
-          return Column(
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Orçamento'),
+            actions: [
+              if (data.items.isNotEmpty)
+                IconButton(
+                  onPressed: () => _shareBudget(data),
+                  icon: const Icon(Icons.share_outlined),
+                  tooltip: 'Compartilhar PDF',
+                ),
+              IconButton(
+                onPressed: () => _pickService(context),
+                icon: const Icon(Icons.add),
+                tooltip: 'Adicionar item',
+              ),
+            ],
+          ),
+          body: Column(
             children: [
               Expanded(
                 child: data.items.isEmpty
@@ -374,9 +406,9 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 ),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
