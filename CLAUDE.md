@@ -8,7 +8,9 @@ Guia para o Claude Code trabalhar neste repositório. Leia isto antes de gerar q
 
 Primeiro produto: **Obrion Orçamentos** (App #1) — medir, montar orçamento e enviar ao cliente por WhatsApp em poucos minutos. Próximos da fila: Obrion Materiais (#2), Obrion Diário (#3), Obrion Medições (#4), Obrion Calculadora (#5).
 
-**Estado atual: Fase 1 em andamento.** Já feito: projeto Flutter criado (`applicationId` fixado), tema (light/dark, tokens Material 3 em `lib/theme/`), navegação (`go_router`, `lib/routing/`), banco local Drift/SQLite (`lib/database/`) com o schema inicial completo (`clients`, `projects`, `measurements`, `services`, `budgets`/`budget_items`, `app_settings`), estado/DI com Riverpod, design system básico e o primeiro módulo de negócio concreto: **Clientes** (repositório + listagem + formulário). Falta para completar a Fase 1: medições, lista de preços completa, orçamento e PDF. Ver `CHANGELOG.md` para o histórico exato.
+**Estado atual: Fases 0 e 1 concluídas. Próxima parada: ★ Validação (3–5 profissionais reais usando antes de ir para nuvem/monetização).**
+
+Já feito: projeto Flutter (`applicationId` `br.com.ractech.obrion.orcamentos`), tema light/dark Material 3 (`lib/theme/`), navegação `go_router` (`lib/routing/`), banco local Drift/SQLite (`lib/database/`) com schema completo (`clients`, `projects`, `measurements`, `services`, `budgets`/`budget_items`, `app_settings`), DI com Riverpod, design system base (`lib/widgets/`), Crashlytics + Analytics inicializados no boot, e os módulos de negócio: **Clientes → Medições → Lista de Preços → Orçamentos** (criação, status rascunho→enviado→aceito/recusado, duplicação, soft delete) com geração de PDF e compartilhamento via `share_plus` (WhatsApp na ponta). Ver `CHANGELOG.md` para o histórico exato.
 
 ## Documentos-fonte (ler antes de gerar módulos)
 
@@ -31,13 +33,13 @@ Três decisões do fundador que **substituem** o que está escrito nos documento
 
 | Fase | Conteúdo | Estado |
 |---|---|---|
-| **0 — Fundação mínima** (1 sprint) | Projeto Flutter, navegação, tokens de tema, componentes que o App #1 usa de fato, banco local (Drift), Crashlytics | ✅ **concluída em grande parte** — já há banco, DI, design system base e início da Fase 1 |\n| **1 — O fluxo que vale dinheiro** (3–4 sprints) | Clientes → Medição → Lista de preços → Orçamento → PDF → Compartilhar. **Tudo local: sem conta, sem nuvem, sem billing** | 🔶 **em andamento** — Clientes, Medições, Lista de Preços e Orçamentos implementados; falta PDF/Compartilhar |
-| **1 — O fluxo que vale dinheiro** (3–4 sprints) | Clientes → Medição → Lista de preços → Orçamento → PDF → Compartilhar. **Tudo local: sem conta, sem nuvem, sem billing** | |
-| **★ Validação** | 3–5 profissionais reais usando de verdade, antes de nuvem ou monetização | |
-| **2 — Conta e nuvem** (1–2 sprints) | Supabase, login anônimo→e-mail, sync push, backup | |
-| **3 — Monetização** (1 sprint) | Play Billing, paywall por recurso. Sem ads | |
-| **4 — Publicar e medir** | Play Store, 30 dias lendo funil e retenção | |
-| **★ Extração do Core** | Ao construir o App #2, extrair o que comprovadamente repetiu | |
+| **0 — Fundação mínima** (1 sprint) | Projeto Flutter, navegação, tokens de tema, componentes que o App #1 usa de fato, banco local (Drift), Crashlytics | ✅ **concluída** |
+| **1 — O fluxo que vale dinheiro** (3–4 sprints) | Clientes → Medição → Lista de preços → Orçamento → PDF → Compartilhar. **Tudo local: sem conta, sem nuvem, sem billing** | ✅ **concluída** — fluxo completo, PDF, compartilhamento (WhatsApp), duplicar/excluir |
+| **★ Validação** | 3–5 profissionais reais usando de verdade, antes de nuvem ou monetização | ⏭️ **próxima** |
+| **2 — Conta e nuvem** (1–2 sprints) | Supabase, login anônimo→e-mail, sync push, backup | ⏸️ aguardando validação |
+| **3 — Monetização** (1 sprint) | Play Billing, paywall por recurso. Sem ads | ⏸️ aguardando validação |
+| **4 — Publicar e medir** | Play Store, 30 dias lendo funil e retenção | ⏸️ |
+| **★ Extração do Core** | Ao construir o App #2, extrair o que comprovadamente repetiu | ⏸️ |
 
 **Consequência prática para quem escreve código:** nas Fases 0 e 1 não existe Supabase, não existe AdMob, não existe Play Billing. Escrever em camadas limpas (repositórios atrás de interface, nenhuma tela falando com banco direto) para que a extração posterior seja mecânica — mas **não** criar abstração genérica para apps que ainda não existem.
 

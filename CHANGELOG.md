@@ -21,3 +21,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 - Repositório de clientes com CRUD local (`lib/repositories/clients_repository.dart`) e tela/listagem de clientes (`lib/screens/clients_screen.dart`, `lib/screens/client_form_screen.dart`) usando o banco local via Riverpod.
 - Testes do repositório de clientes (`test/repositories/clients_repository_test.dart`) cobrindo criação, soft delete e busca por nome/telefone/endereço.
 - Testes do banco local (`test/database/app_database_test.dart`) cobrindo inserção, dinheiro em centavos, status padrão do orçamento (`draft`) e geometria bruta da medição.
+- Geração de PDF (`lib/budget/budget_pdf.dart`, `printing`) e compartilhamento via `share_plus` (WhatsApp e outros apps).
+- Detalhes do orçamento (`lib/screens/budget_detail_screen.dart`) com totais, dados do cliente e origem na medição/projeto.
+- Duplicar orçamento (cria novo orçamento a partir de um existente, status `draft`) e excluir (soft delete via `deletedAt`) na listagem.
+- Home útil (`lib/screens/home_screen.dart`): atalhos para Clientes, Medições, Lista de Preços e Orçamentos, com contadores e último orçamento aberto.
+- Integração Firebase (Fase 0, item "CrashReporting"): `firebase_core`, `firebase_crashlytics`, `firebase_analytics`; inicialização no `main()` e interceptação de erros não tratados do Flutter (`FlutterError.onError` + `PlatformDispatcher.onError`) indo para o Crashlytics. Plugins Gradle `com.google.gms.google-services` e `com.google.firebase.crashlytics` aplicados; `google-services.json` do projeto Firebase `obrion-orcamentos` commitado. Sem `firebase_options.dart` ainda — só Android por ora (será necessário quando entrar iOS/web, via `flutterfire configure`).
