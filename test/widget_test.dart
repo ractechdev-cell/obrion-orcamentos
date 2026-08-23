@@ -31,10 +31,14 @@ void main() {
 
     expect(find.text('Obrion Orçamentos'), findsOneWidget);
     expect(find.text('Novo Cliente'), findsOneWidget);
-    expect(find.text('Lista de Preços'), findsOneWidget);
+    // Barra de navegação inferior com as 4 abas de primeiro nível.
+    expect(find.text('Início'), findsOneWidget);
+    expect(find.text('Clientes'), findsOneWidget);
+    expect(find.text('Preços'), findsOneWidget);
+    expect(find.text('Ajustes'), findsOneWidget);
   });
 
-  testWidgets('Navigating to settings shows the settings screen',
+  testWidgets('Tapping the Ajustes tab shows the settings screen',
       (WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -48,7 +52,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byTooltip('Configurações'));
+    await tester.tap(find.text('Ajustes'));
     await tester.pumpAndSettle();
 
     expect(find.text('Seu perfil profissional'), findsOneWidget);

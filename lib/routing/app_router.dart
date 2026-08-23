@@ -1,31 +1,20 @@
 import 'package:go_router/go_router.dart';
 
 import '../screens/client_form_screen.dart';
-import '../screens/clients_screen.dart';
-import '../screens/home_screen.dart';
+import '../screens/main_shell.dart';
 import '../screens/measurement_form_screen.dart';
 import '../screens/measurements_screen.dart';
-import '../screens/services_screen.dart';
-import '../screens/settings_screen.dart';
 import 'app_routes.dart';
 
-/// Esqueleto de navegação da Fase 0. Os módulos de negócio da Fase 1
-/// (Clientes, Medição, Lista de preços, Orçamento, PDF) entram aqui como
-/// novas rotas, sem precisar redesenhar esta estrutura.
+/// A raiz do app é a casca de navegação (`MainShell`, barra inferior com
+/// Início/Clientes/Preços/Ajustes) — só telas de detalhe continuam como
+/// rotas próprias, empilhadas por cima dela.
 final appRouter = GoRouter(
   initialLocation: AppRoutes.home,
   routes: [
     GoRoute(
       path: AppRoutes.home,
-      builder: (context, state) => const HomeScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.settings,
-      builder: (context, state) => const SettingsScreen(),
-    ),
-    GoRoute(
-      path: '/clients',
-      builder: (context, state) => const ClientsScreen(),
+      builder: (context, state) => const MainShell(),
     ),
     GoRoute(
       path: '/clients/new',
@@ -42,10 +31,6 @@ final appRouter = GoRouter(
       builder: (context, state) => MeasurementFormScreen(
         projectId: state.pathParameters['projectId']!,
       ),
-    ),
-    GoRoute(
-      path: AppRoutes.services,
-      builder: (context, state) => const ServicesScreen(),
     ),
   ],
 );

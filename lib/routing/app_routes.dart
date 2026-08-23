@@ -3,9 +3,9 @@
 class AppRoutes {
   const AppRoutes._();
 
+  /// Raiz do app — a casca de navegação (`MainShell`), não mais uma
+  /// tela isolada. Clientes/Preços/Ajustes viraram abas dela; ver
+  /// `main_shell.dart`.
   static const home = '/';
-  static const settings = '/settings';
-  static const clients = '/clients';
   static const clientNew = '/clients/new';
-  static const services = '/services';
 }
