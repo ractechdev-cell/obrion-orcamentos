@@ -14,6 +14,10 @@ import 'package:orcamentos/theme/app_theme.dart';
 /// para um banco em memória (mesmo padrão dos testes de repositório).
 /// `showUpgradeAlertProvider` também é desligado: `UpgradeAlert` faz uma
 /// chamada de rede real pra loja que fica pendente em ambiente de teste.
+///
+/// Banco em memória sempre começa sem onboarding visto, então todo teste
+/// passa primeiro pelas 3 telas de `OnboardingScreen` e toca "Pular" —
+/// mesmo caminho que a primeira abertura real do app segue.
 void main() {
   testWidgets('App builds and shows the home screen',
       (WidgetTester tester) async {
@@ -28,6 +32,9 @@ void main() {
         child: const ObrionOrcamentosApp(),
       ),
     );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pular'));
+    await tester.pumpAndSettle();
 
     expect(find.text('Obrion Orçamentos'), findsOneWidget);
     expect(find.text('Novo Cliente'), findsOneWidget);
@@ -51,6 +58,9 @@ void main() {
         child: const ObrionOrcamentosApp(),
       ),
     );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pular'));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Ajustes'));
     await tester.pumpAndSettle();

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/preferences_repository_provider.dart';
+import '../widgets/app_loading.dart';
 import 'clients_screen.dart';
 import 'home_screen.dart';
+import 'onboarding_screen.dart';
 import 'services_screen.dart';
 import 'settings_screen.dart';
 
@@ -12,20 +16,26 @@ import 'settings_screen.dart';
 /// via `Navigator.push`, cobrindo a barra — padrão comum do Flutter,
 /// sem precisar de rotas aninhadas do go_router para um app sem
 /// necessidade de deep link por aba.
-class MainShell extends StatefulWidget {
+///
+/// Na primeira abertura, mostra o onboarding (3 telas) antes da barra —
+/// ver `OnboardingScreen`.
+class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends ConsumerState<MainShell> {
   int _index = 0;
 
   /// Só a aba visitada é montada — evita disparar consultas ao banco
   /// (Clientes, Preços) ou chamadas de plataforma (Ajustes) de abas que
   /// o usuário nunca abriu nesta sessão.
   final _visited = {0};
+
+  /// `null` enquanto carrega, depois `true`/`false`.
+  bool? _onboardingSeen;
 
   static const _tabs = [
     HomeScreen(),
@@ -35,7 +45,30 @@ class _MainShellState extends State<MainShell> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _loadOnboardingState();
+  }
+
+  Future<void> _loadOnboardingState() async {
+    final seen = await ref.read(preferencesRepositoryProvider).getOnboardingSeen();
+    if (mounted) setState(() => _onboardingSeen = seen);
+  }
+
+  Future<void> _completeOnboarding() async {
+    await ref.read(preferencesRepositoryProvider).markOnboardingSeen();
+    if (mounted) setState(() => _onboardingSeen = true);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_onboardingSeen == null) {
+      return const Scaffold(body: AppLoading());
+    }
+    if (_onboardingSeen == false) {
+      return OnboardingScreen(onDone: _completeOnboarding);
+    }
+
     return Scaffold(
       body: IndexedStack(
         index: _index,

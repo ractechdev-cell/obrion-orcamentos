@@ -4,6 +4,9 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 
 ## [Unreleased]
 
+### Added
+- Onboarding de 3 telas na primeira abertura (`lib/screens/onboarding_screen.dart`): "Meça e cote rápido" / "Funciona sem internet" / "Tudo num toque só" — pensado pro público de baixa familiaridade digital que o CLAUDE.md descreve. Sempre pulável ("Pular" em qualquer tela) e nunca mostrado de novo depois da primeira vez (`PreferencesRepository.getOnboardingSeen`/`markOnboardingSeen`) — segue o princípio 5 do CLAUDE.md: nunca vira uma segunda barreira de entrada antes do login. `MainShell` virou `ConsumerStatefulWidget` pra checar a flag antes de montar a barra de navegação.
+
 ### Fixed
 - Criar um cliente novo (pelo CTA da Home ou pelo "+" da aba Clientes) agora leva direto pra tela de Orçamentos daquele cliente (`client_form_screen.dart`), em vez de só voltar pra tela anterior. A promessa da Home ("Comece um orçamento novo") não se completava de verdade: depois de criar o cliente a pessoa ficava parada, sem saber que "Orçamentos" existia escondido no menu do cliente. Editar um cliente existente continua só voltando, como antes.
 
