@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import '../providers/preferences_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../providers/theme_mode_provider.dart';
+import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_text_field.dart';
@@ -204,7 +205,7 @@ class _LogoPreview extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       clipBehavior: Clip.antiAlias,
       child: logoPath == null
