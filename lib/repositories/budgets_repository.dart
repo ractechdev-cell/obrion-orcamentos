@@ -54,6 +54,22 @@ class BudgetsRepository {
         .watch();
   }
 
+  /// Quantos orçamentos (de qualquer cliente) estão parados em "Enviado"
+  /// há 3 dias ou mais — mesma regra do chip "Aguardando há Xd" em
+  /// `budgets_screen.dart`, usada pelo resumo da Home (ver CLAUDE.md,
+  /// "Retenção precisa de mecanismo, não só de métrica"). Consulta única
+  /// (não reativa) — mesma razão de `ClientsRepository.countActive`.
+  Future<int> countAwaitingResponse() async {
+    final cutoff = DateTime.now().subtract(const Duration(days: 3));
+    final rows = await (_db.select(_db.budgets)
+          ..where((b) =>
+              b.status.equalsValue(BudgetStatus.sent) &
+              b.deletedAt.isNull() &
+              b.updatedAt.isSmallerOrEqualValue(cutoff)))
+        .get();
+    return rows.length;
+  }
+
   /// Observa um orçamento com seus itens.
   Stream<BudgetWithItems?> watchById(String id) {
     final budgetQuery = _db.select(_db.budgets)..where((b) => b.id.equals(id));

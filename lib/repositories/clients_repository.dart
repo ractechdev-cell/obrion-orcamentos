@@ -19,6 +19,15 @@ class ClientsRepository {
         .watch();
   }
 
+  /// Contagem de clientes ativos — usada no resumo da Home. Consulta
+  /// única (não reativa): o resumo não precisa atualizar em tempo real
+  /// enquanto a tela está aberta, então não vale manter mais um stream
+  /// do banco vivo pelo tempo todo só pra isso.
+  Future<int> countActive() async {
+    final rows = await (_db.select(_db.clients)..where((c) => c.deletedAt.isNull())).get();
+    return rows.length;
+  }
+
   /// Busca um cliente por ID (pode retornar nulo se deletado/inexistente).
   Future<Client?> getById(String id) {
     return (_db.select(_db.clients)..where((c) => c.id.equals(id))).getSingleOrNull();
