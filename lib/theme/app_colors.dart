@@ -4,7 +4,15 @@ import 'package:flutter/material.dart';
 /// visual do Obrion Orçamentos (ver docs/APP_FACTORY_CORE.md, "Identidade
 /// visual da família": cada app da linha tem sua própria cor de destaque).
 /// Trocar a marca deste app = trocar só este valor.
-const Color obrionSeed = Color(0xFF1565C0);
+///
+/// Âmbar de segurança (23/08/2026, revisão de tema) — não é escolha
+/// estética solta: é a cor do canteiro de obra (capacete, colete, cone,
+/// faixa zebrada), o que a torna reconhecível para o público de baixa
+/// familiaridade digital sem precisar aprender nada novo, e de alto
+/// contraste para leitura ao sol. Antes era um azul corporativo genérico
+/// — a mesma cor que a maioria dos apps concorrentes de orçamento de obra
+/// já usa (ver pesquisa de mercado no CLAUDE.md).
+const Color obrionSeed = Color(0xFFC2680A);
 
 /// success/warning têm o mesmo peso semântico de error na regra de tema do
 /// CLAUDE.md, mas o Material 3 ColorScheme só modela error nativamente —

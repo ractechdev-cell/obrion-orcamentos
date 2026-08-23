@@ -293,6 +293,12 @@ Focar no que erra silenciosamente e custa caro:
 - Teste manual de fluxo completo antes de cada release: criar cliente → medir → gerar orçamento → gerar PDF → compartilhar.
 - Ao alterar um módulo do Core, rodar regressão contra **todos** os apps que o consomem, não só o mais recente.
 
+### Revisão de tema (23/08/2026) — âmbar de segurança
+
+Pesquisa de mercado na Play Store (busca "orçamento obra whatsapp") mostrou dezenas de concorrentes diretos (Orça Na Mão, Profissa, ConstruCalc, Orçamento PRO, ORÇA AÍ, Prummo, ConstruFácil, Orça Rápido Whatsapp, entre outros) — a maioria usa azul corporativo genérico, a mesma cor que o Obrion usava (`0xFF1565C0`). Isso não é uma escolha de marca, é o "olhar padrão de app de utilidade", e não ajuda em nada a facilidade de aprendizado do público (baixa familiaridade digital, uso ao sol/poeira no canteiro, referência diária é o WhatsApp).
+
+**Decisão:** trocar a seed do Material 3 (`lib/theme/app_colors.dart`, `obrionSeed`) para um **âmbar de segurança** (`0xFFC2680A`). Justificativa: é a cor do próprio canteiro (capacete, colete, cone, faixa zebrada) — reconhecível sem exigir aprendizado novo — e de alto contraste para leitura ao sol. Como o app deriva toda a paleta (`ColorScheme.fromSeed`) de um único valor, a troca é cirúrgica: nenhuma tela ou widget referencia cor fora de `app_colors.dart`/`app_theme.dart`. Tokens semânticos (`success`/`warning`) mantidos como estão — já são acessíveis e não têm relação com a marca.
+
 ## Identidade visual da família
 
 Mesma forma-base de ícone e estilo de monograma em todos os apps; muda cor de destaque e monograma de 2 letras: Obrion Orçamentos (**Or**), Materiais (**Ma**), Diário (**Di**), Medições (**Me**), Calculadora (**Ca**). Login único dá acesso a todos os apps instalados da família. Cross-promotion só em momentos de baixa fricção (ex.: tela de sucesso pós-PDF), nunca interrompendo tarefa.
