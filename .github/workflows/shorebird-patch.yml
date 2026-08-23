@@ -1,0 +1,42 @@
+name: Shorebird Patch (Android)
+
+# Roda o build/publicação do patch OTA na nuvem em vez da máquina local —
+# evita o travamento do Gradle por falta de RAM que acontecia localmente.
+# Disparo manual: Actions -> Shorebird Patch (Android) -> Run workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Versão do release base a receber o patch (ex.: 0.1.0+2)"
+        required: true
+        type: string
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Shorebird CLI
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
+          echo "$HOME/.shorebird/bin" >> "$GITHUB_PATH"
+
+      - name: Publish patch
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+        run: |
+          # --allow-asset-diffs: a CI não tem terminal pra confirmar o prompt
+          # interativo "Continue anyway?" que aparece quando algum asset
+          # (ex.: fonte de ícones tree-shaken) muda entre releases — sempre
+          # autorizado aqui, já que nunca é uma mudança de segurança.
+          shorebird patch android \
+            --release-version="${{ inputs.release_version }}" \
+            --allow-asset-diffs
