@@ -40,6 +40,16 @@ class BudgetItemInput {
   final bool includesMaterial;
 }
 
+/// Orçamento com o nome do cliente já resolvido — usado na lista global
+/// de orçamentos (`BudgetsListScreen`), que cruza dados de dois
+/// repositórios diferentes.
+class BudgetWithClientName {
+  const BudgetWithClientName({required this.budget, required this.clientName});
+
+  final Budget budget;
+  final String clientName;
+}
+
 /// Repositório de orçamentos (ver CLAUDE.md, "Retenção precisa de
 /// mecanismo, não só de métrica" — status é o mecanismo central aqui).
 class BudgetsRepository {
@@ -53,6 +63,25 @@ class BudgetsRepository {
           ..where((b) => b.clientId.equals(clientId) & b.deletedAt.isNull())
           ..orderBy([(b) => OrderingTerm.desc(b.createdAt)]))
         .watch();
+  }
+
+  /// Observa todos os orçamentos de todos os clientes, do mais antigo pro
+  /// mais novo (ordem estável pra numeração sequencial na UI — ver
+  /// `BudgetsListScreen`), com o nome do cliente já resolvido.
+  Stream<List<BudgetWithClientName>> watchAllWithClientNames() {
+    return (_db.select(_db.budgets)
+          ..where((b) => b.deletedAt.isNull())
+          ..orderBy([(b) => OrderingTerm.asc(b.createdAt)]))
+        .watch()
+        .asyncMap((budgets) async {
+      final result = <BudgetWithClientName>[];
+      for (final budget in budgets) {
+        final client =
+            await (_db.select(_db.clients)..where((c) => c.id.equals(budget.clientId))).getSingleOrNull();
+        result.add(BudgetWithClientName(budget: budget, clientName: client?.name ?? 'Cliente removido'));
+      }
+      return result;
+    });
   }
 
   /// Quantos orçamentos (de qualquer cliente) estão parados em "Enviado"

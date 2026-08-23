@@ -38,8 +38,9 @@ void main() {
 
     expect(find.text('Obrion Orçamentos'), findsOneWidget);
     expect(find.text('Novo Cliente'), findsOneWidget);
-    // Barra de navegação inferior com as 4 abas de primeiro nível.
+    // Barra de navegação inferior com as 5 abas de primeiro nível.
     expect(find.text('Início'), findsOneWidget);
+    expect(find.text('Orçamentos'), findsOneWidget);
     expect(find.text('Clientes'), findsOneWidget);
     expect(find.text('Preços'), findsOneWidget);
     expect(find.text('Ajustes'), findsOneWidget);

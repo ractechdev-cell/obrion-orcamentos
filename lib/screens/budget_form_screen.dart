@@ -79,39 +79,59 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     final services = await servicesRepo.watchAll().first;
     if (!context.mounted) return;
 
-    final selected = await showModalBottomSheet<Service>(
+    // "Item avulso" sempre disponível, mesmo com a Lista de Preços vazia —
+    // sem isso, o "+" virava um beco sem saída (só uma mensagem, sem botão
+    // nenhum) pra quem ainda não cadastrou nenhum serviço.
+    const customItemSentinel = 'custom';
+    final selected = await showModalBottomSheet<Object>(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
       builder: (context) => SafeArea(
         child: SizedBox(
           height: MediaQuery.of(context).size.height * 0.6,
-          child: services.isEmpty
-              ? const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Text(
-                      'Nenhum serviço cadastrado.\nCadastre na Lista de Preços primeiro.',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: services.length,
-                  itemBuilder: (context, index) {
-                    final s = services[index];
-                    return ListTile(
-                      title: Text(s.name),
-                      subtitle: Text(serviceUnitLabel(s.unit)),
-                      onTap: () => Navigator.of(context).pop(s),
-                    );
-                  },
-                ),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.edit_note_outlined),
+                title: const Text('Item avulso'),
+                subtitle: const Text('Descrição livre, fora da lista de preços'),
+                onTap: () => Navigator.of(context).pop(customItemSentinel),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: services.isEmpty
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Text(
+                            'Nenhum serviço na Lista de Preços ainda.\nUse "Item avulso" acima ou cadastre um serviço na aba Preços.',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: services.length,
+                        itemBuilder: (context, index) {
+                          final s = services[index];
+                          return ListTile(
+                            title: Text(s.name),
+                            subtitle: Text(serviceUnitLabel(s.unit)),
+                            onTap: () => Navigator.of(context).pop(s),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );
 
-    if (selected != null && context.mounted) {
+    if (!context.mounted || selected == null) return;
+    if (selected == customItemSentinel) {
+      await _showAddCustomItemSheet(context);
+    } else if (selected is Service) {
       await _showAddItemSheet(context, selected);
     }
   }
@@ -176,6 +196,91 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                   if (context.mounted) Navigator.of(context).pop();
                 },
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Item que não está (ainda) na Lista de Preços — descrição livre em
+  /// vez de escolher um serviço pré-cadastrado.
+  Future<void> _showAddCustomItemSheet(BuildContext context) async {
+    final descriptionController = TextEditingController();
+    final quantityController = TextEditingController();
+    var unit = ServiceUnit.squareMeter;
+    int? priceCents;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 24,
+            right: 24,
+            top: 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Item avulso', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              AppTextField(
+                controller: descriptionController,
+                label: 'Descrição',
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<ServiceUnit>(
+                initialValue: unit,
+                decoration: const InputDecoration(labelText: 'Unidade'),
+                items: ServiceUnit.values
+                    .map((u) => DropdownMenuItem(value: u, child: Text(serviceUnitLabel(u))))
+                    .toList(),
+                onChanged: (val) {
+                  if (val != null) setSheetState(() => unit = val);
+                },
+              ),
+              const SizedBox(height: 16),
+              AppNumberInput(
+                label: 'Quantidade (${serviceUnitLabel(unit)})',
+                controller: quantityController,
+              ),
+              const SizedBox(height: 16),
+              AppCurrencyInput(
+                label: 'Preço unitário (R\$)',
+                onChangedCents: (cents) => priceCents = cents,
+              ),
+              const SizedBox(height: 24),
+              AppButton(
+                label: 'Adicionar item',
+                onPressed: () async {
+                  final description = descriptionController.text.trim();
+                  final quantity = double.tryParse(quantityController.text.replaceAll(',', '.'));
+                  if (description.isEmpty || quantity == null || quantity <= 0 || priceCents == null) {
+                    AppSnackBar.show(
+                      context,
+                      'Informe descrição, quantidade e preço válidos.',
+                      variant: AppSnackBarVariant.warning,
+                    );
+                    return;
+                  }
+                  final repo = ref.read(budgetsRepositoryProvider);
+                  await repo.addItem(
+                    _budgetId!,
+                    BudgetItemInput(
+                      description: description,
+                      unit: unit,
+                      quantity: quantity,
+                      unitPriceCents: priceCents!,
+                    ),
+                  );
+                  if (context.mounted) Navigator.of(context).pop();
+                },
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),

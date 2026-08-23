@@ -3,13 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/preferences_repository_provider.dart';
 import '../widgets/app_loading.dart';
+import 'budgets_list_screen.dart';
 import 'clients_screen.dart';
 import 'home_screen.dart';
 import 'onboarding_screen.dart';
 import 'services_screen.dart';
 import 'settings_screen.dart';
 
-/// Casca de navegação principal — barra inferior persistente com as 4
+/// Casca de navegação principal — barra inferior persistente com as 5
 /// seções de primeiro nível do app. Cada aba mantém seu próprio estado
 /// (posição de rolagem, busca em andamento) via `IndexedStack`; telas de
 /// detalhe (cliente, medição, orçamento) continuam empilhadas por cima
@@ -39,6 +40,7 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   static const _tabs = [
     HomeScreen(),
+    BudgetsListScreen(),
     ClientsScreen(),
     ServicesScreen(),
     SettingsScreen(),
@@ -88,6 +90,11 @@ class _MainShellState extends ConsumerState<MainShell> {
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
             label: 'Início',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.request_quote_outlined),
+            selectedIcon: Icon(Icons.request_quote),
+            label: 'Orçamentos',
           ),
           NavigationDestination(
             icon: Icon(Icons.groups_outlined),
