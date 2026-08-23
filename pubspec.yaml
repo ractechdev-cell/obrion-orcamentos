@@ -51,6 +51,8 @@ dependencies:
   firebase_analytics: ^11.4.4
   file_picker: ^12.0.0
   in_app_review: ^2.0.9
+  package_info_plus: ^10.2.1
+  shorebird_code_push: ^2.0.5
   upgrader: ^13.7.0
 dev_dependencies:
   flutter_test:

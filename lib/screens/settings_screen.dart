@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 import '../providers/preferences_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
@@ -31,11 +33,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String? _logoPath;
   bool _loading = true;
   bool _saving = false;
+  String? _versionLabel;
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
+    _loadVersionInfo();
+  }
+
+  /// Versão do build + número do patch OTA (Shorebird) atual, se houver —
+  /// pensado pra confirmar visualmente se um patch chegou de verdade
+  /// (a versão do app não muda com patch, só o número de patch muda).
+  Future<void> _loadVersionInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    var label = 'Versão ${info.version} (build ${info.buildNumber})';
+
+    try {
+      final updater = ShorebirdUpdater();
+      if (updater.isAvailable) {
+        final patch = await updater.readCurrentPatch();
+        label += patch == null ? ' · sem patch' : ' · patch ${patch.number}';
+      }
+    } catch (_) {
+      // Sem engine do Shorebird disponível (ex.: build fora do release
+      // do Shorebird) — mostra só a versão, sem quebrar a tela.
+    }
+
+    if (mounted) setState(() => _versionLabel = label);
   }
 
   Future<void> _loadProfile() async {
@@ -160,6 +185,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   selected: {themeMode},
                   onSelectionChanged: (selection) => _setThemeMode(selection.first),
                 ),
+                if (_versionLabel != null) ...[
+                  const SizedBox(height: AppSpacing.xl),
+                  Center(
+                    child: Text(
+                      _versionLabel!,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ],
               ],
             ),
     );
