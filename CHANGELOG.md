@@ -17,7 +17,11 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 ### Changed
 - R8/minificação desligada temporariamente em `android/app/build.gradle.kts` (release) — religar antes da Fase 4 (Play Store).
 
+- Rótulo visível ("Sugestões") no botão de carregar sugestões de serviço por ofício em `services_screen.dart` — antes era só um ícone na barra superior, sem texto, funcionalidade central do MVP fácil de nunca ser descoberta.
+- Feedback de confirmação (snackbar) ao salvar cliente, medição e serviço, e ao excluir serviço/orçamento — antes a tela só voltava em silêncio, sem indicar que a ação deu certo.
+
 ### Fixed
+- Cores de status/exclusão hardcoded (`Colors.red`, `Colors.green`) em `services_screen.dart` e `budgets_screen.dart` trocadas pelos tokens de tema (`colorScheme.error`, `context.semanticColors.success`) — violavam a regra de nunca hardcodar cor fora de `app_theme.dart`.
 - Busca em Clientes e Lista de Preços quebrava a reatividade da lista (usava `Stream.fromFuture(repository.search(...))`, que não atualiza sozinha); trocado por filtro client-side sobre a stream viva (`watchAll()`).
 - Erro de compilação em `budgets_screen.dart` (assinatura de `build` desatualizada após a conversão de `ConsumerWidget` para `ConsumerStatefulWidget` para suportar o filtro por status).
 - Estrutura inicial do repositório: documentação de planejamento (`docs/`), guia operacional para IA (`CLAUDE.md`), README, CI.

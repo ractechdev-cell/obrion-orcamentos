@@ -44,7 +44,12 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
       address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
       notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
     );
-    if (mounted) Navigator.of(context).pop();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cliente salvo.')),
+      );
+      Navigator.of(context).pop();
+    }
     if (mounted) setState(() => _saving = false);
   }
 

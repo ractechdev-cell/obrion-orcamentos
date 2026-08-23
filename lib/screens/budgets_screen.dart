@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../database/database.dart';
 import '../database/enums.dart';
 import '../providers/budgets_repository_provider.dart';
+import '../theme/app_semantic_colors.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_dialog.dart';
 import '../widgets/app_empty_state.dart';
@@ -32,7 +33,7 @@ Color _statusColor(BuildContext context, BudgetStatus status) {
     case BudgetStatus.sent:
       return colorScheme.primary;
     case BudgetStatus.accepted:
-      return Colors.green;
+      return context.semanticColors.success;
     case BudgetStatus.declined:
       return colorScheme.error;
   }
@@ -72,8 +73,8 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
               onTap: () => Navigator.of(context).pop('duplicate'),
             ),
             ListTile(
-              leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: const Text('Excluir', style: TextStyle(color: Colors.red)),
+              leading: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
+              title: Text('Excluir', style: TextStyle(color: Theme.of(context).colorScheme.error)),
               onTap: () => Navigator.of(context).pop('delete'),
             ),
           ],
@@ -114,6 +115,11 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
       );
       if (confirmed == true) {
         await repo.softDelete(budget.id);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Orçamento excluído.')),
+          );
+        }
       }
     }
   }

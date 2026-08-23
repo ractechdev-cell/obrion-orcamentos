@@ -57,7 +57,12 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
       widthMeters: 0.8,
       heightMeters: 2.1,
     );
-    if (mounted) Navigator.of(context).pop();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Medição salva.')),
+      );
+      Navigator.of(context).pop();
+    }
     if (mounted) setState(() => _saving = false);
   }
 

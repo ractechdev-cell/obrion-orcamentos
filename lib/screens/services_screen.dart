@@ -64,11 +64,12 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
       appBar: AppBar(
         title: const Text('Lista de Preços'),
         actions: [
-          IconButton(
+          TextButton.icon(
             onPressed: _populating ? null : () => _populateDefaults(context),
-            icon: const Icon(Icons.playlist_add),
-            tooltip: 'Carregar sugestões por ofício',
+            icon: const Icon(Icons.playlist_add, size: 20),
+            label: const Text('Sugestões'),
           ),
+          const SizedBox(width: 4),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -211,7 +212,12 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
       );
     }
 
-    if (mounted) Navigator.of(context).pop();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Serviço salvo.')),
+      );
+      Navigator.of(context).pop();
+    }
   }
 
   Future<void> _delete() async {
@@ -226,7 +232,12 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
     if (confirmed == true) {
       final repo = ref.read(servicesRepositoryProvider);
       await repo.softDelete(widget.service!.id);
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Serviço excluído.')),
+        );
+        Navigator.of(context).pop();
+      }
     }
   }
 
@@ -290,7 +301,7 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
                   if (widget.service != null) ... [
                     IconButton(
                       onPressed: _delete,
-                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
                       tooltip: 'Excluir serviço',
                     ),
                     const SizedBox(width: 12),
