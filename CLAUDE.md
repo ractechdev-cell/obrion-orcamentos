@@ -288,7 +288,7 @@ Funil de referência: `Instalou → Abriu → Começou orçamento → Criou orç
 Focar no que erra silenciosamente e custa caro:
 
 - **Unitários:** derivação de grandezas da medição, soma de orçamento com desconto, **arredondamento monetário**.
-- **Golden test do PDF** — o teste de maior retorno do projeto. O PDF é o que chega ao cliente final; quebra de layout é quebra de reputação do usuário.
+- **Teste de conteúdo do PDF** (`test/pdf/budget_pdf_content_test.dart`) — confere se cliente, itens, subtotal/desconto/total e observações vão certos pro PDF, via `lib/pdf/budget_pdf_content.dart` (o "que texto vai no PDF", separado de "como é desenhado"). Golden test visual pixel-a-pixel (o ideal, já que o PDF é o que chega ao cliente final) **não é viável no `flutter test` comum** — `Printing.raster` exige host de plataforma real (device/emulador via `integration_test`), trava indefinidamente em ambiente headless (confirmado 23/08/2026). Se um dia isso importar o suficiente pra justificar o custo de infra (emulador no CI), revisitar com `integration_test`.
 - **CI simples** (GitHub Actions) rodando `flutter analyze` + `flutter test` a cada push. Sem CI, "rodar regressão contra todos os apps" não acontece na prática.
 - Teste manual de fluxo completo antes de cada release: criar cliente → medir → gerar orçamento → gerar PDF → compartilhar.
 - Ao alterar um módulo do Core, rodar regressão contra **todos** os apps que o consomem, não só o mais recente.

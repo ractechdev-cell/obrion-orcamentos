@@ -6,27 +6,14 @@ import 'package:pdf/widgets.dart' as pw;
 import '../database/database.dart';
 import '../repositories/budgets_repository.dart';
 import '../repositories/profile_repository.dart';
-import '../screens/service_unit_label.dart';
-
-/// Formata centavos como "R$ 1.234,56". Formatação para R$ só na borda de
-/// apresentação — o dado continua `int` centavos até aqui (ver CLAUDE.md).
-String _formatCurrency(int cents) {
-  final reais = cents ~/ 100;
-  final centavos = (cents % 100).abs().toString().padLeft(2, '0');
-  final reaisFormatted = reais.toString().replaceAllMapped(
-        RegExp(r'\B(?=(\d{3})+(?!\d))'),
-        (match) => '.',
-      );
-  return 'R\$ $reaisFormatted,$centavos';
-}
-
-String _formatDate(DateTime date) =>
-    '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+import 'budget_pdf_content.dart';
 
 /// Gera o PDF de um orçamento — o produto que chega ao cliente final (ver
 /// CLAUDE.md, "Golden test do PDF": quebra de layout é quebra de
-/// reputação do usuário). O rodapé "Feito com Obrion" é canal de
-/// aquisição projetado, não marca d'água acidental.
+/// reputação do usuário). O texto exibido vem de [BudgetPdfContent]
+/// (testável sem renderizar/rasterizar nada); esta classe só monta a
+/// aparência visual em cima desse conteúdo. O rodapé "Feito com Obrion"
+/// é canal de aquisição projetado, não marca d'água acidental.
 class BudgetPdfGenerator {
   const BudgetPdfGenerator._();
 
@@ -36,27 +23,27 @@ class BudgetPdfGenerator {
     required ProfessionalProfile professional,
   }) async {
     final doc = pw.Document();
-    final totals = data.totals;
+    final content = BudgetPdfContent.fromData(data: data, client: client, professional: professional);
     final logo = await _loadLogo(professional.logoPath);
 
     doc.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
-        header: (context) => _buildHeader(professional, logo),
+        header: (context) => _buildHeader(content, logo),
         footer: (context) => _buildFooter(context),
         build: (context) => [
           pw.SizedBox(height: 16),
-          _buildClientInfo(client, data.budget.createdAt),
+          _buildClientInfo(content),
           pw.SizedBox(height: 24),
-          _buildItemsTable(data.items),
+          _buildItemsTable(content.items),
           pw.SizedBox(height: 16),
-          _buildTotals(totals.subtotalCents, totals.discountCents, totals.totalCents),
-          if (data.budget.notes != null && data.budget.notes!.isNotEmpty) ...[
+          _buildTotals(content),
+          if (content.notes != null) ...[
             pw.SizedBox(height: 24),
             pw.Text('Observações', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 4),
-            pw.Text(data.budget.notes!),
+            pw.Text(content.notes!),
           ],
         ],
       ),
@@ -75,7 +62,7 @@ class BudgetPdfGenerator {
     return pw.MemoryImage(await file.readAsBytes());
   }
 
-  static pw.Widget _buildHeader(ProfessionalProfile professional, pw.MemoryImage? logo) {
+  static pw.Widget _buildHeader(BudgetPdfContent content, pw.MemoryImage? logo) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -87,13 +74,13 @@ class BudgetPdfGenerator {
               pw.SizedBox(width: 12),
             ],
             pw.Text(
-              (professional.name?.isNotEmpty ?? false) ? professional.name! : 'Orçamento',
+              content.professionalName,
               style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
             ),
           ],
         ),
-        if (professional.phone?.isNotEmpty ?? false)
-          pw.Text(professional.phone!, style: const pw.TextStyle(fontSize: 11)),
+        if (content.professionalPhone != null)
+          pw.Text(content.professionalPhone!, style: const pw.TextStyle(fontSize: 11)),
         pw.Divider(),
       ],
     );
@@ -120,7 +107,7 @@ class BudgetPdfGenerator {
     );
   }
 
-  static pw.Widget _buildClientInfo(Client client, DateTime createdAt) {
+  static pw.Widget _buildClientInfo(BudgetPdfContent content) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
@@ -128,17 +115,17 @@ class BudgetPdfGenerator {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Text('Cliente', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            pw.Text(client.name),
-            if (client.phone?.isNotEmpty ?? false) pw.Text(client.phone!),
-            if (client.address?.isNotEmpty ?? false) pw.Text(client.address!),
+            pw.Text(content.clientName),
+            if (content.clientPhone != null) pw.Text(content.clientPhone!),
+            if (content.clientAddress != null) pw.Text(content.clientAddress!),
           ],
         ),
-        pw.Text('Data: ${_formatDate(createdAt)}'),
+        pw.Text('Data: ${content.dateFormatted}'),
       ],
     );
   }
 
-  static pw.Widget _buildItemsTable(List<BudgetItem> items) {
+  static pw.Widget _buildItemsTable(List<BudgetPdfItemLine> items) {
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
       columnWidths: const {
@@ -161,9 +148,9 @@ class BudgetPdfGenerator {
           pw.TableRow(
             children: [
               _cell(item.description),
-              _cell('${item.quantity} ${serviceUnitLabel(item.unit)}', align: pw.TextAlign.right),
-              _cell(_formatCurrency(item.unitPriceCents), align: pw.TextAlign.right),
-              _cell(_formatCurrency(item.totalCents), align: pw.TextAlign.right),
+              _cell(item.quantityAndUnit, align: pw.TextAlign.right),
+              _cell(item.unitPriceFormatted, align: pw.TextAlign.right),
+              _cell(item.totalFormatted, align: pw.TextAlign.right),
             ],
           ),
       ],
@@ -181,7 +168,7 @@ class BudgetPdfGenerator {
     );
   }
 
-  static pw.Widget _buildTotals(int subtotalCents, int discountCents, int totalCents) {
+  static pw.Widget _buildTotals(BudgetPdfContent content) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.end,
       children: [
@@ -189,15 +176,15 @@ class BudgetPdfGenerator {
           mainAxisAlignment: pw.MainAxisAlignment.end,
           children: [
             pw.Text('Subtotal: '),
-            pw.Text(_formatCurrency(subtotalCents)),
+            pw.Text(content.subtotalFormatted),
           ],
         ),
-        if (discountCents > 0)
+        if (content.discountFormatted != null)
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.end,
             children: [
               pw.Text('Desconto: '),
-              pw.Text('- ${_formatCurrency(discountCents)}'),
+              pw.Text('- ${content.discountFormatted}'),
             ],
           ),
         pw.SizedBox(height: 4),
@@ -206,7 +193,7 @@ class BudgetPdfGenerator {
           children: [
             pw.Text('Total: ', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
             pw.Text(
-              _formatCurrency(totalCents),
+              content.totalFormatted,
               style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
             ),
           ],

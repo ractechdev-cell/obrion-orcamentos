@@ -7,6 +7,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 ### Added
 - Editar e excluir cliente (antes só criava); editar, excluir e gerenciar múltiplos vãos (porta/janela, tipo e dimensões customizáveis) em medições, antes só um vão fixo hardcoded sem UI.
 - Compartilhar orçamento como imagem (PNG), além de PDF — escolha na hora de compartilhar (`BudgetShareService.shareAsImage`, via `printing`/`Printing.raster`).
+- Testes de conteúdo do PDF (`test/pdf/budget_pdf_content_test.dart`): conferem se cliente, itens, subtotal/desconto/total e observações vão certos pro PDF. Extraído `lib/pdf/budget_pdf_content.dart` do gerador — separa "que texto vai no PDF" de "como isso é desenhado", testável sem depender de renderização. **Nota:** golden test visual de verdade (pixel a pixel) não é viável no `flutter test` comum — `Printing.raster` exige um host de plataforma real (device/emulador via `integration_test`), que trava indefinidamente num ambiente headless. Decisão registrada em `CLAUDE.md`.
 - Confirmação antes de excluir cliente, serviço ou orçamento (`AppDialog.confirm` com estilo destrutivo em vermelho), em vez de exclusão direta ao toque.
 - Validadores de formulário centralizados (`lib/utils/validators.dart`: campo obrigatório, telefone, número positivo), substituindo lambdas duplicadas em cada tela.
 - Filtro por status (chips: Todos/Rascunho/Enviado/Aceito/Recusado) na listagem de orçamentos (`budgets_screen.dart`).
