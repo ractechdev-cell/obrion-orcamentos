@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../analytics/analytics_service.dart';
 import '../database/database.dart';
+import '../review/review_service.dart';
 import '../database/enums.dart';
 import '../pdf/budget_share_service.dart';
 import '../providers/budgets_repository_provider.dart';
@@ -339,6 +342,8 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     // `channel` (whatsapp/email/outro) pedido no CLAUDE.md com os dados
     // disponíveis hoje.
     AnalyticsService.trackEvent('budget_shared', {'format': formatParam});
+    // Momento de sucesso: acabou de compartilhar um orçamento de verdade.
+    unawaited(ReviewService.requestReviewIfAvailable());
 
     if (data.budget.status == BudgetStatus.draft) {
       final repo = ref.read(budgetsRepositoryProvider);
