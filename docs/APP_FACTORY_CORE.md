@@ -139,9 +139,12 @@ Os dois primeiros são os mais urgentes.
 
 **Responsabilidade:** tokens de cor, tipografia e espaçamento; suporte Light/Dark.
 
-**Expõe para os apps:**
-- Tokens: `primary`, `secondary`, `background`, `surface`, `text`, `error`, `success`, `warning`.
-- Trocar a identidade visual de um app = trocar os valores dos tokens, sem tocar em nenhuma tela.
+**O que é reutilizado entre apps (padrão da fábrica, 23/08/2026) — a arquitetura, não a cor:**
+- **Uma seed color por app** (`lib/theme/app_colors.dart`, `obrionSeed`) alimenta `ColorScheme.fromSeed` do Material 3, que deriva toda a paleta (primary/secondary/tertiary/surface, tons claro e escuro) automaticamente. Trocar a identidade visual de um app = trocar **um único valor**, sem tocar em nenhuma tela — nenhum widget referencia cor fora de `app_colors.dart`/`app_theme.dart`.
+- **Tokens semânticos** (`success`/`warning`, via `AppSemanticColors extends ThemeExtension`) cobrem o que o `ColorScheme` do Material 3 não modela nativamente. São neutros por natureza (verde/laranja de status), não carregam a marca — reutilizáveis tal como estão em qualquer app da família.
+- **Convenções de componente** (`AppTheme._build`): card outlined sem elevação (raio 12), botão com altura mínima 48, input preenchido sem borda visível (raio 8), diálogo com ação destrutiva em vermelho do `colorScheme.error`. Isso é o "jeito Obrion" de qualquer tela, independente da cor de marca.
+
+**O que é específico de cada app — a cor em si, e como escolhê-la:** cada app da família mantém sua própria cor de destaque (ver "Identidade visual da família" em `../CLAUDE.md`). A regra para escolher essa cor, não só para o Orçamentos: **a seed vem do universo visual do ofício daquele app, nunca de preferência estética solta.** Foi assim que o Orçamentos chegou no âmbar de segurança (capacete, colete, cone — o canteiro), em vez do azul corporativo genérico que a maioria dos concorrentes de orçamento de obra usa. Antes de fixar a seed de um novo app, perguntar: qual é o objeto/cor mais característico do ofício desse app, que o profissional já reconhece sem precisar aprender nada novo? Exemplos ilustrativos, a confirmar com a mesma pesquisa de mercado quando cada app for construído (não são decisão fechada): Materiais poderia puxar do concreto/aço do depósito; Diário poderia puxar do azul de planta baixa (aqui o azul faria sentido — é o único ofício da família onde essa cor tem lastro no próprio objeto de trabalho).
 
 ---
 

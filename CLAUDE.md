@@ -299,6 +299,8 @@ Pesquisa de mercado na Play Store (busca "orçamento obra whatsapp") mostrou dez
 
 **Decisão:** trocar a seed do Material 3 (`lib/theme/app_colors.dart`, `obrionSeed`) para um **âmbar de segurança** (`0xFFC2680A`). Justificativa: é a cor do próprio canteiro (capacete, colete, cone, faixa zebrada) — reconhecível sem exigir aprendizado novo — e de alto contraste para leitura ao sol. Como o app deriva toda a paleta (`ColorScheme.fromSeed`) de um único valor, a troca é cirúrgica: nenhuma tela ou widget referencia cor fora de `app_colors.dart`/`app_theme.dart`. Tokens semânticos (`success`/`warning`) mantidos como estão — já são acessíveis e não têm relação com a marca.
 
+Confirmado com o fundador (23/08/2026): a **arquitetura** do tema (uma seed → `ColorScheme.fromSeed`, tokens semânticos, convenções de componente) é o que vira padrão reutilizável entre os apps da família — não a cor em si. Cada app continua com sua própria cor de destaque, escolhida pelo mesmo método (grounded no ofício daquele app), conforme "Identidade visual da família" abaixo. Formalizado como módulo Core em `docs/APP_FACTORY_CORE.md` §8.
+
 ## Identidade visual da família
 
 Mesma forma-base de ícone e estilo de monograma em todos os apps; muda cor de destaque e monograma de 2 letras: Obrion Orçamentos (**Or**), Materiais (**Ma**), Diário (**Di**), Medições (**Me**), Calculadora (**Ca**). Login único dá acesso a todos os apps instalados da família. Cross-promotion só em momentos de baixa fricção (ex.: tela de sucesso pós-PDF), nunca interrompendo tarefa.
