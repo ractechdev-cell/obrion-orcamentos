@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -35,12 +37,13 @@ class BudgetPdfGenerator {
   }) async {
     final doc = pw.Document();
     final totals = data.totals;
+    final logo = await _loadLogo(professional.logoPath);
 
     doc.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
-        header: (context) => _buildHeader(professional),
+        header: (context) => _buildHeader(professional, logo),
         footer: (context) => _buildFooter(context),
         build: (context) => [
           pw.SizedBox(height: 16),
@@ -62,13 +65,32 @@ class BudgetPdfGenerator {
     return doc;
   }
 
-  static pw.Widget _buildHeader(ProfessionalProfile professional) {
+  /// Lê a logo do disco, se o profissional tiver uma configurada. Falha
+  /// silenciosamente (retorna null) se o arquivo não existir mais —
+  /// o PDF nunca pode travar por causa de um asset opcional.
+  static Future<pw.MemoryImage?> _loadLogo(String? logoPath) async {
+    if (logoPath == null || logoPath.isEmpty) return null;
+    final file = File(logoPath);
+    if (!await file.exists()) return null;
+    return pw.MemoryImage(await file.readAsBytes());
+  }
+
+  static pw.Widget _buildHeader(ProfessionalProfile professional, pw.MemoryImage? logo) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text(
-          (professional.name?.isNotEmpty ?? false) ? professional.name! : 'Orçamento',
-          style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
+          children: [
+            if (logo != null) ...[
+              pw.Container(height: 40, width: 40, child: pw.Image(logo, fit: pw.BoxFit.contain)),
+              pw.SizedBox(width: 12),
+            ],
+            pw.Text(
+              (professional.name?.isNotEmpty ?? false) ? professional.name! : 'Orçamento',
+              style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+            ),
+          ],
         ),
         if (professional.phone?.isNotEmpty ?? false)
           pw.Text(professional.phone!, style: const pw.TextStyle(fontSize: 11)),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/clients_repository_provider.dart';
+import '../utils/validators.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_text_field.dart';
 
@@ -59,14 +60,14 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
             AppTextField(
               controller: _nameController,
               label: 'Nome',
-              validator: (value) =>
-                  value == null || value.trim().isEmpty ? 'Informe o nome' : null,
+              validator: requiredValidator('o nome'),
             ),
             const SizedBox(height: 16),
             AppTextField(
               controller: _phoneController,
               label: 'Telefone',
               keyboardType: TextInputType.phone,
+              validator: phoneValidator,
             ),
             const SizedBox(height: 16),
             AppTextField(

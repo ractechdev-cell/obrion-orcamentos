@@ -18,6 +18,7 @@ class AppDialog {
     String cancelLabel = 'Cancelar',
     bool isDestructive = false,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -29,10 +30,20 @@ class AppDialog {
             variant: AppButtonVariant.secondary,
             onPressed: () => Navigator.of(context).pop(false),
           ),
-          AppButton(
-            label: confirmLabel,
-            onPressed: () => Navigator.of(context).pop(true),
-          ),
+          if (isDestructive)
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.error,
+                foregroundColor: colorScheme.onError,
+              ),
+              child: Text(confirmLabel),
+            )
+          else
+            AppButton(
+              label: confirmLabel,
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
         ],
       ),
     );

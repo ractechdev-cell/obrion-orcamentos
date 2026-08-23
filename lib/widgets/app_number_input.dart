@@ -18,6 +18,8 @@ class AppNumberInput extends StatelessWidget {
     this.enabled = true,
     this.allowDecimal = true,
     this.onChanged,
+    this.validator,
+    this.autovalidateMode,
   });
 
   final String? label;
@@ -28,6 +30,8 @@ class AppNumberInput extends StatelessWidget {
   final bool enabled;
   final bool allowDecimal;
   final ValueChanged<double?>? onChanged;
+  final FormFieldValidator<String>? validator;
+  final AutovalidateMode? autovalidateMode;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +41,8 @@ class AppNumberInput extends StatelessWidget {
       hint: hint,
       errorText: errorText,
       enabled: enabled,
+      validator: validator,
+      autovalidateMode: autovalidateMode,
       keyboardType: TextInputType.numberWithOptions(decimal: allowDecimal),
       inputFormatters: [
         if (allowDecimal)

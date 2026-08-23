@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../database/database.dart';
 import '../database/enums.dart';
 import '../providers/services_repository_provider.dart';
+import '../utils/validators.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_currency_input.dart';
+import '../widgets/app_dialog.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
@@ -57,9 +59,6 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
   @override
   Widget build(BuildContext context) {
     final repo = ref.watch(servicesRepositoryProvider);
-    final servicesAsync = _query.isEmpty
-        ? repo.watchAll()
-        : Stream<List<Service>>.fromFuture(repo.search(_query));
 
     return Scaffold(
       appBar: AppBar(
@@ -90,7 +89,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
           ),
           Expanded(
             child: StreamBuilder<List<Service>>(
-              stream: servicesAsync,
+              stream: repo.watchAll(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return const AppError(message: 'Erro ao carregar lista de preços.');
@@ -98,7 +97,12 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                 if (!snapshot.hasData) {
                   return const AppLoading();
                 }
-                final services = snapshot.data!;
+                // Filtro client-side — mantém reatividade
+                final allServices = snapshot.data!;
+                final services = _query.isEmpty
+                    ? allServices
+                    : allServices.where((s) => s.name.toLowerCase().contains(_query.toLowerCase())).toList();
+
                 if (services.isEmpty) {
                   return AppEmptyState(
                     message: 'Nenhum serviço cadastrado.',
@@ -212,9 +216,18 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
 
   Future<void> _delete() async {
     if (widget.service == null) return;
-    final repo = ref.read(servicesRepositoryProvider);
-    await repo.softDelete(widget.service!.id);
-    if (mounted) Navigator.of(context).pop();
+    final confirmed = await AppDialog.confirm(
+      context,
+      isDestructive: true,
+      title: 'Excluir serviço?',
+      message: 'Esta ação não pode ser desfeita.',
+      confirmLabel: 'Excluir',
+    );
+    if (confirmed == true) {
+      final repo = ref.read(servicesRepositoryProvider);
+      await repo.softDelete(widget.service!.id);
+      if (mounted) Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -236,7 +249,7 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
               AppTextField(
                 controller: _nameController,
                 label: 'Nome do serviço',
-                validator: (v) => v == null || v.trim().isEmpty ? 'Informe o nome' : null,
+                validator: requiredValidator('o nome'),
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<ServiceUnit>(

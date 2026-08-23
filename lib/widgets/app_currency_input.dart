@@ -46,6 +46,8 @@ class AppCurrencyInput extends StatefulWidget {
     this.errorText,
     this.enabled = true,
     this.controller,
+    this.validator,
+    this.autovalidateMode,
   });
 
   final String? label;
@@ -54,6 +56,8 @@ class AppCurrencyInput extends StatefulWidget {
   final String? errorText;
   final bool enabled;
   final TextEditingController? controller;
+  final FormFieldValidator<String>? validator;
+  final AutovalidateMode? autovalidateMode;
 
   @override
   State<AppCurrencyInput> createState() => _AppCurrencyInputState();
@@ -94,6 +98,8 @@ class _AppCurrencyInputState extends State<AppCurrencyInput> {
       hint: 'R\$ 0,00',
       errorText: widget.errorText,
       enabled: widget.enabled,
+      validator: widget.validator,
+      autovalidateMode: widget.autovalidateMode,
       keyboardType: const TextInputType.numberWithOptions(decimal: false),
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,

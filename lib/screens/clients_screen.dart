@@ -73,10 +73,6 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
   Widget build(BuildContext context) {
     final repository = ref.watch(clientsRepositoryProvider);
 
-    final clientsAsync = _query.isEmpty
-        ? repository.watchAll()
-        : Stream<List<Client>>.fromFuture(repository.search(_query));
-
     return Scaffold(
       appBar: AppBar(title: const Text('Clientes')),
       floatingActionButton: FloatingActionButton(
@@ -98,7 +94,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
           ),
           Expanded(
             child: StreamBuilder<List<Client>>(
-              stream: clientsAsync,
+              stream: repository.watchAll(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return const AppError(message: 'Falha ao carregar clientes.');
@@ -106,14 +102,28 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                 if (!snapshot.hasData) {
                   return const AppLoading();
                 }
-                final clients = snapshot.data!;
+                // Filtro client-side — mantém reatividade da Stream
+                final allClients = snapshot.data!;
+                final clients = _query.isEmpty
+                    ? allClients
+                    : allClients.where((c) {
+                        final query = _query.toLowerCase();
+                        return c.name.toLowerCase().contains(query) ||
+                            (c.phone?.toLowerCase().contains(query) ?? false) ||
+                            (c.address?.toLowerCase().contains(query) ?? false);
+                      }).toList();
+
                 if (clients.isEmpty) {
                   return AppEmptyState(
-                    message: 'Nenhum cliente cadastrado ainda.',
-                    actionLabel: 'Cadastrar cliente',
-                    onAction: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const ClientFormScreen()),
-                    ),
+                    message: _query.isEmpty
+                        ? 'Nenhum cliente cadastrado ainda.'
+                        : 'Nenhum cliente encontrado para "$_query".',
+                    actionLabel: _query.isEmpty ? 'Cadastrar cliente' : null,
+                    onAction: _query.isEmpty
+                        ? () => Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const ClientFormScreen()),
+                            )
+                        : null,
                   );
                 }
                 return ListView.separated(

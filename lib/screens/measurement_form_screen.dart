@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/enums.dart';
 import '../providers/measurements_repository_provider.dart';
+import '../utils/validators.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_number_input.dart';
@@ -20,14 +21,17 @@ class MeasurementFormScreen extends ConsumerStatefulWidget {
 class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  double? _length;
-  double? _width;
-  double? _height;
+  final _lengthController = TextEditingController();
+  final _widthController = TextEditingController();
+  final _heightController = TextEditingController();
   bool _saving = false;
 
   @override
   void dispose() {
     _nameController.dispose();
+    _lengthController.dispose();
+    _widthController.dispose();
+    _heightController.dispose();
     super.dispose();
   }
 
@@ -35,12 +39,17 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _saving = true);
     final repo = ref.read(measurementsRepositoryProvider);
+
+    final length = double.parse(_lengthController.text.replaceAll(',', '.'));
+    final width = double.parse(_widthController.text.replaceAll(',', '.'));
+    final height = double.parse(_heightController.text.replaceAll(',', '.'));
+
     final measurement = await repo.createMeasurement(
       projectId: widget.projectId,
       name: _nameController.text.trim(),
-      lengthMeters: _length!,
-      widthMeters: _width!,
-      heightMeters: _height!,
+      lengthMeters: length,
+      widthMeters: width,
+      heightMeters: height,
     );
     await repo.addOpening(
       measurementId: measurement.id,
@@ -64,26 +73,28 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
             AppTextField(
               controller: _nameController,
               label: 'Nome do cômodo',
-              validator: (value) =>
-                  value == null || value.trim().isEmpty ? 'Informe o nome' : null,
+              validator: requiredValidator('o nome'),
             ),
             const SizedBox(height: 16),
             AppNumberInput(
+              controller: _lengthController,
               label: 'Comprimento',
               suffixText: 'm',
-              onChanged: (value) => _length = value,
+              validator: positiveNumberValidator('o comprimento'),
             ),
             const SizedBox(height: 16),
             AppNumberInput(
+              controller: _widthController,
               label: 'Largura',
               suffixText: 'm',
-              onChanged: (value) => _width = value,
+              validator: positiveNumberValidator('a largura'),
             ),
             const SizedBox(height: 16),
             AppNumberInput(
+              controller: _heightController,
               label: 'Altura',
               suffixText: 'm',
-              onChanged: (value) => _height = value,
+              validator: positiveNumberValidator('a altura'),
             ),
             const SizedBox(height: 24),
             AppCard(

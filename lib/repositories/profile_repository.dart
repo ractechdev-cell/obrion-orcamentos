@@ -6,15 +6,18 @@ import '../database/database.dart';
 class _Keys {
   static const professionalName = 'professional_name';
   static const professionalPhone = 'professional_phone';
+  static const professionalLogoPath = 'professional_logo_path';
 }
 
 /// Nome e telefone do profissional, usados no cabeçalho do PDF de
-/// orçamento (ver CLAUDE.md, módulo PDF).
+/// orçamento (ver CLAUDE.md, módulo PDF). `logoPath` é o caminho absoluto
+/// do arquivo de logo salvo no diretório de documentos do app (opcional).
 class ProfessionalProfile {
-  const ProfessionalProfile({this.name, this.phone});
+  const ProfessionalProfile({this.name, this.phone, this.logoPath});
 
   final String? name;
   final String? phone;
+  final String? logoPath;
 }
 
 /// Repositório mínimo de perfil — persistência local em `app_settings`
@@ -30,14 +33,16 @@ class ProfileRepository {
     return ProfessionalProfile(
       name: map[_Keys.professionalName],
       phone: map[_Keys.professionalPhone],
+      logoPath: map[_Keys.professionalLogoPath],
     );
   }
 
-  Future<void> saveProfile({String? name, String? phone}) async {
+  Future<void> saveProfile({String? name, String? phone, String? logoPath}) async {
     await _db.batch((batch) {
       batch.insertAllOnConflictUpdate(_db.appSettings, [
         AppSettingsCompanion.insert(key: _Keys.professionalName, value: name ?? ''),
         AppSettingsCompanion.insert(key: _Keys.professionalPhone, value: phone ?? ''),
+        AppSettingsCompanion.insert(key: _Keys.professionalLogoPath, value: logoPath ?? ''),
       ]);
     });
   }

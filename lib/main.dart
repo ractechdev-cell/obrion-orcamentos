@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'providers/preferences_repository_provider.dart';
+import 'providers/theme_mode_provider.dart';
 import 'routing/app_router.dart';
 import 'theme/app_theme.dart';
 
@@ -21,17 +23,37 @@ void main() async {
   runApp(const ProviderScope(child: ObrionOrcamentosApp()));
 }
 
-class ObrionOrcamentosApp extends StatelessWidget {
+class ObrionOrcamentosApp extends ConsumerStatefulWidget {
   const ObrionOrcamentosApp({super.key});
 
   @override
+  ConsumerState<ObrionOrcamentosApp> createState() => _ObrionOrcamentosAppState();
+}
+
+class _ObrionOrcamentosAppState extends ConsumerState<ObrionOrcamentosApp> {
+  @override
+  void initState() {
+    super.initState();
+    _loadThemeMode();
+  }
+
+  Future<void> _loadThemeMode() async {
+    final repo = ref.read(preferencesRepositoryProvider);
+    final mode = await repo.getThemeMode();
+    if (mounted) {
+      ref.read(themeModeProvider.notifier).set(mode);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeModeProvider);
     return MaterialApp.router(
       title: 'Obrion Orçamentos',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       routerConfig: appRouter,
     );
   }

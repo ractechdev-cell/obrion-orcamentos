@@ -5,6 +5,15 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 ## [Unreleased]
 
 ### Added
+- Confirmação antes de excluir cliente, serviço ou orçamento (`AppDialog.confirm` com estilo destrutivo em vermelho), em vez de exclusão direta ao toque.
+- Validadores de formulário centralizados (`lib/utils/validators.dart`: campo obrigatório, telefone, número positivo), substituindo lambdas duplicadas em cada tela.
+- Filtro por status (chips: Todos/Rascunho/Enviado/Aceito/Recusado) na listagem de orçamentos (`budgets_screen.dart`).
+- Preferência de tema claro/escuro/sistema, persistida em `app_settings` (`lib/repositories/preferences_repository.dart`) e selecionável em Configurações; `main.dart` carrega a preferência salva no boot em vez de fixar `ThemeMode.system`.
+- Logo do profissional no cabeçalho do PDF de orçamento: seletor de imagem em Configurações (`file_picker`), arquivo salvo em `ApplicationDocumentsDirectory`, campo `logoPath` em `ProfileRepository`/`ProfessionalProfile`, renderizado em `budget_pdf_generator.dart` (falha silenciosa se o arquivo não existir mais).
+
+### Fixed
+- Busca em Clientes e Lista de Preços quebrava a reatividade da lista (usava `Stream.fromFuture(repository.search(...))`, que não atualiza sozinha); trocado por filtro client-side sobre a stream viva (`watchAll()`).
+- Erro de compilação em `budgets_screen.dart` (assinatura de `build` desatualizada após a conversão de `ConsumerWidget` para `ConsumerStatefulWidget` para suportar o filtro por status).
 - Estrutura inicial do repositório: documentação de planejamento (`docs/`), guia operacional para IA (`CLAUDE.md`), README, CI.
 - Scaffold do projeto Flutter do Obrion Orçamentos (App #1), com `applicationId`/bundle id `br.com.ractech.obrion.orcamentos`.
 - Tema do app (light/dark) com tokens Material 3 (`lib/theme/`: `app_colors`, `app_semantic_colors`, `app_spacing`, `app_theme`).

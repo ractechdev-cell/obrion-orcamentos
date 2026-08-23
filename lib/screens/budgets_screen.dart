@@ -5,6 +5,7 @@ import '../database/database.dart';
 import '../database/enums.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../widgets/app_card.dart';
+import '../widgets/app_dialog.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
@@ -39,10 +40,17 @@ Color _statusColor(BuildContext context, BudgetStatus status) {
 
 /// Lista de orçamentos de um cliente — status é o mecanismo de retenção
 /// central do produto (ver CLAUDE.md).
-class BudgetsScreen extends ConsumerWidget {
+class BudgetsScreen extends ConsumerStatefulWidget {
   const BudgetsScreen({super.key, required this.clientId});
 
   final String clientId;
+
+  @override
+  ConsumerState<BudgetsScreen> createState() => _BudgetsScreenState();
+}
+
+class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
+  BudgetStatus? _statusFilter;
 
   Future<void> _openBudgetActions(BuildContext context, WidgetRef ref, Budget budget) async {
     final repo = ref.read(budgetsRepositoryProvider);
@@ -79,7 +87,7 @@ class BudgetsScreen extends ConsumerWidget {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => BudgetFormScreen(
-            clientId: clientId,
+            clientId: widget.clientId,
             budgetId: budget.id,
           ),
         ),
@@ -90,19 +98,28 @@ class BudgetsScreen extends ConsumerWidget {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => BudgetFormScreen(
-              clientId: clientId,
+              clientId: widget.clientId,
               budgetId: duplicated.id,
             ),
           ),
         );
       }
     } else if (action == 'delete') {
-      await repo.softDelete(budget.id);
+      final confirmed = await AppDialog.confirm(
+        context,
+        isDestructive: true,
+        title: 'Excluir orçamento?',
+        message: 'Esta ação não pode ser desfeita.',
+        confirmLabel: 'Excluir',
+      );
+      if (confirmed == true) {
+        await repo.softDelete(budget.id);
+      }
     }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final repo = ref.watch(budgetsRepositoryProvider);
 
     return Scaffold(
@@ -110,14 +127,14 @@ class BudgetsScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => BudgetFormScreen(clientId: clientId),
+            builder: (_) => BudgetFormScreen(clientId: widget.clientId),
           ),
         ),
         tooltip: 'Novo orçamento',
         child: const Icon(Icons.add),
       ),
       body: StreamBuilder<List<Budget>>(
-        stream: repo.watchByClient(clientId),
+        stream: repo.watchByClient(widget.clientId),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const AppError(message: 'Falha ao carregar orçamentos.');
@@ -125,60 +142,112 @@ class BudgetsScreen extends ConsumerWidget {
           if (!snapshot.hasData) {
             return const AppLoading();
           }
-          final budgets = snapshot.data!;
-          if (budgets.isEmpty) {
-            return AppEmptyState(
-              message: 'Nenhum orçamento ainda.',
-              actionLabel: 'Criar orçamento',
-              onAction: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => BudgetFormScreen(clientId: clientId),
-                ),
-              ),
-            );
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: budgets.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final budget = budgets[index];
-              return AppCard(
-                onTap: () => _openBudgetActions(context, ref, budget),
+          final allBudgets = snapshot.data!;
+          // Filtro client-side por status
+          final budgets = _statusFilter == null
+              ? allBudgets
+              : allBudgets.where((b) => b.status == _statusFilter).toList();
+
+          return Column(
+            children: [
+              // Chips de filtro por status
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Orçamento ${budget.createdAt.day}/${budget.createdAt.month}/${budget.createdAt.year}',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: _statusColor(context, budget.status).withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              _statusLabel(budget.status),
-                              style: TextStyle(
-                                color: _statusColor(context, budget.status),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    FilterChip(
+                      label: const Text('Todos'),
+                      selected: _statusFilter == null,
+                      onSelected: (_) => setState(() => _statusFilter = null),
                     ),
-                    const Icon(Icons.more_vert),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('Rascunho'),
+                      selected: _statusFilter == BudgetStatus.draft,
+                      onSelected: (_) => setState(() => _statusFilter = BudgetStatus.draft),
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('Enviado'),
+                      selected: _statusFilter == BudgetStatus.sent,
+                      onSelected: (_) => setState(() => _statusFilter = BudgetStatus.sent),
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('Aceito'),
+                      selected: _statusFilter == BudgetStatus.accepted,
+                      onSelected: (_) => setState(() => _statusFilter = BudgetStatus.accepted),
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('Recusado'),
+                      selected: _statusFilter == BudgetStatus.declined,
+                      onSelected: (_) => setState(() => _statusFilter = BudgetStatus.declined),
+                    ),
                   ],
                 ),
-              );
-            },
+              ),
+              Expanded(
+                child: budgets.isEmpty
+                    ? AppEmptyState(
+                        message: _statusFilter == null
+                            ? 'Nenhum orçamento ainda.'
+                            : 'Nenhum orçamento ${_statusLabel(_statusFilter!).toLowerCase()}.',
+                        actionLabel: _statusFilter == null ? 'Criar orçamento' : null,
+                        onAction: _statusFilter == null
+                            ? () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => BudgetFormScreen(clientId: widget.clientId),
+                                  ),
+                                )
+                            : null,
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: budgets.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final budget = budgets[index];
+                          return AppCard(
+                            onTap: () => _openBudgetActions(context, ref, budget),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Orçamento ${budget.createdAt.day}/${budget.createdAt.month}/${budget.createdAt.year}',
+                                        style: Theme.of(context).textTheme.titleMedium,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: _statusColor(context, budget.status).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(999),
+                                        ),
+                                        child: Text(
+                                          _statusLabel(budget.status),
+                                          style: TextStyle(
+                                            color: _statusColor(context, budget.status),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(Icons.more_vert),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
           );
         },
       ),
