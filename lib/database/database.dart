@@ -9,6 +9,7 @@ import 'tables/app_settings_table.dart';
 import 'tables/budgets_table.dart';
 import 'tables/clients_table.dart';
 import 'tables/measurements_table.dart';
+import 'tables/payments_table.dart';
 import 'tables/projects_table.dart';
 import 'tables/services_table.dart';
 
@@ -28,6 +29,7 @@ part 'database.g.dart';
     Budgets,
     BudgetItems,
     AppSettings,
+    Payments,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -38,7 +40,22 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  /// v1 → v2: adiciona `payments` (controle de pagamentos, ver CLAUDE.md,
+  /// monetização). Primeira migração de verdade do app — instalações já
+  /// existentes (o celular do fundador) precisam disso pra não perder
+  /// dado nenhum ao ganhar a tabela nova; um `onCreate` sozinho só
+  /// resolveria instalações novas do zero.
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) => m.createAll(),
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.createTable(payments);
+          }
+        },
+      );
 
   static QueryExecutor _openConnection() {
     return driftDatabase(name: 'obrion_orcamentos');

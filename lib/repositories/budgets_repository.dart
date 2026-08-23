@@ -6,13 +6,15 @@ import '../database/database.dart';
 import '../database/enums.dart';
 import '../notifications/notification_service.dart';
 
-/// Orçamento completo com itens já carregados — usado na tela de detalhe
-/// e na duplicação (ver CLAUDE.md, "Duplicar orçamento anterior").
+/// Orçamento completo com itens e pagamentos já carregados — usado na
+/// tela de detalhe e na duplicação (ver CLAUDE.md, "Duplicar orçamento
+/// anterior").
 class BudgetWithItems {
-  const BudgetWithItems({required this.budget, required this.items});
+  const BudgetWithItems({required this.budget, required this.items, this.payments = const []});
 
   final Budget budget;
   final List<BudgetItem> items;
+  final List<Payment> payments;
 
   BudgetTotals get totals => BudgetTotals.fromItems(
         items: items
@@ -20,6 +22,18 @@ class BudgetWithItems {
             .toList(),
         discountCents: budget.discountCents,
       );
+
+  /// Soma de tudo já recebido contra este orçamento (ver CLAUDE.md,
+  /// "controle de pagamentos" — semente do plano Pro).
+  int get totalPaidCents => payments.fold(0, (sum, p) => sum + p.amountCents);
+
+  /// Nunca negativo — mesma regra de `BudgetTotals.totalCents` pra
+  /// desconto: receber mais do que o total não pode virar "pendente"
+  /// negativo na tela.
+  int get pendingCents {
+    final pending = totals.totalCents - totalPaidCents;
+    return pending < 0 ? 0 : pending;
+  }
 }
 
 /// Dado de entrada para criar/duplicar um item de orçamento — o total é
@@ -101,27 +115,31 @@ class BudgetsRepository {
     return rows.length;
   }
 
-  /// Observa um orçamento com seus itens.
+  /// Observa um orçamento com seus itens e pagamentos.
   ///
-  /// Combina duas streams de propósito — bug real corrigido aqui: um
+  /// Combina três streams de propósito — bug real corrigido aqui: um
   /// `.watchSingleOrNull()` só em cima de `budgets` (como era antes) só
   /// reage a mudanças na própria linha do orçamento (status, desconto,
-  /// notas). Adicionar/remover item escreve só em `budget_items`, uma
-  /// tabela que o Drift nunca via como dependência dessa stream (porque
-  /// o `asyncMap` que buscava os itens acontecia por fora do rastreamento
-  /// automático de tabelas) — o item entrava no banco certinho, mas a
-  /// tela nunca era avisada pra atualizar. `Rx.combineLatest2` observa as
-  /// duas tabelas de verdade, então qualquer mudança em uma delas
-  /// atualiza a tela.
+  /// notas). Adicionar/remover item ou pagamento escreve em tabelas
+  /// separadas que o Drift nunca via como dependência dessa stream
+  /// (porque o `asyncMap` que buscava esses dados acontecia por fora do
+  /// rastreamento automático de tabelas) — o dado entrava no banco
+  /// certinho, mas a tela nunca era avisada pra atualizar.
+  /// `Rx.combineLatest3` observa as três tabelas de verdade, então
+  /// qualquer mudança em uma delas atualiza a tela.
   Stream<BudgetWithItems?> watchById(String id) {
     final budgetStream = (_db.select(_db.budgets)..where((b) => b.id.equals(id))).watchSingleOrNull();
     final itemsStream = (_db.select(_db.budgetItems)
           ..where((i) => i.budgetId.equals(id) & i.deletedAt.isNull()))
         .watch();
+    final paymentsStream = (_db.select(_db.payments)
+          ..where((p) => p.budgetId.equals(id) & p.deletedAt.isNull())
+          ..orderBy([(p) => OrderingTerm.desc(p.createdAt)]))
+        .watch();
 
-    return Rx.combineLatest2(budgetStream, itemsStream, (budget, items) {
+    return Rx.combineLatest3(budgetStream, itemsStream, paymentsStream, (budget, items, payments) {
       if (budget == null) return null;
-      return BudgetWithItems(budget: budget, items: items);
+      return BudgetWithItems(budget: budget, items: items, payments: payments);
     });
   }
 

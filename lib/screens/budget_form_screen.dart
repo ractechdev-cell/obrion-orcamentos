@@ -10,9 +10,11 @@ import '../database/enums.dart';
 import '../pdf/budget_share_service.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
+import '../providers/payments_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
 import '../repositories/budgets_repository.dart';
+import '../theme/app_semantic_colors.dart';
 import '../utils/currency_format.dart';
 import '../widgets/app_bottom_sheet.dart';
 import '../widgets/app_button.dart';
@@ -299,6 +301,82 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     }
   }
 
+  /// Registra um pagamento recebido (ver CLAUDE.md, "controle de
+  /// pagamentos" — semente do plano Pro).
+  Future<void> _registerPayment(BuildContext context) async {
+    final notesController = TextEditingController();
+    int? amountCents;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 24,
+          right: 24,
+          top: 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Registrar pagamento', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            AppCurrencyInput(
+              label: 'Valor recebido (R\$)',
+              onChangedCents: (cents) => amountCents = cents,
+            ),
+            const SizedBox(height: 16),
+            AppTextField(
+              controller: notesController,
+              label: 'Observação (opcional)',
+              hint: 'Ex.: entrada, parcela 2',
+            ),
+            const SizedBox(height: 24),
+            AppButton(
+              label: 'Registrar',
+              onPressed: () async {
+                if (amountCents == null || amountCents! <= 0) {
+                  AppSnackBar.show(
+                    context,
+                    'Informe um valor válido.',
+                    variant: AppSnackBarVariant.warning,
+                  );
+                  return;
+                }
+                final notes = notesController.text.trim();
+                await ref.read(paymentsRepositoryProvider).create(
+                      budgetId: _budgetId!,
+                      amountCents: amountCents!,
+                      notes: notes.isEmpty ? null : notes,
+                    );
+                AnalyticsService.trackEvent('payment_registered');
+                if (context.mounted) {
+                  AppSnackBar.show(context, 'Pagamento registrado.');
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _removePayment(Payment payment) async {
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: 'Remover pagamento',
+      message: 'Remover o registro de ${formatCents(payment.amountCents)}?',
+      isDestructive: true,
+    );
+    if (confirmed == true) {
+      await ref.read(paymentsRepositoryProvider).softDelete(payment.id);
+    }
+  }
+
   Future<void> _editDiscount(int currentDiscountCents) async {
     int? newDiscount = currentDiscountCents;
     await showModalBottomSheet(
@@ -505,39 +583,74 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
               Expanded(
                 child: data.items.isEmpty
                     ? const Center(child: Text('Toque em + para adicionar itens.'))
-                    : ListView.separated(
+                    : ListView(
                         padding: const EdgeInsets.all(16),
-                        itemCount: data.items.length,
-                        separatorBuilder: (context, index) => const SizedBox(height: 8),
-                        itemBuilder: (context, index) {
-                          final item = data.items[index];
-                          return AppCard(
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(item.description),
-                                      Text(
-                                        '${item.quantity} ${serviceUnitLabel(item.unit)} × ${formatCents(item.unitPriceCents)}',
-                                        style: Theme.of(context).textTheme.bodySmall,
-                                      ),
-                                    ],
+                        children: [
+                          for (final item in data.items) ...[
+                            AppCard(
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(item.description),
+                                        Text(
+                                          '${item.quantity} ${serviceUnitLabel(item.unit)} × ${formatCents(item.unitPriceCents)}',
+                                          style: Theme.of(context).textTheme.bodySmall,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  formatCents(item.totalCents),
-                                  style: Theme.of(context).textTheme.titleMedium,
-                                ),
-                                IconButton(
-                                  onPressed: () => _removeItem(item),
-                                  icon: const Icon(Icons.delete_outline, size: 20),
-                                ),
-                              ],
+                                  Text(
+                                    formatCents(item.totalCents),
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                  IconButton(
+                                    onPressed: () => _removeItem(item),
+                                    icon: const Icon(Icons.delete_outline, size: 20),
+                                  ),
+                                ],
+                              ),
                             ),
-                          );
-                        },
+                            const SizedBox(height: 8),
+                          ],
+                          if (data.payments.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            Text('Pagamentos recebidos', style: Theme.of(context).textTheme.titleMedium),
+                            const SizedBox(height: 8),
+                            for (final payment in data.payments) ...[
+                              AppCard(
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(formatCents(payment.amountCents)),
+                                          Text(
+                                            [
+                                              '${payment.createdAt.day}/${payment.createdAt.month}/${payment.createdAt.year}',
+                                              if (payment.notes != null && payment.notes!.isNotEmpty) payment.notes!,
+                                            ].join(' · '),
+                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () => _removePayment(payment),
+                                      icon: const Icon(Icons.delete_outline, size: 20),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                            ],
+                          ],
+                        ],
                       ),
               ),
               Container(
@@ -579,6 +692,35 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                         ),
                       ],
                     ),
+                    if (data.items.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Recebido', style: Theme.of(context).textTheme.bodyMedium),
+                          Text(
+                            formatCents(data.totalPaidCents),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: context.semanticColors.success,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextButton(
+                            onPressed: () => _registerPayment(context),
+                            child: const Text('Registrar pagamento'),
+                          ),
+                          Text(
+                            'Pendente: ${formatCents(data.pendingCents)}',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     Row(
                       children: [

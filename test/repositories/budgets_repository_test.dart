@@ -4,16 +4,19 @@ import 'package:orcamentos/database/database.dart';
 import 'package:orcamentos/database/enums.dart';
 import 'package:orcamentos/repositories/budgets_repository.dart';
 import 'package:orcamentos/repositories/clients_repository.dart';
+import 'package:orcamentos/repositories/payments_repository.dart';
 
 void main() {
   late AppDatabase database;
   late ClientsRepository clientsRepo;
   late BudgetsRepository budgetsRepo;
+  late PaymentsRepository paymentsRepo;
 
   setUp(() {
     database = AppDatabase.forTesting(NativeDatabase.memory());
     clientsRepo = ClientsRepository(database);
     budgetsRepo = BudgetsRepository(database);
+    paymentsRepo = PaymentsRepository(database);
   });
 
   tearDown(() => database.close());
@@ -158,5 +161,61 @@ void main() {
 
     final budgets = await budgetsRepo.watchByClient(client.id).first;
     expect(budgets, isEmpty);
+  });
+
+  group('controle de pagamentos', () {
+    test('totalPaidCents soma os pagamentos e pendingCents nunca fica negativo', () async {
+      final client = await clientsRepo.create(name: 'Fernanda Pintora');
+      final budget = await budgetsRepo.create(clientId: client.id);
+      await budgetsRepo.addItem(
+        budget.id,
+        const BudgetItemInput(
+          description: 'Pintura',
+          unit: ServiceUnit.squareMeter,
+          quantity: 10,
+          unitPriceCents: 1000,
+        ),
+      ); // total: 10000
+
+      await paymentsRepo.create(budgetId: budget.id, amountCents: 4000, notes: 'Entrada');
+      var result = await budgetsRepo.watchById(budget.id).first;
+      expect(result!.totalPaidCents, 4000);
+      expect(result.pendingCents, 6000);
+
+      // Pagou mais do que o total — pendente não pode virar negativo.
+      await paymentsRepo.create(budgetId: budget.id, amountCents: 10000);
+      result = await budgetsRepo.watchById(budget.id).first;
+      expect(result!.totalPaidCents, 14000);
+      expect(result.pendingCents, 0);
+    });
+
+    test(
+        'watchById emits a new value when a payment is registered on an '
+        'already-open subscription (mesma classe de bug corrigida pra itens: '
+        'watchSingleOrNull() sozinho não observa a tabela payments)', () async {
+      final client = await clientsRepo.create(name: 'Regressão Pagamento');
+      final budget = await budgetsRepo.create(clientId: client.id);
+
+      final matcher = expectLater(
+        budgetsRepo.watchById(budget.id).map((data) => data?.totalPaidCents),
+        emitsInOrder([0, 5000]),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+      await paymentsRepo.create(budgetId: budget.id, amountCents: 5000);
+
+      await matcher.timeout(const Duration(seconds: 5));
+    });
+
+    test('softDelete remove um pagamento de watchByBudget', () async {
+      final client = await clientsRepo.create(name: 'Gustavo Gesseiro');
+      final budget = await budgetsRepo.create(clientId: client.id);
+      final payment = await paymentsRepo.create(budgetId: budget.id, amountCents: 3000);
+
+      await paymentsRepo.softDelete(payment.id);
+
+      final payments = await paymentsRepo.watchByBudget(budget.id).first;
+      expect(payments, isEmpty);
+    });
   });
 }
