@@ -51,6 +51,7 @@ dependencies:
   firebase_analytics: ^11.4.4
   file_picker: ^12.0.0
   in_app_review: ^2.0.9
+  upgrader: ^13.7.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

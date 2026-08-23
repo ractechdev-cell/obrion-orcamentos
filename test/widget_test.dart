@@ -12,6 +12,8 @@ import 'package:orcamentos/theme/app_theme.dart';
 /// sobrescrever o provider, `AppDatabase()` tentaria abrir um arquivo via
 /// `path_provider`, indisponível no ambiente de teste — daí o override
 /// para um banco em memória (mesmo padrão dos testes de repositório).
+/// `showUpgradeAlertProvider` também é desligado: `UpgradeAlert` faz uma
+/// chamada de rede real pra loja que fica pendente em ambiente de teste.
 void main() {
   testWidgets('App builds and shows the home screen',
       (WidgetTester tester) async {
@@ -21,6 +23,7 @@ void main() {
           appDatabaseProvider.overrideWithValue(
             AppDatabase.forTesting(NativeDatabase.memory()),
           ),
+          showUpgradeAlertProvider.overrideWithValue(false),
         ],
         child: const ObrionOrcamentosApp(),
       ),
@@ -39,6 +42,7 @@ void main() {
           appDatabaseProvider.overrideWithValue(
             AppDatabase.forTesting(NativeDatabase.memory()),
           ),
+          showUpgradeAlertProvider.overrideWithValue(false),
         ],
         child: const ObrionOrcamentosApp(),
       ),
