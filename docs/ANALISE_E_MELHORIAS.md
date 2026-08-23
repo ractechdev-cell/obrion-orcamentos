@@ -5,6 +5,8 @@
 **Objetivo:** apontar riscos, incoerências e lacunas antes de escrever a primeira linha de código — quando corrigir ainda é grátis.
 
 > **Status:** as três decisões estratégicas (R1, R2, R3) foram tomadas em 21/08/2026 e **já estão aplicadas** aos quatro documentos do projeto. Este arquivo permanece como registro do raciocínio — o *porquê* de cada mudança, que os documentos revisados não têm espaço para carregar. Ver resumo no final.
+>
+> **Atualização de 23/08/2026:** o fundador decidiu inserir uma Fase 1.5 (polimento interno — UI/UX, features, tela de login só de interface) entre a Fase 1 e a ★ Validação, e adotar atualização OTA via Shorebird em vez de reinstalação manual a cada build. Isso adia o início da validação com usuários externos, mas não contradiz R1: a disciplina é a mesma (produto antes de infraestrutura), só o fundador optou por polir mais antes de mostrar a terceiros. Ver `../CLAUDE.md`, decisões 4–6.
 
 ---
 

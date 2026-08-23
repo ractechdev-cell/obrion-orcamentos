@@ -8,7 +8,7 @@ Guia para o Claude Code trabalhar neste repositório. Leia isto antes de gerar q
 
 Primeiro produto: **Obrion Orçamentos** (App #1) — medir, montar orçamento e enviar ao cliente por WhatsApp em poucos minutos. Próximos da fila: Obrion Materiais (#2), Obrion Diário (#3), Obrion Medições (#4), Obrion Calculadora (#5).
 
-**Estado atual: Fases 0 e 1 concluídas. Próxima parada: ★ Validação (3–5 profissionais reais usando antes de ir para nuvem/monetização).**
+**Estado atual: Fases 0 e 1 concluídas. Fase 1.5 em andamento — polimento interno (UI/UX, features, tela de login local) testado pelo próprio fundador. Ninguém externo instala o app ainda; ★ Validação (3–5 profissionais reais) só começa depois do polimento.**
 
 Já feito: projeto Flutter (`applicationId` `br.com.ractech.obrion.orcamentos`), tema light/dark Material 3 (`lib/theme/`), navegação `go_router` (`lib/routing/`), banco local Drift/SQLite (`lib/database/`) com schema completo (`clients`, `projects`, `measurements`, `services`, `budgets`/`budget_items`, `app_settings`), DI com Riverpod, design system base (`lib/widgets/`), Crashlytics + Analytics inicializados no boot, e os módulos de negócio: **Clientes → Medições → Lista de Preços → Orçamentos** (criação, status rascunho→enviado→aceito/recusado, duplicação, soft delete) com geração de PDF e compartilhamento via `share_plus` (WhatsApp na ponta). Ver `CHANGELOG.md` para o histórico exato.
 
@@ -29,19 +29,28 @@ Três decisões do fundador que **substituem** o que está escrito nos documento
 2. **Paywall por recurso, não por volume.** O fluxo central é ilimitado no Free; paga-se por acabamento profissional (logo, PDF sem marca, histórico, backup, controle de pagamentos).
 3. **AdMob adiado.** Sem anúncios no MVP — vira diferencial na ficha da loja. Reavaliar só quando houver base de usuários que torne a receita não-trivial.
 
+### Decisões estratégicas tomadas (23/08/2026)
+
+Três decisões adicionais do fundador, que inserem uma fase entre a Fase 1 e a ★ Validação:
+
+4. **Polimento interno antes de validação externa.** Antes de recrutar os 3–5 profissionais da ★ Validação, o fundador conduz uma rodada fechada de UI/UX, features adicionais e caça a bugs, testando o app ele mesmo. Ninguém de fora instala o app nesta rodada.
+5. **Tela de login é só interface por enquanto.** Entra a tela/fluxo de login e perfil, mas **sem Supabase e sem conta real** — o app continua 100% local (ver "Local-first" abaixo). Autenticação de verdade (anônimo→e-mail) permanece na Fase 2, como já previsto; construir o login de verdade duas vezes seria retrabalho.
+6. **Distribuição por OTA (Shorebird), não reinstalação manual.** Durante o polimento (e depois, em produção), atualizações de código Dart chegam por patch OTA via [Shorebird](https://shorebird.dev) — sem passar pela Play Store nem pedir reinstalação. Reinstalar (novo APK/build) só quando a mudança exigir: plugin nativo novo/atualizado, mudança em `android/`/`ios/`, ou upgrade de versão do Flutter/engine. Substitui o fluxo atual de baixar um APK novo do Firebase App Distribution a cada mudança.
+
 ## Roadmap vigente
 
 | Fase | Conteúdo | Estado |
 |---|---|---|
 | **0 — Fundação mínima** (1 sprint) | Projeto Flutter, navegação, tokens de tema, componentes que o App #1 usa de fato, banco local (Drift), Crashlytics | ✅ **concluída** |
 | **1 — O fluxo que vale dinheiro** (3–4 sprints) | Clientes → Medição → Lista de preços → Orçamento → PDF → Compartilhar. **Tudo local: sem conta, sem nuvem, sem billing** | ✅ **concluída** — fluxo completo, PDF, compartilhamento (WhatsApp), duplicar/excluir |
-| **★ Validação** | 3–5 profissionais reais usando de verdade, antes de nuvem ou monetização | ⏭️ **próxima** |
+| **1.5 — Polimento interno** (sem prazo fixo) | UI/UX, features adicionais, tela de login/perfil (só interface — decisão 5), correção de bugs. Testado só pelo fundador | 🔄 **em andamento** |
+| **★ Validação** | 3–5 profissionais reais usando de verdade, antes de nuvem ou monetização | ⏸️ aguardando fim do polimento |
 | **2 — Conta e nuvem** (1–2 sprints) | Supabase, login anônimo→e-mail, sync push, backup | ⏸️ aguardando validação |
 | **3 — Monetização** (1 sprint) | Play Billing, paywall por recurso. Sem ads | ⏸️ aguardando validação |
 | **4 — Publicar e medir** | Play Store, 30 dias lendo funil e retenção | ⏸️ |
 | **★ Extração do Core** | Ao construir o App #2, extrair o que comprovadamente repetiu | ⏸️ |
 
-**Consequência prática para quem escreve código:** nas Fases 0 e 1 não existe Supabase, não existe AdMob, não existe Play Billing. Escrever em camadas limpas (repositórios atrás de interface, nenhuma tela falando com banco direto) para que a extração posterior seja mecânica — mas **não** criar abstração genérica para apps que ainda não existem.
+**Consequência prática para quem escreve código:** nas Fases 0, 1 e 1.5 não existe Supabase, não existe AdMob, não existe Play Billing — a tela de login da Fase 1.5 é interface e estado local, sem chamada de rede. Escrever em camadas limpas (repositórios atrás de interface, nenhuma tela falando com banco direto) para que a extração posterior seja mecânica — mas **não** criar abstração genérica para apps que ainda não existem.
 
 ## Princípios inegociáveis
 
@@ -155,6 +164,7 @@ Ao criar um app/módulo novo:
 | Camada | Tecnologia |
 |---|---|
 | Front-end | Flutter (Android primeiro, iOS depois sem reescrever) |
+| **Atualização OTA** | **Shorebird** — patch de código Dart sem passar pela loja (ver decisão 6). Reinstalação manual só quando algo nativo muda |
 | **State management / DI** | **Riverpod** (`flutter_riverpod`) — decisão tomada ao implementar o banco local; provider expõe o `AppDatabase` e, na Fase 1, os repositórios |
 | **Banco local (fonte da verdade)** | **Drift / SQLite**, via `drift_flutter` (`sqlite3_flutter_libs` está obsoleto — não usar) |
 | Backend/BaaS | Supabase (Auth, PostgreSQL, storage, RLS) — backup e sync, não dependência de execução |

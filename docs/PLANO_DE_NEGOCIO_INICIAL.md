@@ -163,6 +163,10 @@ Essa arquitetura tem dois efeitos diretos no negócio: (1) reduz o custo e o tem
 - Geração de PDF (logo, dados do profissional, cliente, serviços, total, condições, validade).
 - Compartilhamento (folha do sistema → WhatsApp/e-mail; PDF e imagem).
 
+**Fase 1.5 — Polimento interno** (revisão de 23/08/2026, sem prazo fixo)
+- UI/UX, features adicionais e uma tela de login/perfil (só interface, sem Supabase — ver `../CLAUDE.md`, decisão 5) construídas e testadas só pelo fundador, antes de qualquer instalação externa.
+- Distribuição passa a ser por patch OTA (Shorebird) em vez de reinstalar um APK a cada mudança — ver `../CLAUDE.md`, decisão 6.
+
 **★ Validação** — antes de qualquer nuvem ou monetização
 - 3 a 5 profissionais do público-alvo usando o app de verdade. É aqui que se descobre se a medição confunde, se o orçamento contém o que o cliente final precisa para aceitar, e se o preço faz sentido.
 

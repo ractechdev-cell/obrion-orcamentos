@@ -11,6 +11,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 - Preferência de tema claro/escuro/sistema, persistida em `app_settings` (`lib/repositories/preferences_repository.dart`) e selecionável em Configurações; `main.dart` carrega a preferência salva no boot em vez de fixar `ThemeMode.system`.
 - Logo do profissional no cabeçalho do PDF de orçamento: seletor de imagem em Configurações (`file_picker`), arquivo salvo em `ApplicationDocumentsDirectory`, campo `logoPath` em `ProfileRepository`/`ProfessionalProfile`, renderizado em `budget_pdf_generator.dart` (falha silenciosa se o arquivo não existir mais).
 
+- Roadmap revisado (`CLAUDE.md`, `docs/PLANO_DE_NEGOCIO_INICIAL.md`, `docs/ANALISE_E_MELHORIAS.md`): nova Fase 1.5 de polimento interno (UI/UX, features, tela de login só de interface) entre a Fase 1 e a ★ Validação, testada só pelo fundador; adoção de atualização OTA via Shorebird no lugar de reinstalação manual a cada build.
+
 ### Fixed
 - Busca em Clientes e Lista de Preços quebrava a reatividade da lista (usava `Stream.fromFuture(repository.search(...))`, que não atualiza sozinha); trocado por filtro client-side sobre a stream viva (`watchAll()`).
 - Erro de compilação em `budgets_screen.dart` (assinatura de `build` desatualizada após a conversão de `ConsumerWidget` para `ConsumerStatefulWidget` para suportar o filtro por status).
