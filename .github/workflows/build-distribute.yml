@@ -1,4 +1,4 @@
-name: Build & Distribute Debug APK
+name: Build & Distribute APK
 
 on:
   push:
@@ -30,8 +30,15 @@ jobs:
       - name: Run tests
         run: flutter test
 
-      - name: Build debug APK
-        run: flutter build apk --debug
+      # --release (não --debug): builds de debug do Flutter rodam com JIT +
+      # asserções de debug, o que deixa qualquer animação (inclusive o
+      # teclado abrindo) visivelmente mais lenta que num aparelho de
+      # verdade — não é bug do app, é como o modo debug funciona. O tipo
+      # de build "release" já está assinado com a chave de debug em
+      # android/app/build.gradle.kts (Fase 1.5, sem infra de assinatura
+      # de produção ainda), então funciona sem segredo novo.
+      - name: Build release APK
+        run: flutter build apk --release
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -43,7 +50,7 @@ jobs:
 
       - name: Upload to Firebase App Distribution
         run: |
-          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-debug.apk \
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
             --app "${{ secrets.FIREBASE_APP_ID }}" \
             --groups "teste-1" \
             --release-notes "Build automático do Obrion Orçamentos"

@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../budget/budget_calculations.dart';
 import '../database/database.dart';
@@ -101,13 +102,25 @@ class BudgetsRepository {
   }
 
   /// Observa um orçamento com seus itens.
+  ///
+  /// Combina duas streams de propósito — bug real corrigido aqui: um
+  /// `.watchSingleOrNull()` só em cima de `budgets` (como era antes) só
+  /// reage a mudanças na própria linha do orçamento (status, desconto,
+  /// notas). Adicionar/remover item escreve só em `budget_items`, uma
+  /// tabela que o Drift nunca via como dependência dessa stream (porque
+  /// o `asyncMap` que buscava os itens acontecia por fora do rastreamento
+  /// automático de tabelas) — o item entrava no banco certinho, mas a
+  /// tela nunca era avisada pra atualizar. `Rx.combineLatest2` observa as
+  /// duas tabelas de verdade, então qualquer mudança em uma delas
+  /// atualiza a tela.
   Stream<BudgetWithItems?> watchById(String id) {
-    final budgetQuery = _db.select(_db.budgets)..where((b) => b.id.equals(id));
-    return budgetQuery.watchSingleOrNull().asyncMap((budget) async {
+    final budgetStream = (_db.select(_db.budgets)..where((b) => b.id.equals(id))).watchSingleOrNull();
+    final itemsStream = (_db.select(_db.budgetItems)
+          ..where((i) => i.budgetId.equals(id) & i.deletedAt.isNull()))
+        .watch();
+
+    return Rx.combineLatest2(budgetStream, itemsStream, (budget, items) {
       if (budget == null) return null;
-      final items = await (_db.select(_db.budgetItems)
-            ..where((i) => i.budgetId.equals(id) & i.deletedAt.isNull()))
-          .get();
       return BudgetWithItems(budget: budget, items: items);
     });
   }

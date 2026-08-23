@@ -76,6 +76,37 @@ void main() {
     expect(result!.budget.status, BudgetStatus.accepted);
   });
 
+  test(
+      'watchById emits a new value when an item is added to an already-open '
+      'subscription (regression: adding an item silently failed to update '
+      'the screen — watchSingleOrNull() on budgets alone never noticed '
+      'writes to the separate budget_items table)', () async {
+    final client = await clientsRepo.create(name: 'Regressão Item');
+    final budget = await budgetsRepo.create(clientId: client.id);
+
+    final matcher = expectLater(
+      budgetsRepo.watchById(budget.id).map((data) => data?.items.length),
+      emitsInOrder([0, 1]),
+    );
+
+    // Dá tempo da subscription do expectLater se estabelecer antes do
+    // addItem — senão a primeira emissão (0 itens) pode ser perdida e a
+    // ordem esperada não bate.
+    await Future<void>.delayed(Duration.zero);
+
+    await budgetsRepo.addItem(
+      budget.id,
+      const BudgetItemInput(
+        description: 'Item de teste',
+        unit: ServiceUnit.unit,
+        quantity: 1,
+        unitPriceCents: 1000,
+      ),
+    );
+
+    await matcher.timeout(const Duration(seconds: 5));
+  });
+
   test('duplicates a budget with its items and discount', () async {
     final client = await clientsRepo.create(name: 'Carla Azulejista');
     final original = await budgetsRepo.create(clientId: client.id, notes: 'Reforma banheiro');
