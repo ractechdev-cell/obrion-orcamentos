@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:upgrader/upgrader.dart';
 
 import 'analytics/analytics_service.dart';
+import 'notifications/notification_service.dart';
 import 'providers/preferences_repository_provider.dart';
 import 'providers/theme_mode_provider.dart';
 import 'routing/app_router.dart';
@@ -44,6 +45,7 @@ class _ObrionOrcamentosAppState extends ConsumerState<ObrionOrcamentosApp> {
     super.initState();
     _loadThemeMode();
     AnalyticsService.trackEvent('app_open');
+    NotificationService.initialize();
   }
 
   Future<void> _loadThemeMode() async {

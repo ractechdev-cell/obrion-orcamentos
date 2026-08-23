@@ -14,6 +14,10 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Exigido pelo flutter_local_notifications (lembrete de orçamento
+        // aguardando resposta — ver CLAUDE.md, "Retenção precisa de
+        // mecanismo") a partir da versão atual do pacote.
+        isCoreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
@@ -29,6 +33,8 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Exigido pelo flutter_local_notifications.
+        multiDexEnabled = true
     }
 
     buildTypes {
@@ -53,4 +59,9 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Exigido pelo flutter_local_notifications (coreLibraryDesugaring acima).
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

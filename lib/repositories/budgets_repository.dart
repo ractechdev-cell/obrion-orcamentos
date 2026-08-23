@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import '../budget/budget_calculations.dart';
 import '../database/database.dart';
 import '../database/enums.dart';
+import '../notifications/notification_service.dart';
 
 /// Orçamento completo com itens já carregados — usado na tela de detalhe
 /// e na duplicação (ver CLAUDE.md, "Duplicar orçamento anterior").
@@ -168,6 +169,17 @@ class BudgetsRepository {
         updatedAt: Value(DateTime.now()),
       ),
     );
+    if (count > 0) {
+      // Lembrete local de "aguardando resposta" (ver CLAUDE.md,
+      // "Retenção precisa de mecanismo") — vive aqui, não em cada tela
+      // que chama updateStatus, pra nenhum call site esquecer de
+      // agendar/cancelar.
+      if (status == BudgetStatus.sent) {
+        await NotificationService.scheduleAwaitingResponseReminder(budgetId);
+      } else {
+        await NotificationService.cancelAwaitingResponseReminder(budgetId);
+      }
+    }
     return count > 0;
   }
 
@@ -176,6 +188,7 @@ class BudgetsRepository {
   Future<bool> softDelete(String id) async {
     final count = await (_db.update(_db.budgets)..where((b) => b.id.equals(id)))
         .write(BudgetsCompanion(deletedAt: Value(DateTime.now())));
+    if (count > 0) await NotificationService.cancelAwaitingResponseReminder(id);
     return count > 0;
   }
 

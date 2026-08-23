@@ -1,0 +1,42 @@
+name: Shorebird Release (Android)
+
+# Publica um release completo do Shorebird (obrigatório quando há mudança
+# nativa — plugin novo com Gradle/AndroidManifest alterados, não só Dart)
+# na nuvem em vez da máquina local, mesmo motivo do shorebird-patch.yml:
+# o build trava repetidamente por falta de RAM disponível localmente.
+# Disparo manual: Actions -> Shorebird Release (Android) -> Run workflow.
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Shorebird CLI
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
+          echo "$HOME/.shorebird/bin" >> "$GITHUB_PATH"
+
+      - name: Publish release
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+        # --artifact=apk: gera um APK instalável direto no aparelho (não só
+        # o AAB, que serve pra loja) — o mesmo formato usado nas releases
+        # locais anteriores (0.1.0+1) instaladas manualmente no celular.
+        run: shorebird release android --artifact=apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: warn
