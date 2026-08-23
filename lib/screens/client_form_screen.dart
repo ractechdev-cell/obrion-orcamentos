@@ -8,6 +8,7 @@ import '../widgets/app_button.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
+import 'budgets_screen.dart';
 
 /// Formulário de cliente — cria um novo ou edita um existente, conforme
 /// [clientId] seja nulo ou não.
@@ -80,13 +81,21 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         address: Value(address),
         notes: Value(notes),
       );
+      if (mounted) {
+        AppSnackBar.show(context, 'Cliente atualizado.');
+        Navigator.of(context).pop();
+      }
     } else {
-      await repository.create(name: name, phone: phone, address: address, notes: notes);
-    }
-
-    if (mounted) {
-      AppSnackBar.show(context, _isEditing ? 'Cliente atualizado.' : 'Cliente salvo.');
-      Navigator.of(context).pop();
+      final client = await repository.create(name: name, phone: phone, address: address, notes: notes);
+      // Continua direto pro orçamento — criar o cliente sozinho não
+      // completa a promessa da Home ("Comece um orçamento novo"); sem
+      // isso a pessoa fica sem saber que "Orçamentos" existe escondido
+      // no menu do cliente (ver CLAUDE.md, princípio 5, fricção mínima).
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => BudgetsScreen(clientId: client.id)),
+        );
+      }
     }
     if (mounted) setState(() => _saving = false);
   }
