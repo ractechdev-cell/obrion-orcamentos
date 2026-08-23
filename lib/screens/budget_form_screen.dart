@@ -9,6 +9,7 @@ import '../providers/clients_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
 import '../repositories/budgets_repository.dart';
+import '../widgets/app_bottom_sheet.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_currency_input.dart';
@@ -297,7 +298,25 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     await repo.updateStatus(_budgetId!, BudgetStatus.declined);
   }
 
-  Future<void> _shareBudget(BudgetWithItems data) async {
+  Future<void> _shareBudget(BuildContext context, BudgetWithItems data) async {
+    final format = await AppBottomSheet.showActions<BudgetShareFormat>(
+      context,
+      title: 'Compartilhar orçamento',
+      actions: const [
+        AppBottomSheetAction(
+          label: 'Como PDF',
+          value: BudgetShareFormat.pdf,
+          icon: Icons.picture_as_pdf_outlined,
+        ),
+        AppBottomSheetAction(
+          label: 'Como imagem',
+          value: BudgetShareFormat.image,
+          icon: Icons.image_outlined,
+        ),
+      ],
+    );
+    if (format == null || !context.mounted) return;
+
     final clientsRepo = ref.read(clientsRepositoryProvider);
     final profileRepo = ref.read(profileRepositoryProvider);
 
@@ -305,11 +324,11 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     if (client == null) return;
     final professional = await profileRepo.getProfile();
 
-    await BudgetShareService.shareAsPdf(
-      data: data,
-      client: client,
-      professional: professional,
-    );
+    if (format == BudgetShareFormat.pdf) {
+      await BudgetShareService.shareAsPdf(data: data, client: client, professional: professional);
+    } else {
+      await BudgetShareService.shareAsImage(data: data, client: client, professional: professional);
+    }
 
     if (data.budget.status == BudgetStatus.draft) {
       final repo = ref.read(budgetsRepositoryProvider);
@@ -344,9 +363,9 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
             actions: [
               if (data.items.isNotEmpty)
                 IconButton(
-                  onPressed: () => _shareBudget(data),
+                  onPressed: () => _shareBudget(context, data),
                   icon: const Icon(Icons.share_outlined),
-                  tooltip: 'Compartilhar PDF',
+                  tooltip: 'Compartilhar orçamento',
                 ),
               IconButton(
                 onPressed: () => _editDetails(budget),

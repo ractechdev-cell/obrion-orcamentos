@@ -5,6 +5,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 ## [Unreleased]
 
 ### Added
+- Editar e excluir cliente (antes só criava); editar, excluir e gerenciar múltiplos vãos (porta/janela, tipo e dimensões customizáveis) em medições, antes só um vão fixo hardcoded sem UI.
+- Compartilhar orçamento como imagem (PNG), além de PDF — escolha na hora de compartilhar (`BudgetShareService.shareAsImage`, via `printing`/`Printing.raster`).
 - Confirmação antes de excluir cliente, serviço ou orçamento (`AppDialog.confirm` com estilo destrutivo em vermelho), em vez de exclusão direta ao toque.
 - Validadores de formulário centralizados (`lib/utils/validators.dart`: campo obrigatório, telefone, número positivo), substituindo lambdas duplicadas em cada tela.
 - Filtro por status (chips: Todos/Rascunho/Enviado/Aceito/Recusado) na listagem de orçamentos (`budgets_screen.dart`).
