@@ -53,8 +53,10 @@ app.*.map.json
 *.keystore
 *.jks
 key.properties
-android/app/google-services.json
-ios/Runner/GoogleService-Info.plist
+# google-services.json/GoogleService-Info.plist NÃO são segredos: vão dentro do
+# binário do app de qualquer forma e são protegidos por regras de segurança do
+# Firebase, não por sigilo do arquivo (orientação oficial do Google é versionar
+# em apps mobile). Commitados deliberadamente — ver CLAUDE.md, 23/08/2026.
 
 # Firebase App Distribution
 service-account.json

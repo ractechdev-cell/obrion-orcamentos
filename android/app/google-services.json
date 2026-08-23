@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "295934233308",
+    "project_id": "obrion-orcamentos",
+    "storage_bucket": "obrion-orcamentos.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:295934233308:android:cbcd2b5c2886bf7e440219",
+        "android_client_info": {
+          "package_name": "br.com.ractech.obrion.orcamentos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvH6BdvDUjOJxiUPekE3jkLid8an6-f9k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
