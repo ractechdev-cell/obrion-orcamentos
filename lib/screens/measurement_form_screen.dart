@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../analytics/analytics_service.dart';
 import '../database/enums.dart';
 import '../providers/measurements_repository_provider.dart';
 import '../theme/app_radius.dart';
@@ -52,6 +53,7 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
       // porta. Continua 100% editável/removível na lista abaixo.
       _openings.add((type: OpeningType.door, widthMeters: 0.8, heightMeters: 2.1));
       _loading = false;
+      AnalyticsService.trackEvent('measurement_started');
     }
   }
 
@@ -121,6 +123,7 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
       measurementId = measurement.id;
     }
     await repo.replaceOpenings(measurementId: measurementId, openings: _openings);
+    if (!_isEditing) AnalyticsService.trackEvent('measurement_completed');
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

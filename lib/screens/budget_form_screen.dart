@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../analytics/analytics_service.dart';
 import '../database/database.dart';
 import '../database/enums.dart';
 import '../pdf/budget_share_service.dart';
@@ -55,6 +56,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     super.initState();
     _budgetId = widget.budgetId;
     if (_budgetId == null) {
+      AnalyticsService.trackEvent('create_budget');
       _createDraft();
     }
   }
@@ -62,6 +64,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
   Future<void> _createDraft() async {
     final repo = ref.read(budgetsRepositoryProvider);
     final budget = await repo.create(clientId: widget.clientId);
+    AnalyticsService.trackEvent('budget_created');
     if (mounted) {
       setState(() => _budgetId = budget.id);
     }
@@ -329,6 +332,13 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     } else {
       await BudgetShareService.shareAsImage(data: data, client: client, professional: professional);
     }
+    final formatParam = format == BudgetShareFormat.pdf ? 'pdf' : 'imagem';
+    AnalyticsService.trackEvent('pdf_generated', {'format': formatParam});
+    // Nota: a folha de compartilhamento do sistema (share_plus) não informa
+    // qual app o usuário escolheu — não dá pra registrar o parâmetro
+    // `channel` (whatsapp/email/outro) pedido no CLAUDE.md com os dados
+    // disponíveis hoje.
+    AnalyticsService.trackEvent('budget_shared', {'format': formatParam});
 
     if (data.budget.status == BudgetStatus.draft) {
       final repo = ref.read(budgetsRepositoryProvider);

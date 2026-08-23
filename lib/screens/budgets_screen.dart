@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/database.dart';
 import '../database/enums.dart';
+import '../analytics/analytics_service.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../theme/app_semantic_colors.dart';
 import '../widgets/app_card.dart';
@@ -95,6 +96,7 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
       );
     } else if (action == 'duplicate') {
       final duplicated = await repo.duplicate(budget.id);
+      AnalyticsService.trackEvent('budget_duplicated');
       if (context.mounted) {
         Navigator.of(context).push(
           MaterialPageRoute(

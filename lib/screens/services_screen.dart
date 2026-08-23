@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../analytics/analytics_service.dart';
 import '../database/database.dart';
 import '../database/enums.dart';
 import '../providers/services_repository_provider.dart';
@@ -202,6 +203,7 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
         includesMaterial: _includesMaterial,
         defaultNote: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
       );
+      AnalyticsService.trackEvent('price_list_item_created');
     } else {
       await repo.update(
         id: widget.service!.id,
