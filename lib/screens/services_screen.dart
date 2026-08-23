@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -204,11 +205,11 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
     } else {
       await repo.update(
         id: widget.service!.id,
-        name: _nameController.text.trim(),
-        unit: _unit,
-        defaultPriceCents: _priceCents,
-        includesMaterial: _includesMaterial,
-        defaultNote: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+        name: Value(_nameController.text.trim()),
+        unit: Value(_unit),
+        defaultPriceCents: Value(_priceCents),
+        includesMaterial: Value(_includesMaterial),
+        defaultNote: Value(_noteController.text.trim().isEmpty ? null : _noteController.text.trim()),
       );
     }
 

@@ -6,6 +6,7 @@ import '../providers/clients_repository_provider.dart';
 import '../providers/measurements_repository_provider.dart';
 import '../widgets/app_bottom_sheet.dart';
 import '../widgets/app_card.dart';
+import '../widgets/app_dialog.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
@@ -53,6 +54,13 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
       actions: const [
         AppBottomSheetAction(label: 'Medições', value: 'measurements', icon: Icons.straighten),
         AppBottomSheetAction(label: 'Orçamentos', value: 'budgets', icon: Icons.request_quote_outlined),
+        AppBottomSheetAction(label: 'Editar', value: 'edit', icon: Icons.edit_outlined),
+        AppBottomSheetAction(
+          label: 'Excluir',
+          value: 'delete',
+          icon: Icons.delete_outline,
+          isDestructive: true,
+        ),
       ],
     );
 
@@ -65,6 +73,32 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
         MaterialPageRoute(
           builder: (_) => BudgetsScreen(clientId: client.id),
         ),
+      );
+    } else if (action == 'edit') {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ClientFormScreen(clientId: client.id),
+        ),
+      );
+    } else if (action == 'delete') {
+      await _deleteClient(context, client);
+    }
+  }
+
+  Future<void> _deleteClient(BuildContext context, Client client) async {
+    final confirmed = await AppDialog.confirm(
+      context,
+      isDestructive: true,
+      title: 'Excluir ${client.name}?',
+      message: 'Esta ação não pode ser desfeita.',
+      confirmLabel: 'Excluir',
+    );
+    if (confirmed != true) return;
+    final repository = ref.read(clientsRepositoryProvider);
+    await repository.softDelete(client.id);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cliente excluído.')),
       );
     }
   }

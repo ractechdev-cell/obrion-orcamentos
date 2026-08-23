@@ -45,21 +45,24 @@ class ServicesRepository {
   }
 
   /// Atualiza as propriedades de um serviço.
+  /// Cada campo usa `Value<T>` (não `T?` cru) para distinguir "não mexer
+  /// neste campo" de "limpar o campo" (`Value(null)`) — ver mesma nota em
+  /// `ClientsRepository.update`.
   Future<bool> update({
     required String id,
-    String? name,
-    ServiceUnit? unit,
-    int? defaultPriceCents,
-    bool? includesMaterial,
-    String? defaultNote,
+    Value<String> name = const Value.absent(),
+    Value<ServiceUnit> unit = const Value.absent(),
+    Value<int?> defaultPriceCents = const Value.absent(),
+    Value<bool> includesMaterial = const Value.absent(),
+    Value<String?> defaultNote = const Value.absent(),
   }) async {
     final now = DateTime.now();
     final companion = ServicesCompanion(
-      name: name == null ? const Value.absent() : Value(name),
-      unit: unit == null ? const Value.absent() : Value(unit),
-      defaultPriceCents: defaultPriceCents == null ? const Value.absent() : Value(defaultPriceCents),
-      includesMaterial: includesMaterial == null ? const Value.absent() : Value(includesMaterial),
-      defaultNote: defaultNote == null ? const Value.absent() : Value(defaultNote),
+      name: name,
+      unit: unit,
+      defaultPriceCents: defaultPriceCents,
+      includesMaterial: includesMaterial,
+      defaultNote: defaultNote,
       updatedAt: Value(now),
     );
     final count = await (_db.update(_db.services)..where((s) => s.id.equals(id))).write(companion);

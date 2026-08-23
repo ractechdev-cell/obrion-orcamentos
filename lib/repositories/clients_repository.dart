@@ -45,19 +45,24 @@ class ClientsRepository {
   }
 
   /// Atualiza campos do cliente. Retorna `true` se encontrou e atualizou.
+  ///
+  /// Cada campo usa `Value<T>` (não `T?` cru) para distinguir "não mexer
+  /// neste campo" (`Value.absent()`, o padrão) de "limpar o campo"
+  /// (`Value(null)`) — com `T?` cru essas duas intenções colapsam em
+  /// `null` e o campo nunca é realmente apagado.
   Future<bool> update({
     required String id,
-    String? name,
-    String? phone,
-    String? address,
-    String? notes,
+    Value<String> name = const Value.absent(),
+    Value<String?> phone = const Value.absent(),
+    Value<String?> address = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
   }) async {
     final now = DateTime.now();
     final companion = ClientsCompanion(
-      name: name == null ? const Value.absent() : Value(name),
-      phone: phone == null ? const Value.absent() : Value(phone),
-      address: address == null ? const Value.absent() : Value(address),
-      notes: notes == null ? const Value.absent() : Value(notes),
+      name: name,
+      phone: phone,
+      address: address,
+      notes: notes,
       updatedAt: Value(now),
     );
     final count = await (_db.update(_db.clients)..where((c) => c.id.equals(id))).write(companion);

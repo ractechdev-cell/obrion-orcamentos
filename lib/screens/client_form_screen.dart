@@ -1,13 +1,15 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/clients_repository_provider.dart';
 import '../utils/validators.dart';
 import '../widgets/app_button.dart';
+import '../widgets/app_loading.dart';
 import '../widgets/app_text_field.dart';
 
-/// Formulário de cliente — criação/edição simples, ainda sem routing de
-/// detalhe/edição separado para acelerar a Fase 1.
+/// Formulário de cliente — cria um novo ou edita um existente, conforme
+/// [clientId] seja nulo ou não.
 class ClientFormScreen extends ConsumerStatefulWidget {
   const ClientFormScreen({super.key, this.clientId});
 
@@ -24,6 +26,32 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   final _addressController = TextEditingController();
   final _notesController = TextEditingController();
   bool _saving = false;
+  bool _loading = true;
+
+  bool get _isEditing => widget.clientId != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEditing) {
+      _loadClient();
+    } else {
+      _loading = false;
+    }
+  }
+
+  Future<void> _loadClient() async {
+    final repository = ref.read(clientsRepositoryProvider);
+    final client = await repository.getById(widget.clientId!);
+    if (!mounted) return;
+    if (client != null) {
+      _nameController.text = client.name;
+      _phoneController.text = client.phone ?? '';
+      _addressController.text = client.address ?? '';
+      _notesController.text = client.notes ?? '';
+    }
+    setState(() => _loading = false);
+  }
 
   @override
   void dispose() {
@@ -38,15 +66,26 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _saving = true);
     final repository = ref.read(clientsRepositoryProvider);
-    await repository.create(
-      name: _nameController.text.trim(),
-      phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
-      address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
-      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
-    );
+    final name = _nameController.text.trim();
+    final phone = _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim();
+    final address = _addressController.text.trim().isEmpty ? null : _addressController.text.trim();
+    final notes = _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
+
+    if (_isEditing) {
+      await repository.update(
+        id: widget.clientId!,
+        name: Value(name),
+        phone: Value(phone),
+        address: Value(address),
+        notes: Value(notes),
+      );
+    } else {
+      await repository.create(name: name, phone: phone, address: address, notes: notes);
+    }
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cliente salvo.')),
+        SnackBar(content: Text(_isEditing ? 'Cliente atualizado.' : 'Cliente salvo.')),
       );
       Navigator.of(context).pop();
     }
@@ -56,45 +95,47 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Novo cliente')),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            AppTextField(
-              controller: _nameController,
-              label: 'Nome',
-              validator: requiredValidator('o nome'),
+      appBar: AppBar(title: Text(_isEditing ? 'Editar cliente' : 'Novo cliente')),
+      body: _loading
+          ? const AppLoading()
+          : Form(
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  AppTextField(
+                    controller: _nameController,
+                    label: 'Nome',
+                    validator: requiredValidator('o nome'),
+                  ),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: _phoneController,
+                    label: 'Telefone',
+                    keyboardType: TextInputType.phone,
+                    validator: phoneValidator,
+                  ),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: _addressController,
+                    label: 'Endereço da obra',
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: _notesController,
+                    label: 'Observações',
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 24),
+                  AppButton(
+                    label: _isEditing ? 'Salvar alterações' : 'Salvar cliente',
+                    loading: _saving,
+                    onPressed: _saving ? null : _save,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            AppTextField(
-              controller: _phoneController,
-              label: 'Telefone',
-              keyboardType: TextInputType.phone,
-              validator: phoneValidator,
-            ),
-            const SizedBox(height: 16),
-            AppTextField(
-              controller: _addressController,
-              label: 'Endereço da obra',
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
-            AppTextField(
-              controller: _notesController,
-              label: 'Observações',
-              maxLines: 3,
-            ),
-            const SizedBox(height: 24),
-            AppButton(
-              label: 'Salvar cliente',
-              loading: _saving,
-              onPressed: _saving ? null : _save,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
