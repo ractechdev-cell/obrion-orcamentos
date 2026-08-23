@@ -2,18 +2,11 @@ import '../database/database.dart';
 import '../repositories/budgets_repository.dart';
 import '../repositories/profile_repository.dart';
 import '../screens/service_unit_label.dart';
+import '../utils/currency_format.dart';
 
 /// Formata centavos como "R$ 1.234,56". Formatação para R$ só na borda de
 /// apresentação — o dado continua `int` centavos até aqui (ver CLAUDE.md).
-String formatCurrencyForPdf(int cents) {
-  final reais = cents ~/ 100;
-  final centavos = (cents % 100).abs().toString().padLeft(2, '0');
-  final reaisFormatted = reais.toString().replaceAllMapped(
-        RegExp(r'\B(?=(\d{3})+(?!\d))'),
-        (match) => '.',
-      );
-  return 'R\$ $reaisFormatted,$centavos';
-}
+String formatCurrencyForPdf(int cents) => formatCurrencyBrl(cents);
 
 String formatDateForPdf(DateTime date) =>
     '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';

@@ -13,6 +13,7 @@ import '../providers/clients_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
 import '../repositories/budgets_repository.dart';
+import '../utils/currency_format.dart';
 import '../widgets/app_bottom_sheet.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_card.dart';
@@ -37,10 +38,7 @@ String statusLabel(BudgetStatus status) {
   }
 }
 
-String formatCents(int cents) {
-  final reais = (cents / 100).toStringAsFixed(2).replaceAll('.', ',');
-  return 'R\$ $reais';
-}
+String formatCents(int cents) => formatCurrencyBrl(cents);
 
 class BudgetFormScreen extends ConsumerStatefulWidget {
   const BudgetFormScreen({super.key, required this.clientId, this.budgetId});

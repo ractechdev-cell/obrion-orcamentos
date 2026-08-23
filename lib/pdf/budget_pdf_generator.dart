@@ -28,8 +28,20 @@ class BudgetPdfGenerator {
 
     doc.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        // Pinta o fundo da página de branco explicitamente — sem isso a
+        // página fica transparente, e o PNG gerado por "compartilhar como
+        // imagem" (Printing.raster) herda essa transparência. No WhatsApp
+        // com tema escuro isso vira um fundo preto atrás de texto preto:
+        // o cabeçalho da tabela ainda aparecia (tem fundo cinza próprio),
+        // mas as linhas de item ficavam invisíveis.
+        pageTheme: pw.PageTheme(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          buildBackground: (context) => pw.FullPage(
+            ignoreMargins: true,
+            child: pw.Container(color: PdfColors.white),
+          ),
+        ),
         header: (context) => _buildHeader(content, logo),
         footer: (context) => _buildFooter(context),
         build: (context) => [

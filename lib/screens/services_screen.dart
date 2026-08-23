@@ -6,6 +6,7 @@ import '../analytics/analytics_service.dart';
 import '../database/database.dart';
 import '../database/enums.dart';
 import '../providers/services_repository_provider.dart';
+import '../utils/currency_format.dart';
 import '../utils/validators.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_card.dart';
@@ -119,7 +120,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                   itemBuilder: (context, index) {
                     final s = services[index];
                     final priceText = s.defaultPriceCents != null
-                        ? 'R\$ ${(s.defaultPriceCents! / 100).toStringAsFixed(2).replaceAll('.', ',')}'
+                        ? formatCurrencyBrl(s.defaultPriceCents!)
                         : 'Preço não definido';
 
                     return AppCard(
