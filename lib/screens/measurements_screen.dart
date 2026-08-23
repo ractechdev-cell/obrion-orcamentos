@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../measurement/measurement_math.dart';
 import '../providers/measurements_repository_provider.dart';
 import '../repositories/measurements_repository.dart';
+import '../widgets/app_bottom_sheet.dart';
 import '../widgets/app_card.dart';
+import '../widgets/app_dialog.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
@@ -20,6 +22,46 @@ class MeasurementsScreen extends ConsumerStatefulWidget {
 }
 
 class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
+  Future<void> _openActions(BuildContext context, MeasurementWithDetails item) async {
+    final action = await AppBottomSheet.showActions<String>(
+      context,
+      title: item.measurement.name,
+      actions: const [
+        AppBottomSheetAction(label: 'Editar', value: 'edit', icon: Icons.edit_outlined),
+        AppBottomSheetAction(label: 'Excluir', value: 'delete', icon: Icons.delete_outline, isDestructive: true),
+      ],
+    );
+    if (!context.mounted || action == null) return;
+
+    if (action == 'edit') {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => MeasurementFormScreen(
+            projectId: widget.projectId,
+            measurementId: item.measurement.id,
+          ),
+        ),
+      );
+    } else if (action == 'delete') {
+      final confirmed = await AppDialog.confirm(
+        context,
+        isDestructive: true,
+        title: 'Excluir ${item.measurement.name}?',
+        message: 'Esta ação não pode ser desfeita.',
+        confirmLabel: 'Excluir',
+      );
+      if (confirmed == true) {
+        final repo = ref.read(measurementsRepositoryProvider);
+        await repo.softDeleteMeasurement(item.measurement.id);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Medição excluída.')),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final repository = ref.watch(measurementsRepositoryProvider);
@@ -69,6 +111,7 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
               );
 
               return AppCard(
+                onTap: () => _openActions(context, item),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

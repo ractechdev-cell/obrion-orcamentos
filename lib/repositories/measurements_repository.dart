@@ -69,6 +69,18 @@ class MeasurementsRepository {
     });
   }
 
+  /// Busca uma medição e seus vãos por ID (para carregar o formulário de
+  /// edição). Retorna `null` se não existir/estiver deletada.
+  Future<MeasurementWithDetails?> getById(String id) async {
+    final measurement = await (_db.select(_db.measurements)..where((m) => m.id.equals(id)))
+        .getSingleOrNull();
+    if (measurement == null) return null;
+    final openings = await (_db.select(_db.measurementOpenings)
+          ..where((o) => o.measurementId.equals(id) & o.deletedAt.isNull()))
+        .get();
+    return MeasurementWithDetails(measurement: measurement, openings: openings);
+  }
+
   /// Cria uma medição de cômodo (comprimento, largura, altura) bruta.
   Future<Measurement> createMeasurement({
     required String projectId,
@@ -91,6 +103,26 @@ class MeasurementsRepository {
         );
   }
 
+  /// Atualiza a geometria bruta de um cômodo já medido.
+  Future<bool> updateMeasurement({
+    required String id,
+    Value<String> name = const Value.absent(),
+    Value<double> lengthMeters = const Value.absent(),
+    Value<double> widthMeters = const Value.absent(),
+    Value<double> heightMeters = const Value.absent(),
+  }) async {
+    final now = DateTime.now();
+    final companion = MeasurementsCompanion(
+      name: name,
+      lengthMeters: lengthMeters,
+      widthMeters: widthMeters,
+      heightMeters: heightMeters,
+      updatedAt: Value(now),
+    );
+    final count = await (_db.update(_db.measurements)..where((m) => m.id.equals(id))).write(companion);
+    return count > 0;
+  }
+
   /// Adiciona um vão (porta/janela) a um cômodo medido.
   Future<MeasurementOpening> addOpening({
     required String measurementId,
@@ -109,6 +141,33 @@ class MeasurementsRepository {
             updatedAt: Value(now),
           ),
         );
+  }
+
+  /// Substitui todos os vãos de um cômodo pela lista informada — mais
+  /// simples e igualmente correto que fazer diff (vão não tem histórico
+  /// próprio que valha a pena preservar entre edições).
+  Future<void> replaceOpenings({
+    required String measurementId,
+    required List<({OpeningType type, double widthMeters, double heightMeters})> openings,
+  }) async {
+    final now = DateTime.now();
+    await _db.transaction(() async {
+      await (_db.update(_db.measurementOpenings)
+            ..where((o) => o.measurementId.equals(measurementId) & o.deletedAt.isNull()))
+          .write(MeasurementOpeningsCompanion(deletedAt: Value(now)));
+      for (final opening in openings) {
+        await _db.into(_db.measurementOpenings).insert(
+              MeasurementOpeningsCompanion.insert(
+                measurementId: measurementId,
+                type: opening.type,
+                widthMeters: opening.widthMeters,
+                heightMeters: opening.heightMeters,
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              ),
+            );
+      }
+    });
   }
 
   /// Remove logicamente uma medição de cômodo.
