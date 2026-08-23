@@ -11,6 +11,7 @@ import '../widgets/app_dialog.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
+import '../widgets/app_snackbar.dart';
 import 'budget_form_screen.dart';
 
 String _statusLabel(BudgetStatus status) {
@@ -118,9 +119,7 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
       if (confirmed == true) {
         await repo.softDelete(budget.id);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Orçamento excluído.')),
-          );
+          AppSnackBar.show(context, 'Orçamento excluído.', variant: AppSnackBarVariant.destructive);
         }
       }
     }

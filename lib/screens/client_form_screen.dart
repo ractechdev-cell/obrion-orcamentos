@@ -6,6 +6,7 @@ import '../providers/clients_repository_provider.dart';
 import '../utils/validators.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_loading.dart';
+import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
 
 /// Formulário de cliente — cria um novo ou edita um existente, conforme
@@ -84,9 +85,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     }
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_isEditing ? 'Cliente atualizado.' : 'Cliente salvo.')),
-      );
+      AppSnackBar.show(context, _isEditing ? 'Cliente atualizado.' : 'Cliente salvo.');
       Navigator.of(context).pop();
     }
     if (mounted) setState(() => _saving = false);

@@ -14,6 +14,7 @@ import '../widgets/app_dialog.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
+import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
 import 'service_unit_label.dart';
 
@@ -36,9 +37,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
       final repo = ref.read(servicesRepositoryProvider);
       await repo.populateDefaultServices();
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lista padrão carregada com sucesso!')),
-        );
+        AppSnackBar.show(context, 'Lista padrão carregada com sucesso!');
       }
     } finally {
       if (mounted) setState(() => _populating = false);
@@ -216,9 +215,7 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
     }
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Serviço salvo.')),
-      );
+      AppSnackBar.show(context, 'Serviço salvo.');
       Navigator.of(context).pop();
     }
   }
@@ -236,9 +233,7 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
       final repo = ref.read(servicesRepositoryProvider);
       await repo.softDelete(widget.service!.id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Serviço excluído.')),
-        );
+        AppSnackBar.show(context, 'Serviço excluído.', variant: AppSnackBarVariant.destructive);
         Navigator.of(context).pop();
       }
     }

@@ -11,6 +11,7 @@ import '../utils/validators.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/app_number_input.dart';
+import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
 
 typedef _OpeningDraft = ({OpeningType type, double widthMeters, double heightMeters});
@@ -126,9 +127,7 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
     if (!_isEditing) AnalyticsService.trackEvent('measurement_completed');
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_isEditing ? 'Medição atualizada.' : 'Medição salva.')),
-      );
+      AppSnackBar.show(context, _isEditing ? 'Medição atualizada.' : 'Medição salva.');
       Navigator.of(context).pop();
     }
     if (mounted) setState(() => _saving = false);

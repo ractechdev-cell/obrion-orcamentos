@@ -20,6 +20,7 @@ import '../widgets/app_currency_input.dart';
 import '../widgets/app_date_picker.dart';
 import '../widgets/app_dialog.dart';
 import '../widgets/app_number_input.dart';
+import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
 import 'service_unit_label.dart';
 
@@ -154,8 +155,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 onPressed: () async {
                   final quantity = double.tryParse(quantityController.text.replaceAll(',', '.'));
                   if (quantity == null || quantity <= 0 || priceCents == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Informe quantidade e preço válidos.')),
+                    AppSnackBar.show(
+                      context,
+                      'Informe quantidade e preço válidos.',
+                      variant: AppSnackBarVariant.warning,
                     );
                     return;
                   }

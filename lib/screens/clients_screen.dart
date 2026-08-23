@@ -10,6 +10,7 @@ import '../widgets/app_dialog.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
+import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
 import 'budgets_screen.dart';
 import 'client_form_screen.dart';
@@ -97,9 +98,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
     final repository = ref.read(clientsRepositoryProvider);
     await repository.softDelete(client.id);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cliente excluído.')),
-      );
+      AppSnackBar.show(context, 'Cliente excluído.', variant: AppSnackBarVariant.destructive);
     }
   }
 

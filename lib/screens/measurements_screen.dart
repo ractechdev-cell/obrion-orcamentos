@@ -10,6 +10,7 @@ import '../widgets/app_dialog.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
+import '../widgets/app_snackbar.dart';
 import 'measurement_form_screen.dart';
 
 class MeasurementsScreen extends ConsumerStatefulWidget {
@@ -54,9 +55,7 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
         final repo = ref.read(measurementsRepositoryProvider);
         await repo.softDeleteMeasurement(item.measurement.id);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Medição excluída.')),
-          );
+          AppSnackBar.show(context, 'Medição excluída.', variant: AppSnackBarVariant.destructive);
         }
       }
     }

@@ -16,6 +16,7 @@ import '../repositories/account_repository.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/app_button.dart';
+import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
 import 'login_screen.dart';
 
@@ -137,9 +138,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
     if (mounted) {
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Perfil salvo.')),
-      );
+      AppSnackBar.show(context, 'Perfil salvo.');
     }
   }
 

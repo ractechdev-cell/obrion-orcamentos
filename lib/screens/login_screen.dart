@@ -5,6 +5,7 @@ import '../providers/account_repository_provider.dart';
 import '../theme/app_spacing.dart';
 import '../utils/validators.dart';
 import '../widgets/app_button.dart';
+import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
 
 /// Tela de login/cadastro — **só interface nesta fase** (ver CLAUDE.md,
@@ -42,10 +43,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     await repository.signIn(_emailController.text.trim());
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Conta salva neste aparelho. Sincronização em nuvem chega numa próxima fase.'),
-        ),
+      AppSnackBar.show(
+        context,
+        'Conta salva neste aparelho. Sincronização em nuvem chega numa próxima fase.',
       );
       Navigator.of(context).pop(true);
     }
