@@ -36,6 +36,11 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            // R8 desligado por ora (Fase 1.5, uso interno): minificação com o
+            // SDK do Firebase está lenta demais nesta máquina. Ligar de volta
+            // antes da Fase 4 (Play Store).
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }

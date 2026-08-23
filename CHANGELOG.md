@@ -12,6 +12,10 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 - Logo do profissional no cabeçalho do PDF de orçamento: seletor de imagem em Configurações (`file_picker`), arquivo salvo em `ApplicationDocumentsDirectory`, campo `logoPath` em `ProfileRepository`/`ProfessionalProfile`, renderizado em `budget_pdf_generator.dart` (falha silenciosa se o arquivo não existir mais).
 
 - Roadmap revisado (`CLAUDE.md`, `docs/PLANO_DE_NEGOCIO_INICIAL.md`, `docs/ANALISE_E_MELHORIAS.md`): nova Fase 1.5 de polimento interno (UI/UX, features, tela de login só de interface) entre a Fase 1 e a ★ Validação, testada só pelo fundador; adoção de atualização OTA via Shorebird no lugar de reinstalação manual a cada build.
+- Setup inicial do Shorebird (OTA): CLI instalada e app inicializado (`shorebird.yaml` com `app_id`), permissão `INTERNET` adicionada ao `AndroidManifest.xml`. **Pausado** — o primeiro `shorebird release android` não completou nesta máquina (suspeita de Windows Defender interferindo no build do Gradle); retomar após ajustar exclusões do Defender. Ver nota em `CLAUDE.md`, decisão 6.
+
+### Changed
+- R8/minificação desligada temporariamente em `android/app/build.gradle.kts` (release) — religar antes da Fase 4 (Play Store).
 
 ### Fixed
 - Busca em Clientes e Lista de Preços quebrava a reatividade da lista (usava `Stream.fromFuture(repository.search(...))`, que não atualiza sozinha); trocado por filtro client-side sobre a stream viva (`watchAll()`).
