@@ -5,6 +5,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 ## [Unreleased]
 
 ### Added
+- Shorebird OTA funcionando: primeiro release publicado (0.1.0+1). Causa da lentidão/travamento anterior era o Windows Defender escaneando os arquivos do build em tempo real — resolvido com exclusões (`.gradle`, `.shorebird`, `Pub\Cache`, pasta do projeto). Daqui pra frente, mudanças de código Dart vão por `shorebird patch android` sem reinstalar.
 - Editar e excluir cliente (antes só criava); editar, excluir e gerenciar múltiplos vãos (porta/janela, tipo e dimensões customizáveis) em medições, antes só um vão fixo hardcoded sem UI.
 - Compartilhar orçamento como imagem (PNG), além de PDF — escolha na hora de compartilhar (`BudgetShareService.shareAsImage`, via `printing`/`Printing.raster`).
 - Verificação de atualização recomendada (`UpgradeAlert` do pacote `upgrader`, checa a própria ficha da Play Store): sem efeito antes da publicação, mas o mecanismo de segurança já fica pronto para quando um patch OTA (Shorebird) ou build quebrada saírem (módulo AppUpdate do Core, nunca implementado antes). Controlado por `showUpgradeAlertProvider` — desligado nos widget tests, já que a checagem faz uma chamada de rede real que fica pendente em ambiente de teste (deixava um processo `flutter_tester.exe` travado).
