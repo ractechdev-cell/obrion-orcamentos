@@ -27,6 +27,16 @@ String _statusLabel(BudgetStatus status) {
   }
 }
 
+/// Há quantos dias o orçamento está parado em "Enviado" — o sinal de
+/// retenção descrito no CLAUDE.md ("orçamento aguardando resposta há N
+/// dias"). `null` quando não se aplica (outro status, ou enviado há
+/// menos de 3 dias — não vale a pena alarmar cedo demais).
+int? _daysWaitingResponse(Budget budget) {
+  if (budget.status != BudgetStatus.sent) return null;
+  final days = DateTime.now().difference(budget.updatedAt).inDays;
+  return days >= 3 ? days : null;
+}
+
 Color _statusColor(BuildContext context, BudgetStatus status) {
   final colorScheme = Theme.of(context).colorScheme;
   switch (status) {
@@ -69,6 +79,26 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
               title: const Text('Abrir orçamento'),
               onTap: () => Navigator.of(context).pop('open'),
             ),
+            // Avançar status em um toque, sem precisar abrir o orçamento —
+            // mecanismo de retenção central do produto (ver CLAUDE.md).
+            if (budget.status == BudgetStatus.draft)
+              ListTile(
+                leading: const Icon(Icons.send_outlined),
+                title: const Text('Marcar como enviado'),
+                onTap: () => Navigator.of(context).pop('mark_sent'),
+              ),
+            if (budget.status == BudgetStatus.sent) ...[
+              ListTile(
+                leading: Icon(Icons.check_circle_outline, color: context.semanticColors.success),
+                title: const Text('Marcar como aceito'),
+                onTap: () => Navigator.of(context).pop('mark_accepted'),
+              ),
+              ListTile(
+                leading: Icon(Icons.cancel_outlined, color: Theme.of(context).colorScheme.error),
+                title: const Text('Marcar como recusado'),
+                onTap: () => Navigator.of(context).pop('mark_declined'),
+              ),
+            ],
             ListTile(
               leading: const Icon(Icons.copy_outlined),
               title: const Text('Duplicar como novo rascunho'),
@@ -86,7 +116,17 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
 
     if (!context.mounted || action == null) return;
 
-    if (action == 'open') {
+    if (action == 'mark_sent' || action == 'mark_accepted' || action == 'mark_declined') {
+      final status = switch (action) {
+        'mark_sent' => BudgetStatus.sent,
+        'mark_accepted' => BudgetStatus.accepted,
+        _ => BudgetStatus.declined,
+      };
+      await repo.updateStatus(budget.id, status);
+      if (context.mounted) {
+        AppSnackBar.show(context, 'Orçamento marcado como ${_statusLabel(status).toLowerCase()}.');
+      }
+    } else if (action == 'open') {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => BudgetFormScreen(
@@ -216,6 +256,7 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
                         separatorBuilder: (context, index) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final budget = budgets[index];
+                          final daysWaiting = _daysWaitingResponse(budget);
                           return AppCard(
                             onTap: () => _openBudgetActions(context, ref, budget),
                             child: Row(
@@ -229,20 +270,42 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
                                         style: Theme.of(context).textTheme.titleMedium,
                                       ),
                                       const SizedBox(height: 4),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: _statusColor(context, budget.status).withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(999),
-                                        ),
-                                        child: Text(
-                                          _statusLabel(budget.status),
-                                          style: TextStyle(
-                                            color: _statusColor(context, budget.status),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12,
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 4,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: _statusColor(context, budget.status).withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(999),
+                                            ),
+                                            child: Text(
+                                              _statusLabel(budget.status),
+                                              style: TextStyle(
+                                                color: _statusColor(context, budget.status),
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                              ),
+                                            ),
                                           ),
-                                        ),
+                                          if (daysWaiting != null)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: context.semanticColors.warningContainer,
+                                                borderRadius: BorderRadius.circular(999),
+                                              ),
+                                              child: Text(
+                                                'Aguardando há ${daysWaiting}d',
+                                                style: TextStyle(
+                                                  color: context.semanticColors.onWarningContainer,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ],
                                   ),
