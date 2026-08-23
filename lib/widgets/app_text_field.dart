@@ -25,6 +25,7 @@ class AppTextField extends StatelessWidget {
     this.suffixIcon,
     this.inputFormatters,
     this.focusNode,
+    this.obscureText = false,
   });
 
   final TextEditingController? controller;
@@ -34,6 +35,7 @@ class AppTextField extends StatelessWidget {
   final String? helperText;
   final bool enabled;
   final int maxLines;
+  final bool obscureText;
   final TextInputType? keyboardType;
   final TextCapitalization textCapitalization;
   final TextInputAction? textInputAction;
@@ -50,7 +52,8 @@ class AppTextField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       enabled: enabled,
-      maxLines: maxLines,
+      maxLines: obscureText ? 1 : maxLines,
+      obscureText: obscureText,
       keyboardType: keyboardType,
       textCapitalization: textCapitalization,
       textInputAction: textInputAction,

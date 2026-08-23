@@ -8,6 +8,14 @@ String? Function(String?) requiredValidator(String label) {
   return (value) => value == null || value.trim().isEmpty ? 'Informe $label' : null;
 }
 
+/// E-mail obrigatório com formato básico validado (não confere se o
+/// domínio existe — só a forma `algo@algo.algo`).
+String? emailValidator(String? value) {
+  if (value == null || value.trim().isEmpty) return 'Informe o e-mail';
+  final valid = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim());
+  return valid ? null : 'E-mail inválido';
+}
+
 /// Telefone é opcional em todo o app — só valida formato se algo foi
 /// digitado. Aceita qualquer combinação de dígitos/espaços/parênteses/
 /// hífen com pelo menos 8 dígitos (cobre fixo e celular, com ou sem DDD).

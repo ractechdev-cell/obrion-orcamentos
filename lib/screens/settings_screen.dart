@@ -8,13 +8,16 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
+import '../providers/account_repository_provider.dart';
 import '../providers/preferences_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../providers/theme_mode_provider.dart';
+import '../repositories/account_repository.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_text_field.dart';
+import 'login_screen.dart';
 
 /// Tela de configurações (módulo Settings do Core — ver
 /// docs/APP_FACTORY_CORE.md). Guarda o perfil do profissional (nome,
@@ -34,12 +37,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _loading = true;
   bool _saving = false;
   String? _versionLabel;
+  LocalAccount _account = const LocalAccount(signedIn: false);
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
     _loadVersionInfo();
+    _loadAccount();
+  }
+
+  Future<void> _loadAccount() async {
+    final repo = ref.read(accountRepositoryProvider);
+    final account = await repo.getAccount();
+    if (mounted) setState(() => _account = account);
+  }
+
+  Future<void> _openLogin() async {
+    final signedIn = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+    if (signedIn ?? false) _loadAccount();
+  }
+
+  Future<void> _signOut() async {
+    final repo = ref.read(accountRepositoryProvider);
+    await repo.signOut();
+    _loadAccount();
   }
 
   /// Versão do build + número do patch OTA (Shorebird) atual, se houver —
@@ -143,6 +167,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           : ListView(
               padding: const EdgeInsets.all(AppSpacing.md),
               children: [
+                _buildAccountCard(context),
+                const SizedBox(height: AppSpacing.xl),
+                const Divider(),
+                const SizedBox(height: AppSpacing.md),
                 Text(
                   'Seu perfil profissional',
                   style: Theme.of(context).textTheme.titleMedium,
@@ -196,6 +224,43 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ],
             ),
+    );
+  }
+
+  Widget _buildAccountCard(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        CircleAvatar(
+          backgroundColor: colorScheme.primaryContainer,
+          child: Icon(
+            _account.signedIn ? Icons.person : Icons.person_outline,
+            color: colorScheme.onPrimaryContainer,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _account.signedIn ? (_account.email ?? '') : 'Visitante',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              Text(
+                _account.signedIn
+                    ? 'Conta salva neste aparelho'
+                    : 'Dados salvos só neste aparelho',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+        TextButton(
+          onPressed: _account.signedIn ? _signOut : _openLogin,
+          child: Text(_account.signedIn ? 'Sair' : 'Entrar'),
+        ),
+      ],
     );
   }
 
