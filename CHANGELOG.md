@@ -5,7 +5,11 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 ## [Unreleased]
 
 ### Added
+- Histórico do cliente (`lib/screens/client_detail_screen.dart`): medições e orçamentos juntos numa linha do tempo ordenada por data, em vez de dois menus separados ("Medições" e "Orçamentos") que a pessoa tinha que descobrir escondidos no bottom sheet do cliente. Tocar num cliente na aba Clientes abre esse histórico direto; um único botão "+" oferece "Novo orçamento"/"Nova medição"; editar/excluir cliente viraram o menu (⋮) da própria tela. Consulta única (`initState`), recarregada ao voltar de uma tela de detalhe — mesmo raciocínio do resumo da Home.
 - Onboarding de 3 telas na primeira abertura (`lib/screens/onboarding_screen.dart`): "Meça e cote rápido" / "Funciona sem internet" / "Tudo num toque só" — pensado pro público de baixa familiaridade digital que o CLAUDE.md descreve. Sempre pulável ("Pular" em qualquer tela) e nunca mostrado de novo depois da primeira vez (`PreferencesRepository.getOnboardingSeen`/`markOnboardingSeen`) — segue o princípio 5 do CLAUDE.md: nunca vira uma segunda barreira de entrada antes do login. `MainShell` virou `ConsumerStatefulWidget` pra checar a flag antes de montar a barra de navegação.
+
+### Removed
+- `budgets_screen.dart` e `measurements_screen.dart` (listas separadas por cliente/obra) — substituídas pelo histórico unificado em `client_detail_screen.dart`, ficaram órfãs (nada mais navegava pra elas). Rota `/measurements/:projectId` removida do `app_router.dart` pelo mesmo motivo.
 
 ### Fixed
 - Criar um cliente novo (pelo CTA da Home ou pelo "+" da aba Clientes) agora leva direto pra tela de Orçamentos daquele cliente (`client_form_screen.dart`), em vez de só voltar pra tela anterior. A promessa da Home ("Comece um orçamento novo") não se completava de verdade: depois de criar o cliente a pessoa ficava parada, sem saber que "Orçamentos" existia escondido no menu do cliente. Editar um cliente existente continua só voltando, como antes.

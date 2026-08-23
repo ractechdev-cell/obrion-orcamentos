@@ -3,20 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/database.dart';
 import '../providers/clients_repository_provider.dart';
-import '../providers/measurements_repository_provider.dart';
-import '../widgets/app_bottom_sheet.dart';
 import '../widgets/app_card.dart';
-import '../widgets/app_dialog.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
-import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
-import 'budgets_screen.dart';
+import 'client_detail_screen.dart';
 import 'client_form_screen.dart';
-import 'measurements_screen.dart';
 
-/// Lista de clientes — primeiro passo concreto da Fase 1.
+/// Lista de clientes — primeiro passo concreto da Fase 1. Tocar num
+/// cliente abre o histórico dele (`ClientDetailScreen`): medições e
+/// orçamentos juntos numa linha do tempo, em vez de dois menus
+/// separados pra descobrir.
 class ClientsScreen extends ConsumerStatefulWidget {
   const ClientsScreen({super.key});
 
@@ -26,81 +24,6 @@ class ClientsScreen extends ConsumerStatefulWidget {
 
 class _ClientsScreenState extends ConsumerState<ClientsScreen> {
   String _query = '';
-
-  Future<void> _navigateToMeasurements(BuildContext context, Client client) async {
-    final repo = ref.read(measurementsRepositoryProvider);
-    final projects = await repo.watchProjectsByClient(client.id).first;
-    Project project;
-    if (projects.isEmpty) {
-      project = await repo.createProject(
-        clientId: client.id,
-        name: 'Obra Principal',
-      );
-    } else {
-      project = projects.first;
-    }
-    if (context.mounted) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => MeasurementsScreen(projectId: project.id),
-        ),
-      );
-    }
-  }
-
-  Future<void> _openClientActions(BuildContext context, Client client) async {
-    final action = await AppBottomSheet.showActions<String>(
-      context,
-      title: client.name,
-      actions: const [
-        AppBottomSheetAction(label: 'Medições', value: 'measurements', icon: Icons.straighten),
-        AppBottomSheetAction(label: 'Orçamentos', value: 'budgets', icon: Icons.request_quote_outlined),
-        AppBottomSheetAction(label: 'Editar', value: 'edit', icon: Icons.edit_outlined),
-        AppBottomSheetAction(
-          label: 'Excluir',
-          value: 'delete',
-          icon: Icons.delete_outline,
-          isDestructive: true,
-        ),
-      ],
-    );
-
-    if (!context.mounted || action == null) return;
-
-    if (action == 'measurements') {
-      await _navigateToMeasurements(context, client);
-    } else if (action == 'budgets') {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => BudgetsScreen(clientId: client.id),
-        ),
-      );
-    } else if (action == 'edit') {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => ClientFormScreen(clientId: client.id),
-        ),
-      );
-    } else if (action == 'delete') {
-      await _deleteClient(context, client);
-    }
-  }
-
-  Future<void> _deleteClient(BuildContext context, Client client) async {
-    final confirmed = await AppDialog.confirm(
-      context,
-      isDestructive: true,
-      title: 'Excluir ${client.name}?',
-      message: 'Esta ação não pode ser desfeita.',
-      confirmLabel: 'Excluir',
-    );
-    if (confirmed != true) return;
-    final repository = ref.read(clientsRepositoryProvider);
-    await repository.softDelete(client.id);
-    if (context.mounted) {
-      AppSnackBar.show(context, 'Cliente excluído.', variant: AppSnackBarVariant.destructive);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +89,11 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                   itemBuilder: (context, index) {
                     final client = clients[index];
                     return AppCard(
-                      onTap: () => _openClientActions(context, client),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ClientDetailScreen(client: client),
+                        ),
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
