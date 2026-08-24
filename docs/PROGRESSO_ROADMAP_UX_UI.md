@@ -11,15 +11,15 @@
 
 | # | Item | Status | Nota |
 |---|---|---|---|
-| 1 | Auditoria visual de todas as telas | ⏸️ Pendente | Nunca foi feita como passe formal — o polimento até agora foi pontual (bug a bug, tela a tela conforme pedido). |
+| 1 | Auditoria visual de todas as telas | 🔶 Parcial (24/08/2026) | Passe restrito a **cor + espaçamento**: confirmado por grep que não há `Colors.*` (Material) hardcoded em nenhuma tela — só `PdfColors.*` legítimo nos geradores de PDF; e as 75 ocorrências de `SizedBox`/`EdgeInsets` com número solto em `budget_form_screen.dart`/`services_screen.dart`/`client_form_screen.dart`/`clients_screen.dart` trocadas por tokens `AppSpacing.*`. **Não** cobre navegação, componentes, tipografia nem responsividade (itens 11/12/13/21 continuam pendentes à parte). |
 | 2 | Home como painel | ✅ Feito (24/08/2026) | `lib/screens/home_screen.dart` + `BudgetsRepository.loadHomeSummary()` — resumo (em orçamentos / aguardando / aprovados / recebidos) + lista de pendências (orçamentos "Enviado", tocável, leva direto pro orçamento). Grade de atalhos (Clientes/Catálogo/Recibos/Listas) **não** entrou — já é redundante com a barra inferior, decisão registrada no `CHANGELOG.md`. |
 | 3 | Dados de exemplo | ✅ Feito | `lib/repositories/example_data_seeder.dart` — cliente + orçamento `[exemplo]`, ação "Ver um exemplo" nos estados vazios de Clientes/Orçamentos. |
 | 4 | Perfil por profissão | ✅ Feito | Onboarding pergunta "O que você faz?" (múltipla escolha), editável em Ajustes → "Seus ofícios". `Trade` enum em `database/enums.dart`. |
 | 5 | Serviços filtrados por profissão | ✅ Feito | `ServicesRepository.populateDefaultServices(trades:)` — "Sugestões" na Lista de Preços filtra pelo ofício do perfil. |
 | 6 | Wizard de orçamento | ⏸️ Pendente — decisão deliberada | Avaliado e adiado de propósito (ver plano de lote de 24/08/2026): `budget_form_screen.dart` hoje tem ~1040 linhas, uma tela só, sem sub-widgets. Extrair com segurança é trabalho isolado, maior risco de regressão — não bundlar com outras mudanças. **Tensão a resolver:** este roadmap marca como P0 obrigatório; decisão anterior tratou como "fora deste lote". Quem continuar precisa decidir explicitamente se entra agora. |
 | 7 | Campos opcionais recolhidos | ✅ Feito | Formulário de cliente: cabeçalho colapsável (seta garantida, controlado à mão) escondendo CPF/CNPJ, Rua, Número, Bairro, Complemento, Observações. |
-| 8 | Microcopy | 🔶 Parcial | Alguns pontos ajustados (telefone → "Com telefone, dá pra chamar o cliente no WhatsApp direto da ficha"). Não houve revisão completa tela por tela contra a seção 16 do roadmap. |
-| 9 | Estados vazios | 🔶 Parcial | `AppEmptyState` já segue o padrão (ícone + mensagem + ação); ação "Ver um exemplo" cobre Clientes/Orçamentos. Não conferido contra as 3 perguntas da seção 18 em **todas** as telas com estado vazio (ex.: Lista de Preços). |
+| 8 | Microcopy | 🔶 Parcial (24/08/2026) | Telefone → "Com telefone, dá pra chamar o cliente no WhatsApp direto da ficha"; + as 4 mensagens de estado vazio reescritas (ver item 9). Ainda não houve revisão completa tela por tela contra a seção 16 do roadmap (rótulos de botão, validações, diálogos de confirmação). |
+| 9 | Estados vazios | ✅ Feito (24/08/2026) | As 4 telas com `AppEmptyState` (`clients_screen.dart`, `services_screen.dart`, `client_detail_screen.dart`, `budgets_list_screen.dart`) reescritas contra as 3 perguntas da seção 18 ("o que é / por que vazio / o que fazer"). De quebra, corrigido um bug de microcopy em `services_screen.dart`: mostrava a mesma mensagem pra "sem serviço nenhum" e "busca sem resultado" — agora distingue, igual `clients_screen.dart` já fazia. |
 | 10 | Feedback de ações | ✅ Feito | `AppSnackBar` em toda ação relevante (salvar, excluir, duplicar, etc.), ícone muda por tipo. |
 | 11 | Revisão de navegação | ⏸️ Pendente | Sem passe formal. |
 | 12 | Revisão de componentes | ⏸️ Pendente | Sem passe formal — mas nenhum componente novo foi criado fora do padrão `App*` do Design System nesta rodada. |
@@ -91,8 +91,9 @@ O roadmap pede uma varredura de contradições entre os `.md` sempre que uma mud
 ## Próximos passos sugeridos (ordem de retorno/esforço)
 
 1. ~~Follow-up manual~~ ✅ feito 24/08/2026.
-2. **Auditoria visual + microcopy + estados vazios** (Fase 1, itens 1/8/9) — sem código novo, é revisão; maior retorno em percepção de "produto acabado" por hora investida.
+2. ~~Auditoria visual (cor+espaçamento) + microcopy + estados vazios~~ ✅ feito 24/08/2026 — escopo restrito a espaçamento/cor (item 1) e às 4 telas com `AppEmptyState` (itens 8/9); navegação, componentes, tipografia e responsividade continuam pendentes.
 3. **Decidir o wizard** (Fase 1, item 6) — tensão real entre este roadmap (P0) e a decisão anterior de adiar; precisa de conversa com o fundador antes de começar, é a maior mudança estrutural pendente.
 4. **Importar contato** (Fase 1, item 15) — só quando houver disposição pra um release completo (não patch) — bom candidato a agrupar com outras mudanças nativas se/quando surgirem.
 5. **Categoria no catálogo** (Fase 2, item 9) — schema pequeno, complementa o reajuste em massa já feito.
-6. Varredura de consistência dos documentos (seção acima) — baixo risco de código, mas trabalhoso; fazer numa sessão dedicada só a isso.
+6. **Revisão de navegação/componentes/tipografia/responsividade** (Fase 1, itens 11/12/13/21) — o que sobrou da "auditoria visual" original; nenhum achado concreto ainda, precisa de passe formal tela por tela.
+7. Varredura de consistência dos documentos (seção acima) — baixo risco de código, mas trabalhoso; fazer numa sessão dedicada só a isso.
