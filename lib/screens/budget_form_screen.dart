@@ -734,6 +734,27 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     await repo.updateStatus(_budgetId!, BudgetStatus.declined);
   }
 
+  /// Recibo do valor recebido até agora — mesmo motor de PDF do orçamento
+  /// (reduzido), casa com a tabela `payments` já construída. Ver
+  /// docs/POSICIONAMENTO_E_FEATURES_APP1.md, Parte 4, item 10.
+  Future<void> _emitReceipt(BuildContext context, BudgetWithItems data) async {
+    final clientsRepo = ref.read(clientsRepositoryProvider);
+    final profileRepo = ref.read(profileRepositoryProvider);
+
+    final client = await clientsRepo.getById(data.budget.clientId);
+    if (client == null || !context.mounted) return;
+    final professional = await profileRepo.getProfile();
+
+    await BudgetShareService.shareReceipt(
+      client: client,
+      professional: professional,
+      amountCents: data.totalPaidCents,
+      date: DateTime.now(),
+      note: data.budget.jobDescription,
+    );
+    AnalyticsService.trackEvent('pdf_generated', {'format': 'recibo'});
+  }
+
   Future<void> _shareBudget(BuildContext context, BudgetWithItems data) async {
     final format = await AppBottomSheet.showActions<BudgetShareFormat>(
       context,
@@ -966,6 +987,15 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                           ),
                         ],
                       ),
+                      if (data.totalPaidCents > 0)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            onPressed: () => _emitReceipt(context, data),
+                            icon: const Icon(Icons.receipt_long_outlined, size: 18),
+                            label: const Text('Emitir recibo'),
+                          ),
+                        ),
                     ],
                     const SizedBox(height: 16),
                     Row(

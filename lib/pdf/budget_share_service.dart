@@ -7,6 +7,7 @@ import '../database/database.dart';
 import '../repositories/budgets_repository.dart';
 import '../repositories/profile_repository.dart';
 import 'budget_pdf_generator.dart';
+import 'receipt_pdf_generator.dart';
 
 /// Formato de compartilhamento do orçamento — usado também como parâmetro
 /// do evento de analytics `pdf_generated` (ver CLAUDE.md).
@@ -58,6 +59,36 @@ class BudgetShareService {
         ],
         fileNameOverrides: ['orcamento.png'],
         text: 'Segue o orçamento em anexo.',
+      ),
+    );
+  }
+
+  /// Recibo do valor recebido até agora — reaproveita [ReceiptPdfGenerator]
+  /// (motor reduzido do orçamento) e o mesmo mecanismo de compartilhamento
+  /// via folha do sistema.
+  static Future<void> shareReceipt({
+    required Client client,
+    required ProfessionalProfile professional,
+    required int amountCents,
+    required DateTime date,
+    String? note,
+  }) async {
+    final doc = await ReceiptPdfGenerator.generate(
+      client: client,
+      professional: professional,
+      amountCents: amountCents,
+      date: date,
+      note: note,
+    );
+    final bytes = await doc.save();
+
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [
+          XFile.fromData(bytes, mimeType: 'application/pdf', name: 'recibo.pdf'),
+        ],
+        fileNameOverrides: ['recibo.pdf'],
+        text: 'Segue o recibo em anexo.',
       ),
     );
   }
