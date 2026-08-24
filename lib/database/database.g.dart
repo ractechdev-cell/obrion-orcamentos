@@ -2439,6 +2439,17 @@ class $ServicesTable extends Services with TableInfo<$ServicesTable, Service> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2450,6 +2461,7 @@ class $ServicesTable extends Services with TableInfo<$ServicesTable, Service> {
     defaultPriceCents,
     includesMaterial,
     defaultNote,
+    category,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2519,6 +2531,12 @@ class $ServicesTable extends Services with TableInfo<$ServicesTable, Service> {
         ),
       );
     }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
     return context;
   }
 
@@ -2566,6 +2584,10 @@ class $ServicesTable extends Services with TableInfo<$ServicesTable, Service> {
         DriftSqlType.string,
         data['${effectivePrefix}default_note'],
       ),
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      ),
     );
   }
 
@@ -2588,6 +2610,7 @@ class Service extends DataClass implements Insertable<Service> {
   final int? defaultPriceCents;
   final bool includesMaterial;
   final String? defaultNote;
+  final String? category;
   const Service({
     required this.id,
     required this.createdAt,
@@ -2598,6 +2621,7 @@ class Service extends DataClass implements Insertable<Service> {
     this.defaultPriceCents,
     required this.includesMaterial,
     this.defaultNote,
+    this.category,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2619,6 +2643,9 @@ class Service extends DataClass implements Insertable<Service> {
     if (!nullToAbsent || defaultNote != null) {
       map['default_note'] = Variable<String>(defaultNote);
     }
+    if (!nullToAbsent || category != null) {
+      map['category'] = Variable<String>(category);
+    }
     return map;
   }
 
@@ -2639,6 +2666,9 @@ class Service extends DataClass implements Insertable<Service> {
       defaultNote: defaultNote == null && nullToAbsent
           ? const Value.absent()
           : Value(defaultNote),
+      category: category == null && nullToAbsent
+          ? const Value.absent()
+          : Value(category),
     );
   }
 
@@ -2659,6 +2689,7 @@ class Service extends DataClass implements Insertable<Service> {
       defaultPriceCents: serializer.fromJson<int?>(json['defaultPriceCents']),
       includesMaterial: serializer.fromJson<bool>(json['includesMaterial']),
       defaultNote: serializer.fromJson<String?>(json['defaultNote']),
+      category: serializer.fromJson<String?>(json['category']),
     );
   }
   @override
@@ -2676,6 +2707,7 @@ class Service extends DataClass implements Insertable<Service> {
       'defaultPriceCents': serializer.toJson<int?>(defaultPriceCents),
       'includesMaterial': serializer.toJson<bool>(includesMaterial),
       'defaultNote': serializer.toJson<String?>(defaultNote),
+      'category': serializer.toJson<String?>(category),
     };
   }
 
@@ -2689,6 +2721,7 @@ class Service extends DataClass implements Insertable<Service> {
     Value<int?> defaultPriceCents = const Value.absent(),
     bool? includesMaterial,
     Value<String?> defaultNote = const Value.absent(),
+    Value<String?> category = const Value.absent(),
   }) => Service(
     id: id ?? this.id,
     createdAt: createdAt ?? this.createdAt,
@@ -2701,6 +2734,7 @@ class Service extends DataClass implements Insertable<Service> {
         : this.defaultPriceCents,
     includesMaterial: includesMaterial ?? this.includesMaterial,
     defaultNote: defaultNote.present ? defaultNote.value : this.defaultNote,
+    category: category.present ? category.value : this.category,
   );
   Service copyWithCompanion(ServicesCompanion data) {
     return Service(
@@ -2719,6 +2753,7 @@ class Service extends DataClass implements Insertable<Service> {
       defaultNote: data.defaultNote.present
           ? data.defaultNote.value
           : this.defaultNote,
+      category: data.category.present ? data.category.value : this.category,
     );
   }
 
@@ -2733,7 +2768,8 @@ class Service extends DataClass implements Insertable<Service> {
           ..write('unit: $unit, ')
           ..write('defaultPriceCents: $defaultPriceCents, ')
           ..write('includesMaterial: $includesMaterial, ')
-          ..write('defaultNote: $defaultNote')
+          ..write('defaultNote: $defaultNote, ')
+          ..write('category: $category')
           ..write(')'))
         .toString();
   }
@@ -2749,6 +2785,7 @@ class Service extends DataClass implements Insertable<Service> {
     defaultPriceCents,
     includesMaterial,
     defaultNote,
+    category,
   );
   @override
   bool operator ==(Object other) =>
@@ -2762,7 +2799,8 @@ class Service extends DataClass implements Insertable<Service> {
           other.unit == this.unit &&
           other.defaultPriceCents == this.defaultPriceCents &&
           other.includesMaterial == this.includesMaterial &&
-          other.defaultNote == this.defaultNote);
+          other.defaultNote == this.defaultNote &&
+          other.category == this.category);
 }
 
 class ServicesCompanion extends UpdateCompanion<Service> {
@@ -2775,6 +2813,7 @@ class ServicesCompanion extends UpdateCompanion<Service> {
   final Value<int?> defaultPriceCents;
   final Value<bool> includesMaterial;
   final Value<String?> defaultNote;
+  final Value<String?> category;
   final Value<int> rowid;
   const ServicesCompanion({
     this.id = const Value.absent(),
@@ -2786,6 +2825,7 @@ class ServicesCompanion extends UpdateCompanion<Service> {
     this.defaultPriceCents = const Value.absent(),
     this.includesMaterial = const Value.absent(),
     this.defaultNote = const Value.absent(),
+    this.category = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ServicesCompanion.insert({
@@ -2798,6 +2838,7 @@ class ServicesCompanion extends UpdateCompanion<Service> {
     this.defaultPriceCents = const Value.absent(),
     this.includesMaterial = const Value.absent(),
     this.defaultNote = const Value.absent(),
+    this.category = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : name = Value(name),
        unit = Value(unit);
@@ -2811,6 +2852,7 @@ class ServicesCompanion extends UpdateCompanion<Service> {
     Expression<int>? defaultPriceCents,
     Expression<bool>? includesMaterial,
     Expression<String>? defaultNote,
+    Expression<String>? category,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2823,6 +2865,7 @@ class ServicesCompanion extends UpdateCompanion<Service> {
       if (defaultPriceCents != null) 'default_price_cents': defaultPriceCents,
       if (includesMaterial != null) 'includes_material': includesMaterial,
       if (defaultNote != null) 'default_note': defaultNote,
+      if (category != null) 'category': category,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2837,6 +2880,7 @@ class ServicesCompanion extends UpdateCompanion<Service> {
     Value<int?>? defaultPriceCents,
     Value<bool>? includesMaterial,
     Value<String?>? defaultNote,
+    Value<String?>? category,
     Value<int>? rowid,
   }) {
     return ServicesCompanion(
@@ -2849,6 +2893,7 @@ class ServicesCompanion extends UpdateCompanion<Service> {
       defaultPriceCents: defaultPriceCents ?? this.defaultPriceCents,
       includesMaterial: includesMaterial ?? this.includesMaterial,
       defaultNote: defaultNote ?? this.defaultNote,
+      category: category ?? this.category,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2885,6 +2930,9 @@ class ServicesCompanion extends UpdateCompanion<Service> {
     if (defaultNote.present) {
       map['default_note'] = Variable<String>(defaultNote.value);
     }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2903,6 +2951,7 @@ class ServicesCompanion extends UpdateCompanion<Service> {
           ..write('defaultPriceCents: $defaultPriceCents, ')
           ..write('includesMaterial: $includesMaterial, ')
           ..write('defaultNote: $defaultNote, ')
+          ..write('category: $category, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -6952,6 +7001,7 @@ typedef $$ServicesTableCreateCompanionBuilder = ServicesCompanion Function({
   Value<int?> defaultPriceCents,
   Value<bool> includesMaterial,
   Value<String?> defaultNote,
+  Value<String?> category,
   Value<int> rowid,
 });
 typedef $$ServicesTableUpdateCompanionBuilder = ServicesCompanion Function({
@@ -6964,6 +7014,7 @@ typedef $$ServicesTableUpdateCompanionBuilder = ServicesCompanion Function({
   Value<int?> defaultPriceCents,
   Value<bool> includesMaterial,
   Value<String?> defaultNote,
+  Value<String?> category,
   Value<int> rowid,
 });
 
@@ -7021,6 +7072,11 @@ class $$ServicesTableFilterComposer
     column: $table.defaultNote,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$ServicesTableOrderingComposer
@@ -7076,6 +7132,11 @@ class $$ServicesTableOrderingComposer
     column: $table.defaultNote,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ServicesTableAnnotationComposer
@@ -7119,6 +7180,9 @@ class $$ServicesTableAnnotationComposer
     column: $table.defaultNote,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
 }
 
 class $$ServicesTableTableManager
@@ -7158,6 +7222,7 @@ class $$ServicesTableTableManager
                 Value<int?> defaultPriceCents = const Value.absent(),
                 Value<bool> includesMaterial = const Value.absent(),
                 Value<String?> defaultNote = const Value.absent(),
+                Value<String?> category = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ServicesCompanion(
                 id: id,
@@ -7169,6 +7234,7 @@ class $$ServicesTableTableManager
                 defaultPriceCents: defaultPriceCents,
                 includesMaterial: includesMaterial,
                 defaultNote: defaultNote,
+                category: category,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -7182,6 +7248,7 @@ class $$ServicesTableTableManager
                 Value<int?> defaultPriceCents = const Value.absent(),
                 Value<bool> includesMaterial = const Value.absent(),
                 Value<String?> defaultNote = const Value.absent(),
+                Value<String?> category = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ServicesCompanion.insert(
                 id: id,
@@ -7193,6 +7260,7 @@ class $$ServicesTableTableManager
                 defaultPriceCents: defaultPriceCents,
                 includesMaterial: includesMaterial,
                 defaultNote: defaultNote,
+                category: category,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

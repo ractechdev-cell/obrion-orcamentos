@@ -9,6 +9,7 @@ import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
 import '../theme/app_spacing.dart';
 import '../utils/currency_format.dart';
+import '../utils/service_filter.dart';
 import '../utils/validators.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_card.dart';
@@ -31,6 +32,7 @@ class ServicesScreen extends ConsumerStatefulWidget {
 
 class _ServicesScreenState extends ConsumerState<ServicesScreen> {
   String _query = '';
+  String? _selectedCategory;
   bool _populating = false;
 
 
@@ -164,64 +166,100 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                 }
                 // Filtro client-side — mantém reatividade
                 final allServices = snapshot.data!;
-                final services = _query.isEmpty
-                    ? allServices
-                    : allServices.where((s) => s.name.toLowerCase().contains(_query.toLowerCase())).toList();
+                final categories = distinctServiceCategories(allServices);
+                final services = filterServices(allServices, query: _query, category: _selectedCategory);
 
-                if (services.isEmpty) {
-                  if (_query.isNotEmpty) {
-                    return AppEmptyState(
-                      message: 'Nenhum serviço encontrado para "$_query".',
-                    );
-                  }
-                  return AppEmptyState(
-                    message: 'Você ainda não tem serviços na sua lista de preços.\n\n'
-                        'Carregue os sugeridos para o seu ofício ou adicione o seu, '
-                        'para montar orçamentos em poucos toques.',
-                    actionLabel: 'Carregar sugestões padrão',
-                    onAction: () => _populateDefaults(context),
-                    secondaryActionLabel: 'Adicionar serviço',
-                    onSecondaryAction: () => _showForm(context),
-                  );
-                }
-                return ListView.separated(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  itemCount: services.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
-                  itemBuilder: (context, index) {
-                    final s = services[index];
-                    final priceText = s.defaultPriceCents != null
-                        ? formatCurrencyBrl(s.defaultPriceCents!)
-                        : 'Preço não definido';
-
-                    return AppCard(
-                      onTap: () => _showForm(context, service: s),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(s.name, style: Theme.of(context).textTheme.titleMedium),
-                                const SizedBox(height: AppSpacing.xs),
-                                Text(
-                                  'Unidade: ${serviceUnitLabel(s.unit)} • $priceText',
-                                  style: Theme.of(context).textTheme.bodySmall,
+                return Column(
+                  children: [
+                    if (categories.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                        child: SizedBox(
+                          height: 36,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                            children: [
+                              ChoiceChip(
+                                label: const Text('Todas'),
+                                selected: _selectedCategory == null,
+                                onSelected: (_) => setState(() => _selectedCategory = null),
+                              ),
+                              for (final category in categories) ...[
+                                const SizedBox(width: AppSpacing.xs),
+                                ChoiceChip(
+                                  label: Text(category),
+                                  selected: _selectedCategory == category,
+                                  onSelected: (_) => setState(() => _selectedCategory = category),
                                 ),
                               ],
-                            ),
+                            ],
                           ),
-                          const Icon(Icons.chevron_right),
-                        ],
+                        ),
                       ),
-                    );
-                  },
+                    Expanded(child: _buildList(context, services)),
+                  ],
                 );
               },
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildList(BuildContext context, List<Service> services) {
+    if (services.isEmpty) {
+      if (_query.isNotEmpty || _selectedCategory != null) {
+        return AppEmptyState(
+          message: _query.isNotEmpty
+              ? 'Nenhum serviço encontrado para "$_query".'
+              : 'Nenhum serviço na categoria "$_selectedCategory".',
+        );
+      }
+      return AppEmptyState(
+        message: 'Você ainda não tem serviços na sua lista de preços.\n\n'
+            'Carregue os sugeridos para o seu ofício ou adicione o seu, '
+            'para montar orçamentos em poucos toques.',
+        actionLabel: 'Carregar sugestões padrão',
+        onAction: () => _populateDefaults(context),
+        secondaryActionLabel: 'Adicionar serviço',
+        onSecondaryAction: () => _showForm(context),
+      );
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      itemCount: services.length,
+      separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
+      itemBuilder: (context, index) {
+        final s = services[index];
+        final priceText =
+            s.defaultPriceCents != null ? formatCurrencyBrl(s.defaultPriceCents!) : 'Preço não definido';
+        final subtitle = [
+          if (s.category != null && s.category!.trim().isNotEmpty) s.category!.trim(),
+          'Unidade: ${serviceUnitLabel(s.unit)}',
+          priceText,
+        ].join(' • ');
+
+        return AppCard(
+          onTap: () => _showForm(context, service: s),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(s.name, style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -239,6 +277,7 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _noteController;
+  late final TextEditingController _categoryController;
   late ServiceUnit _unit;
   int? _priceCents;
   bool _includesMaterial = false;
@@ -249,6 +288,7 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
     super.initState();
     _nameController = TextEditingController(text: widget.service?.name ?? '');
     _noteController = TextEditingController(text: widget.service?.defaultNote ?? '');
+    _categoryController = TextEditingController(text: widget.service?.category ?? '');
     _unit = widget.service?.unit ?? ServiceUnit.squareMeter;
     _priceCents = widget.service?.defaultPriceCents;
     _includesMaterial = widget.service?.includesMaterial ?? false;
@@ -258,6 +298,7 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
   void dispose() {
     _nameController.dispose();
     _noteController.dispose();
+    _categoryController.dispose();
     super.dispose();
   }
 
@@ -266,6 +307,8 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
     setState(() => _saving = true);
     final repo = ref.read(servicesRepositoryProvider);
 
+    final category = _categoryController.text.trim().isEmpty ? null : _categoryController.text.trim();
+
     if (widget.service == null) {
       await repo.create(
         name: _nameController.text.trim(),
@@ -273,6 +316,7 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
         defaultPriceCents: _priceCents,
         includesMaterial: _includesMaterial,
         defaultNote: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+        category: category,
       );
       AnalyticsService.trackEvent('price_list_item_created');
     } else {
@@ -283,6 +327,7 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
         defaultPriceCents: Value(_priceCents),
         includesMaterial: Value(_includesMaterial),
         defaultNote: Value(_noteController.text.trim().isEmpty ? null : _noteController.text.trim()),
+        category: Value(category),
       );
     }
 
@@ -331,6 +376,12 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
                 controller: _nameController,
                 label: 'Nome do serviço',
                 validator: requiredValidator('o nome'),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AppTextField(
+                controller: _categoryController,
+                label: 'Categoria (opcional)',
+                hint: 'Ex: Pintura, Elétrica...',
               ),
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<ServiceUnit>(

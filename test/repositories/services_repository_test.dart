@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:orcamentos/database/database.dart';
@@ -94,5 +95,22 @@ void main() {
 
     final services = await repository.watchAll().first;
     expect(services.single.defaultPriceCents, 9000);
+  });
+
+  test('create and update persist category', () async {
+    final created = await repository.create(
+      name: 'Reboco',
+      unit: ServiceUnit.squareMeter,
+      category: 'Alvenaria',
+    );
+    expect(created.category, 'Alvenaria');
+
+    await repository.update(id: created.id, category: const Value('Acabamento'));
+    final updated = await repository.getById(created.id);
+    expect(updated!.category, 'Acabamento');
+
+    await repository.update(id: created.id, category: const Value(null));
+    final cleared = await repository.getById(created.id);
+    expect(cleared!.category, isNull);
   });
 }

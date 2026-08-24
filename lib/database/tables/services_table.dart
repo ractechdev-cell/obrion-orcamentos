@@ -14,6 +14,7 @@ class Services extends Table with EntityMixin {
   BoolColumn get includesMaterial =>
       boolean().withDefault(const Constant(false))();
   TextColumn get defaultNote => text().nullable()();
+  TextColumn get category => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

@@ -29,6 +29,7 @@ class ServicesRepository {
     int? defaultPriceCents,
     bool includesMaterial = false,
     String? defaultNote,
+    String? category,
   }) {
     final now = DateTime.now();
     return _db.into(_db.services).insertReturning(
@@ -38,6 +39,7 @@ class ServicesRepository {
             defaultPriceCents: Value(defaultPriceCents),
             includesMaterial: Value(includesMaterial),
             defaultNote: Value(defaultNote),
+            category: Value(category),
             createdAt: Value(now),
             updatedAt: Value(now),
           ),
@@ -55,6 +57,7 @@ class ServicesRepository {
     Value<int?> defaultPriceCents = const Value.absent(),
     Value<bool> includesMaterial = const Value.absent(),
     Value<String?> defaultNote = const Value.absent(),
+    Value<String?> category = const Value.absent(),
   }) async {
     final now = DateTime.now();
     final companion = ServicesCompanion(
@@ -63,6 +66,7 @@ class ServicesRepository {
       defaultPriceCents: defaultPriceCents,
       includesMaterial: includesMaterial,
       defaultNote: defaultNote,
+      category: category,
       updatedAt: Value(now),
     );
     final count = await (_db.update(_db.services)..where((s) => s.id.equals(id))).write(companion);
