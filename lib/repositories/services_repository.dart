@@ -76,6 +76,33 @@ class ServicesRepository {
     return count > 0;
   }
 
+  /// Reajusta em massa o preço padrão de todos os serviços com preço já
+  /// definido — ver docs/POSICIONAMENTO_E_FEATURES_APP1.md, Parte 4, item
+  /// 4 ("material subiu → um botão atualiza a lista toda"). Serviços com
+  /// preço em branco ficam intocados (continuam sem sugerir valor — ver
+  /// CLAUDE.md, "nunca sugerir preço"). Mesmo arredondamento meio-pra-cima
+  /// usado em `budget_calculations.dart`.
+  Future<void> bulkAdjustPrices(double percent) async {
+    final services = await (_db.select(_db.services)..where((s) => s.deletedAt.isNull())).get();
+    final now = DateTime.now();
+    final toAdjust = services.where((s) => s.defaultPriceCents != null).toList();
+    if (toAdjust.isEmpty) return;
+
+    await _db.batch((batch) {
+      for (final service in toAdjust) {
+        final adjusted = (service.defaultPriceCents! * (1 + percent / 100)).round();
+        batch.update(
+          _db.services,
+          ServicesCompanion(
+            defaultPriceCents: Value(adjusted),
+            updatedAt: Value(now),
+          ),
+          where: (s) => s.id.equals(service.id),
+        );
+      }
+    });
+  }
+
   /// Busca serviços contendo o termo no nome.
   Future<List<Service>> search(String query) {
     final term = '%$query%';

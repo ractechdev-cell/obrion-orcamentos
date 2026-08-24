@@ -33,6 +33,57 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
   bool _populating = false;
 
 
+  Future<void> _bulkAdjustPrices(BuildContext context) async {
+    final controller = TextEditingController();
+    final percent = await showModalBottomSheet<double>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 24,
+          right: 24,
+          top: 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Reajustar preços', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            Text(
+              'Aplica o percentual a todos os serviços com preço já definido. Use negativo pra reduzir.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 16),
+            AppTextField(
+              label: 'Reajuste (%)',
+              hint: 'Ex: 10 ou -5',
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+            ),
+            const SizedBox(height: 24),
+            AppButton(
+              label: 'Aplicar',
+              onPressed: () {
+                final value = double.tryParse(controller.text.replaceAll(',', '.'));
+                Navigator.of(context).pop(value);
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+
+    if (percent == null || percent == 0) return;
+    final repo = ref.read(servicesRepositoryProvider);
+    await repo.bulkAdjustPrices(percent);
+    if (context.mounted) {
+      AppSnackBar.show(context, 'Preços reajustados em ${percent > 0 ? '+' : ''}${percent.toStringAsFixed(1)}%.');
+    }
+  }
+
   Future<void> _populateDefaults(BuildContext context) async {
     setState(() => _populating = true);
     try {
@@ -71,6 +122,11 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
       appBar: AppBar(
         title: const Text('Lista de Preços'),
         actions: [
+          IconButton(
+            onPressed: () => _bulkAdjustPrices(context),
+            icon: const Icon(Icons.percent_outlined),
+            tooltip: 'Reajustar preços',
+          ),
           TextButton.icon(
             onPressed: _populating ? null : () => _populateDefaults(context),
             icon: const Icon(Icons.playlist_add, size: 20),

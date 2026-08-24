@@ -75,4 +75,24 @@ void main() {
     expect(services.any((s) => s.name == 'Pintura acrílica (2 demãos)'), isTrue);
     expect(services.any((s) => s.name == 'Instalação de ponto elétrico'), isTrue);
   });
+
+  test('bulkAdjustPrices reajusta só serviços com preço definido', () async {
+    await repository.create(name: 'Com preço', unit: ServiceUnit.squareMeter, defaultPriceCents: 10000);
+    await repository.create(name: 'Sem preço', unit: ServiceUnit.squareMeter);
+
+    await repository.bulkAdjustPrices(10);
+
+    final services = await repository.watchAll().first;
+    expect(services.firstWhere((s) => s.name == 'Com preço').defaultPriceCents, 11000);
+    expect(services.firstWhere((s) => s.name == 'Sem preço').defaultPriceCents, isNull);
+  });
+
+  test('bulkAdjustPrices aceita percentual negativo', () async {
+    await repository.create(name: 'Serviço', unit: ServiceUnit.squareMeter, defaultPriceCents: 10000);
+
+    await repository.bulkAdjustPrices(-10);
+
+    final services = await repository.watchAll().first;
+    expect(services.single.defaultPriceCents, 9000);
+  });
 }
