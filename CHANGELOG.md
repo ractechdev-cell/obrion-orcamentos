@@ -4,6 +4,9 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 
 ## [Unreleased]
 
+### Added
+- **Camada de ofício** (`docs/POSICIONAMENTO_E_FEATURES_APP1.md`, Parte 3): a 3ª tela do onboarding, antes só informativa, agora pergunta "O que você faz?" (múltipla escolha — pedreiro, pintor, gesseiro, azulejista, eletricista, encanador), pulável como as outras. Editável depois em Ajustes (nova seção "Seus ofícios", mesmo seletor de chips). Guardado em `app_settings` via `ProfileRepository` (`Trade` enum novo em `database/enums.dart`), sem migração de schema — mesmo padrão chave/valor do nome/telefone/logo. O botão "Sugestões" da Lista de Preços agora filtra os 23 serviços padrão pelo(s) ofício(s) do perfil — antes despejava tudo de uma vez mesmo pra quem só faz um; perfil sem ofício informado mantém o comportamento antigo (insere tudo).
+
 ### Changed
 - R8/minificação religada (`android/app/build.gradle.kts`, `isMinifyEnabled`/`isShrinkResources = true` + `proguard-rules.pro` novo, vazio de propósito) — motivo original de ter desligado (build local lento) não existe mais desde que os releases passaram a rodar na nuvem. Mudança nativa (Gradle): só entra em vigor num release completo, não num patch. Versão bumped pra `0.1.4+4`, primeira a usar o esquema `x.y.build+build`.
 

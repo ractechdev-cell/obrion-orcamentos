@@ -89,7 +89,13 @@ class ServicesRepository {
   /// de acordo com a regra de negócio do Obrion MVP (ver CLAUDE.md).
   /// Só insere o que ainda não existe, para não duplicar se o usuário tocar
   /// no botão mais de uma vez.
-  Future<void> populateDefaultServices() async {
+  ///
+  /// [trades] filtra a lista pelo(s) ofício(s) do perfil — ver
+  /// docs/POSICIONAMENTO_E_FEATURES_APP1.md, "camada de ofício": antes o
+  /// botão despejava os 23 serviços de todos os ofícios juntos, mesmo pra
+  /// quem só faz um. Vazio (perfil sem ofício informado) mantém o
+  /// comportamento antigo — insere tudo, nunca deixa o botão sem efeito.
+  Future<void> populateDefaultServices({Set<Trade> trades = const {}}) async {
     final now = DateTime.now();
     final existingNames = (await (_db.select(_db.services)
           ..where((s) => s.deletedAt.isNull())
@@ -98,38 +104,34 @@ class ServicesRepository {
         .map((row) => row.name)
         .toSet();
 
-    final defaults = [
-      // Pedreiro
-      _def('Alvenaria de bloco', ServiceUnit.squareMeter),
-      _def('Reboco de parede', ServiceUnit.squareMeter),
-      _def('Chapisco', ServiceUnit.squareMeter),
-      _def('Contrapiso', ServiceUnit.squareMeter),
-      _def('Demolição', ServiceUnit.squareMeter),
-      // Pintor
-      _def('Pintura acrílica (2 demãos)', ServiceUnit.squareMeter),
-      _def('Aplicação de massa corrida', ServiceUnit.squareMeter),
-      _def('Pintura de portas (madeira)', ServiceUnit.unit),
-      // Gesseiro
-      _def('Forro de gesso plaquinha', ServiceUnit.squareMeter),
-      _def('Forro de gesso acartonado (drywall)', ServiceUnit.squareMeter),
-      _def('Moldura de gesso', ServiceUnit.linearMeter),
-      // Azulejista
-      _def('Assentamento de piso cerâmico', ServiceUnit.squareMeter),
-      _def('Assentamento de porcelanato', ServiceUnit.squareMeter),
-      _def('Assentamento de revestimento de parede', ServiceUnit.squareMeter),
-      _def('Instalação de rodapé', ServiceUnit.linearMeter),
-      // Eletricista
-      _def('Instalação de ponto elétrico', ServiceUnit.point),
-      _def('Passagem de cabo elétrico', ServiceUnit.linearMeter),
-      _def('Instalação de luminária/spot', ServiceUnit.unit),
-      _def('Instalação de padrão de entrada', ServiceUnit.lumpSum),
-      // Encanador
-      _def('Ponto de água fria/quente', ServiceUnit.point),
-      _def('Ponto de esgoto', ServiceUnit.point),
-      _def('Instalação de bacia sanitária', ServiceUnit.unit),
-      _def('Instalação de torneira/misturador', ServiceUnit.unit),
+    final allDefaults = [
+      _def('Alvenaria de bloco', ServiceUnit.squareMeter, Trade.mason),
+      _def('Reboco de parede', ServiceUnit.squareMeter, Trade.mason),
+      _def('Chapisco', ServiceUnit.squareMeter, Trade.mason),
+      _def('Contrapiso', ServiceUnit.squareMeter, Trade.mason),
+      _def('Demolição', ServiceUnit.squareMeter, Trade.mason),
+      _def('Pintura acrílica (2 demãos)', ServiceUnit.squareMeter, Trade.painter),
+      _def('Aplicação de massa corrida', ServiceUnit.squareMeter, Trade.painter),
+      _def('Pintura de portas (madeira)', ServiceUnit.unit, Trade.painter),
+      _def('Forro de gesso plaquinha', ServiceUnit.squareMeter, Trade.plasterer),
+      _def('Forro de gesso acartonado (drywall)', ServiceUnit.squareMeter, Trade.plasterer),
+      _def('Moldura de gesso', ServiceUnit.linearMeter, Trade.plasterer),
+      _def('Assentamento de piso cerâmico', ServiceUnit.squareMeter, Trade.tiler),
+      _def('Assentamento de porcelanato', ServiceUnit.squareMeter, Trade.tiler),
+      _def('Assentamento de revestimento de parede', ServiceUnit.squareMeter, Trade.tiler),
+      _def('Instalação de rodapé', ServiceUnit.linearMeter, Trade.tiler),
+      _def('Instalação de ponto elétrico', ServiceUnit.point, Trade.electrician),
+      _def('Passagem de cabo elétrico', ServiceUnit.linearMeter, Trade.electrician),
+      _def('Instalação de luminária/spot', ServiceUnit.unit, Trade.electrician),
+      _def('Instalação de padrão de entrada', ServiceUnit.lumpSum, Trade.electrician),
+      _def('Ponto de água fria/quente', ServiceUnit.point, Trade.plumber),
+      _def('Ponto de esgoto', ServiceUnit.point, Trade.plumber),
+      _def('Instalação de bacia sanitária', ServiceUnit.unit, Trade.plumber),
+      _def('Instalação de torneira/misturador', ServiceUnit.unit, Trade.plumber),
     ];
 
+    final defaults =
+        trades.isEmpty ? allDefaults : allDefaults.where((d) => trades.contains(d.trade)).toList();
     final missing = defaults.where((d) => !existingNames.contains(d.name)).toList();
     if (missing.isEmpty) return;
 
@@ -148,11 +150,13 @@ class ServicesRepository {
     });
   }
 
-  _DefaultService _def(String name, ServiceUnit unit) => _DefaultService(name, unit);
+  _DefaultService _def(String name, ServiceUnit unit, Trade trade) =>
+      _DefaultService(name, unit, trade);
 }
 
 class _DefaultService {
-  _DefaultService(this.name, this.unit);
+  _DefaultService(this.name, this.unit, this.trade);
   final String name;
   final ServiceUnit unit;
+  final Trade trade;
 }

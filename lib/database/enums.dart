@@ -29,3 +29,18 @@ enum OpeningType {
   door,
   window,
 }
+
+/// Ofício do profissional, escolhido no onboarding (múltipla escolha) e
+/// editável depois em Ajustes — ver docs/POSICIONAMENTO_E_FEATURES_APP1.md,
+/// Parte 3 ("camada de ofício"). Guardado em `app_settings`
+/// (`ProfileRepository`), não numa coluna própria — não é geometria nem
+/// dinheiro, é preferência de perfil. Usado para filtrar as sugestões da
+/// lista de preços por ofício, em vez do bloco único de 23 serviços.
+enum Trade {
+  mason, // pedreiro
+  painter, // pintor
+  plasterer, // gesseiro
+  tiler, // azulejista
+  electrician, // eletricista
+  plumber, // encanador
+}

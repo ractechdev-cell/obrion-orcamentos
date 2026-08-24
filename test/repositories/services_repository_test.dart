@@ -58,4 +58,21 @@ void main() {
     expect(services.firstWhere((s) => s.name == 'Reboco de parede').unit, ServiceUnit.squareMeter);
     expect(services.every((s) => s.defaultPriceCents == null), isTrue);
   });
+
+  test('populateDefaultServices filters by trade when informed', () async {
+    await repository.populateDefaultServices(trades: {Trade.painter});
+
+    final services = await repository.watchAll().first;
+    expect(services.any((s) => s.name == 'Pintura acrílica (2 demãos)'), isTrue);
+    expect(services.any((s) => s.name == 'Instalação de ponto elétrico'), isFalse);
+    expect(services.length, lessThan(10));
+  });
+
+  test('populateDefaultServices with empty trades keeps old behavior (insere tudo)', () async {
+    await repository.populateDefaultServices(trades: const {});
+
+    final services = await repository.watchAll().first;
+    expect(services.any((s) => s.name == 'Pintura acrílica (2 demãos)'), isTrue);
+    expect(services.any((s) => s.name == 'Instalação de ponto elétrico'), isTrue);
+  });
 }

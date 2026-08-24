@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../analytics/analytics_service.dart';
 import '../database/database.dart';
 import '../database/enums.dart';
+import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
 import '../utils/currency_format.dart';
 import '../utils/validators.dart';
@@ -36,9 +37,13 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
     setState(() => _populating = true);
     try {
       final repo = ref.read(servicesRepositoryProvider);
-      await repo.populateDefaultServices();
+      final profile = await ref.read(profileRepositoryProvider).getProfile();
+      await repo.populateDefaultServices(trades: profile.trades);
       if (context.mounted) {
-        AppSnackBar.show(context, 'Lista padrão carregada com sucesso!');
+        final message = profile.trades.isEmpty
+            ? 'Lista padrão carregada com sucesso!'
+            : 'Lista padrão do seu ofício carregada com sucesso!';
+        AppSnackBar.show(context, message);
       }
     } finally {
       if (mounted) setState(() => _populating = false);

@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
+import '../database/enums.dart';
 import '../providers/account_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../repositories/account_repository.dart';
@@ -16,6 +17,7 @@ import '../theme/app_spacing.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
+import '../widgets/app_trade_selector.dart';
 import 'login_screen.dart';
 
 /// Tela de configurações (módulo Settings do Core — ver
@@ -32,6 +34,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   String? _logoPath;
+  Set<Trade> _selectedTrades = {};
   bool _loading = true;
   bool _saving = false;
   String? _versionLabel;
@@ -93,6 +96,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         _nameController.text = profile.name ?? '';
         _phoneController.text = profile.phone ?? '';
         _logoPath = (profile.logoPath?.isNotEmpty ?? false) ? profile.logoPath : null;
+        _selectedTrades = profile.trades;
         _loading = false;
       });
     }
@@ -132,6 +136,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       name: _nameController.text.trim(),
       phone: _phoneController.text.trim(),
       logoPath: _logoPath,
+      trades: _selectedTrades,
     );
     if (mounted) {
       setState(() => _saving = false);
@@ -181,6 +186,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 _buildLogoPicker(context),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  'Seus ofícios',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Ajusta as sugestões da sua lista de preços. Pode marcar mais de um.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppTradeSelector(
+                  selected: _selectedTrades,
+                  onChanged: (trades) => setState(() => _selectedTrades = trades),
+                ),
                 const SizedBox(height: AppSpacing.lg),
                 AppButton(
                   label: 'Salvar',
