@@ -7,5 +7,4 @@ class AppRoutes {
   /// tela isolada. Clientes/Preços/Ajustes viraram abas dela; ver
   /// `main_shell.dart`.
   static const home = '/';
-  static const clientNew = '/clients/new';
 }

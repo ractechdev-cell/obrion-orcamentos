@@ -205,7 +205,10 @@ class BudgetsListScreen extends ConsumerWidget {
                               BudgetStatus.accepted => 'Aceito',
                               BudgetStatus.declined => 'Recusado',
                             },
-                            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(color: color, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
