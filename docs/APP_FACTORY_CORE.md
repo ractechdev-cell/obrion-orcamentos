@@ -3,7 +3,7 @@
 > Catálogo dos módulos reutilizáveis do **Obrion Core** (infraestrutura técnica compartilhada por toda a família de apps **Obrion**, da RACTECH).
 > Este documento descreve **o que já existe (ou deve existir) pronto para reuso**, para que uma IA de programação nunca precise recriar do zero algo que já faz parte do Core. Ler em conjunto com `APP_FACTORY_RULES.md`.
 >
-> Estado: rascunho de especificação — ainda não implementado.
+> Estado (atualizado 23/08/2026): a maioria dos módulos abaixo já está implementada dentro do Obrion Orçamentos (`lib/`) — Theme, Database, Analytics, Notifications, Review, AppUpdate, User (perfil), Settings, boa parte do Authentication (login/cadastro só de interface) e Purchases (semente: controle de pagamentos). Ainda não existe um pacote `Core` separado: cada módulo vive como código específico do App #1. Este catálogo continua sendo o **alvo da extração** (ver nota abaixo) — o trabalho que falta é mover o que já funciona pra um pacote compartilhado durante o App #2, não implementar do zero.
 >
 > ⚠️ **Revisão de 21/08/2026 — o Core é extraído, não construído antes.** O App #1 (Obrion Orçamentos) é construído inteiro primeiro, em camadas limpas; este catálogo passa a ser o **alvo da extração** durante a construção do App #2, não uma fase prévia de desenvolvimento. Abstração reutilizável não se projeta a partir de zero produtos. Ver R1 em `ANALISE_E_MELHORIAS.md` e o roadmap revisado no plano de negócio.
 >
