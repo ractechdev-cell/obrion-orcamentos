@@ -2772,6 +2772,17 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _jobDescriptionMeta = const VerificationMeta(
+    'jobDescription',
+  );
+  @override
+  late final GeneratedColumn<String> jobDescription = GeneratedColumn<String>(
+    'job_description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2784,6 +2795,7 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
     discountCents,
     notes,
     validUntil,
+    jobDescription,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2853,6 +2865,15 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
         validUntil.isAcceptableOrUnknown(data['valid_until']!, _validUntilMeta),
       );
     }
+    if (data.containsKey('job_description')) {
+      context.handle(
+        _jobDescriptionMeta,
+        jobDescription.isAcceptableOrUnknown(
+          data['job_description']!,
+          _jobDescriptionMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -2904,6 +2925,10 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}valid_until'],
       ),
+      jobDescription: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}job_description'],
+      ),
     );
   }
 
@@ -2927,6 +2952,11 @@ class Budget extends DataClass implements Insertable<Budget> {
   final int discountCents;
   final String? notes;
   final DateTime? validUntil;
+
+  /// Descrição livre do escopo da obra, exibida num bloco próprio no PDF
+  /// (antes da tabela de itens) — separado da descrição de cada item. Ver
+  /// docs/ANALISE_CONCORRENCIA_E_ESCOPO.md, Parte 5, item 8.
+  final String? jobDescription;
   const Budget({
     required this.id,
     required this.createdAt,
@@ -2938,6 +2968,7 @@ class Budget extends DataClass implements Insertable<Budget> {
     required this.discountCents,
     this.notes,
     this.validUntil,
+    this.jobDescription,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2964,6 +2995,9 @@ class Budget extends DataClass implements Insertable<Budget> {
     if (!nullToAbsent || validUntil != null) {
       map['valid_until'] = Variable<DateTime>(validUntil);
     }
+    if (!nullToAbsent || jobDescription != null) {
+      map['job_description'] = Variable<String>(jobDescription);
+    }
     return map;
   }
 
@@ -2987,6 +3021,9 @@ class Budget extends DataClass implements Insertable<Budget> {
       validUntil: validUntil == null && nullToAbsent
           ? const Value.absent()
           : Value(validUntil),
+      jobDescription: jobDescription == null && nullToAbsent
+          ? const Value.absent()
+          : Value(jobDescription),
     );
   }
 
@@ -3008,6 +3045,7 @@ class Budget extends DataClass implements Insertable<Budget> {
       discountCents: serializer.fromJson<int>(json['discountCents']),
       notes: serializer.fromJson<String?>(json['notes']),
       validUntil: serializer.fromJson<DateTime?>(json['validUntil']),
+      jobDescription: serializer.fromJson<String?>(json['jobDescription']),
     );
   }
   @override
@@ -3026,6 +3064,7 @@ class Budget extends DataClass implements Insertable<Budget> {
       'discountCents': serializer.toJson<int>(discountCents),
       'notes': serializer.toJson<String?>(notes),
       'validUntil': serializer.toJson<DateTime?>(validUntil),
+      'jobDescription': serializer.toJson<String?>(jobDescription),
     };
   }
 
@@ -3040,6 +3079,7 @@ class Budget extends DataClass implements Insertable<Budget> {
     int? discountCents,
     Value<String?> notes = const Value.absent(),
     Value<DateTime?> validUntil = const Value.absent(),
+    Value<String?> jobDescription = const Value.absent(),
   }) => Budget(
     id: id ?? this.id,
     createdAt: createdAt ?? this.createdAt,
@@ -3051,6 +3091,9 @@ class Budget extends DataClass implements Insertable<Budget> {
     discountCents: discountCents ?? this.discountCents,
     notes: notes.present ? notes.value : this.notes,
     validUntil: validUntil.present ? validUntil.value : this.validUntil,
+    jobDescription: jobDescription.present
+        ? jobDescription.value
+        : this.jobDescription,
   );
   Budget copyWithCompanion(BudgetsCompanion data) {
     return Budget(
@@ -3068,6 +3111,9 @@ class Budget extends DataClass implements Insertable<Budget> {
       validUntil: data.validUntil.present
           ? data.validUntil.value
           : this.validUntil,
+      jobDescription: data.jobDescription.present
+          ? data.jobDescription.value
+          : this.jobDescription,
     );
   }
 
@@ -3083,7 +3129,8 @@ class Budget extends DataClass implements Insertable<Budget> {
           ..write('status: $status, ')
           ..write('discountCents: $discountCents, ')
           ..write('notes: $notes, ')
-          ..write('validUntil: $validUntil')
+          ..write('validUntil: $validUntil, ')
+          ..write('jobDescription: $jobDescription')
           ..write(')'))
         .toString();
   }
@@ -3100,6 +3147,7 @@ class Budget extends DataClass implements Insertable<Budget> {
     discountCents,
     notes,
     validUntil,
+    jobDescription,
   );
   @override
   bool operator ==(Object other) =>
@@ -3114,7 +3162,8 @@ class Budget extends DataClass implements Insertable<Budget> {
           other.status == this.status &&
           other.discountCents == this.discountCents &&
           other.notes == this.notes &&
-          other.validUntil == this.validUntil);
+          other.validUntil == this.validUntil &&
+          other.jobDescription == this.jobDescription);
 }
 
 class BudgetsCompanion extends UpdateCompanion<Budget> {
@@ -3128,6 +3177,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
   final Value<int> discountCents;
   final Value<String?> notes;
   final Value<DateTime?> validUntil;
+  final Value<String?> jobDescription;
   final Value<int> rowid;
   const BudgetsCompanion({
     this.id = const Value.absent(),
@@ -3140,6 +3190,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     this.discountCents = const Value.absent(),
     this.notes = const Value.absent(),
     this.validUntil = const Value.absent(),
+    this.jobDescription = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   BudgetsCompanion.insert({
@@ -3153,6 +3204,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     this.discountCents = const Value.absent(),
     this.notes = const Value.absent(),
     this.validUntil = const Value.absent(),
+    this.jobDescription = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : clientId = Value(clientId);
   static Insertable<Budget> custom({
@@ -3166,6 +3218,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     Expression<int>? discountCents,
     Expression<String>? notes,
     Expression<DateTime>? validUntil,
+    Expression<String>? jobDescription,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3179,6 +3232,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
       if (discountCents != null) 'discount_cents': discountCents,
       if (notes != null) 'notes': notes,
       if (validUntil != null) 'valid_until': validUntil,
+      if (jobDescription != null) 'job_description': jobDescription,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3194,6 +3248,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     Value<int>? discountCents,
     Value<String?>? notes,
     Value<DateTime?>? validUntil,
+    Value<String?>? jobDescription,
     Value<int>? rowid,
   }) {
     return BudgetsCompanion(
@@ -3207,6 +3262,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
       discountCents: discountCents ?? this.discountCents,
       notes: notes ?? this.notes,
       validUntil: validUntil ?? this.validUntil,
+      jobDescription: jobDescription ?? this.jobDescription,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3246,6 +3302,9 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     if (validUntil.present) {
       map['valid_until'] = Variable<DateTime>(validUntil.value);
     }
+    if (jobDescription.present) {
+      map['job_description'] = Variable<String>(jobDescription.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3265,6 +3324,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
           ..write('discountCents: $discountCents, ')
           ..write('notes: $notes, ')
           ..write('validUntil: $validUntil, ')
+          ..write('jobDescription: $jobDescription, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -6812,6 +6872,7 @@ typedef $$BudgetsTableCreateCompanionBuilder = BudgetsCompanion Function({
   Value<int> discountCents,
   Value<String?> notes,
   Value<DateTime?> validUntil,
+  Value<String?> jobDescription,
   Value<int> rowid,
 });
 typedef $$BudgetsTableUpdateCompanionBuilder = BudgetsCompanion Function({
@@ -6825,6 +6886,7 @@ typedef $$BudgetsTableUpdateCompanionBuilder = BudgetsCompanion Function({
   Value<int> discountCents,
   Value<String?> notes,
   Value<DateTime?> validUntil,
+  Value<String?> jobDescription,
   Value<int> rowid,
 });
 
@@ -6951,6 +7013,11 @@ class $$BudgetsTableFilterComposer
 
   ColumnFilters<DateTime> get validUntil => $composableBuilder(
     column: $table.validUntil,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get jobDescription => $composableBuilder(
+    column: $table.jobDescription,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7100,6 +7167,11 @@ class $$BudgetsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get jobDescription => $composableBuilder(
+    column: $table.jobDescription,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ClientsTableOrderingComposer get clientId {
     final $$ClientsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -7181,6 +7253,11 @@ class $$BudgetsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get validUntil => $composableBuilder(
     column: $table.validUntil,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get jobDescription => $composableBuilder(
+    column: $table.jobDescription,
     builder: (column) => column,
   );
 
@@ -7324,6 +7401,7 @@ class $$BudgetsTableTableManager
                 Value<int> discountCents = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime?> validUntil = const Value.absent(),
+                Value<String?> jobDescription = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BudgetsCompanion(
                 id: id,
@@ -7336,6 +7414,7 @@ class $$BudgetsTableTableManager
                 discountCents: discountCents,
                 notes: notes,
                 validUntil: validUntil,
+                jobDescription: jobDescription,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -7350,6 +7429,7 @@ class $$BudgetsTableTableManager
                 Value<int> discountCents = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime?> validUntil = const Value.absent(),
+                Value<String?> jobDescription = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BudgetsCompanion.insert(
                 id: id,
@@ -7362,6 +7442,7 @@ class $$BudgetsTableTableManager
                 discountCents: discountCents,
                 notes: notes,
                 validUntil: validUntil,
+                jobDescription: jobDescription,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

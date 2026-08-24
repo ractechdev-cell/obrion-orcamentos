@@ -18,6 +18,10 @@ class Budgets extends Table with EntityMixin {
   IntColumn get discountCents => integer().withDefault(const Constant(0))();
   TextColumn get notes => text().nullable()();
   DateTimeColumn get validUntil => dateTime().nullable()();
+  /// Descrição livre do escopo da obra, exibida num bloco próprio no PDF
+  /// (antes da tabela de itens) — separado da descrição de cada item. Ver
+  /// docs/ANALISE_CONCORRENCIA_E_ESCOPO.md, Parte 5, item 8.
+  TextColumn get jobDescription => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
