@@ -218,4 +218,58 @@ void main() {
       expect(payments, isEmpty);
     });
   });
+
+  group('resumo da Home', () {
+    test('loadHomeSummary soma por status e ignora recusados', () async {
+      final client = await clientsRepo.create(name: 'Fernanda Azulejista');
+
+      final sent = await budgetsRepo.create(clientId: client.id);
+      await budgetsRepo.addItem(
+        sent.id,
+        const BudgetItemInput(
+          description: 'Assentamento',
+          unit: ServiceUnit.squareMeter,
+          quantity: 10,
+          unitPriceCents: 5000,
+        ),
+      );
+      await budgetsRepo.updateStatus(sent.id, BudgetStatus.sent);
+
+      final accepted = await budgetsRepo.create(clientId: client.id);
+      await budgetsRepo.addItem(
+        accepted.id,
+        const BudgetItemInput(
+          description: 'Reboco',
+          unit: ServiceUnit.squareMeter,
+          quantity: 4,
+          unitPriceCents: 2500,
+        ),
+      );
+      await budgetsRepo.updateStatus(accepted.id, BudgetStatus.accepted);
+      await paymentsRepo.create(budgetId: accepted.id, amountCents: 5000);
+
+      final declined = await budgetsRepo.create(clientId: client.id);
+      await budgetsRepo.addItem(
+        declined.id,
+        const BudgetItemInput(
+          description: 'Não vai contar',
+          unit: ServiceUnit.unit,
+          quantity: 1,
+          unitPriceCents: 999999,
+        ),
+      );
+      await budgetsRepo.updateStatus(declined.id, BudgetStatus.sent);
+      await budgetsRepo.updateStatus(declined.id, BudgetStatus.declined);
+
+      final summary = await budgetsRepo.loadHomeSummary();
+
+      expect(summary.totalAwaitingCents, 50000);
+      expect(summary.totalAcceptedCents, 10000);
+      expect(summary.totalReceivedCents, 5000);
+      expect(summary.totalOpenCents, 60000); // aguardando + aprovado, recusado fora
+      expect(summary.pending, hasLength(1));
+      expect(summary.pending.single.clientName, 'Fernanda Azulejista');
+      expect(summary.pending.single.totalCents, 50000);
+    });
+  });
 }

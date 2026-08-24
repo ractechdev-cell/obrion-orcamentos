@@ -4,6 +4,12 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 
 ## [Unreleased]
 
+### Added
+- **`docs/ROADMAP_UX_UI_E_FEATURES_APP1.md`** (trazido pelo fundador, 24/08/2026) — novo roadmap de UX/UI/features, ponto de partida pra elevar o app a nível profissional antes da ★ Validação. **`docs/PROGRESSO_ROADMAP_UX_UI.md`** é o checklist vivo dele, cruzado contra o código real — ver esse arquivo pra status detalhado por item.
+- **Home virou painel** (`HomeScreen`, `BudgetsRepository.loadHomeSummary`): resumo financeiro (em orçamentos / aguardando resposta / aprovados / recebidos) + lista de pendências (orçamentos "Enviado", tocável, leva direto pro orçamento). Grade de atalhos do concorrente não entrou — decisão já registrada de que é redundante com a barra inferior.
+- **Duplicar orçamento voltou a funcionar** — `BudgetsRepository.duplicate()` já existia e era testado, mas ficou órfão (nenhuma tela chamava) desde que `budgets_screen.dart` foi removido na unificação do histórico do cliente. Menu ⋮ no orçamento agora tem "Duplicar orçamento".
+- `DOCUMENTACAO_COMPLETA.md` — todos os `.md` do projeto concatenados num arquivo só, pra leitura/repasse fácil (não é fonte de verdade, os originais continuam sendo).
+
 ### Fixed
 - **4 básicos que a análise de concorrência deixou passar**: Ligar/WhatsApp direto da ficha do cliente (fecha uma promessa que a microcopy já fazia sem nunca ter sido construída); CPF/CNPJ do cliente ligado ao PDF e ao recibo (dado já capturado desde a rodada anterior, nunca usado em lugar nenhum); e-mail do cliente (`clients.email`, schema v4→v5); "Válido até" visível direto na tela do orçamento, não só dentro do sheet de Detalhes.
 - **App travava (bloco cinza) ao escolher "Válido até" no orçamento** — `AppDatePicker` formata com `DateFormat(..., 'pt_BR')`, mas o app nunca chamava `initializeDateFormatting('pt_BR')` (só os testes chamavam, isolado — nunca propagou pro `main.dart` de verdade). Achado em teste manual real no aparelho. Corrigido: `main.dart` inicializa o locale no boot, e o app ganhou `flutter_localizations` + `locale: pt_BR` configurado (também corrige o calendário nativo aparecendo em inglês). Teste de regressão novo em `test/widgets/app_date_picker_test.dart`.

@@ -65,6 +65,48 @@ class BudgetWithClientName {
   final String clientName;
 }
 
+/// Orçamento parado em "Enviado" — item da lista de pendências do resumo
+/// da Home (ver `BudgetsRepository.loadHomeSummary`).
+class PendingBudgetSummary {
+  const PendingBudgetSummary({
+    required this.budgetId,
+    required this.clientId,
+    required this.clientName,
+    required this.totalCents,
+    required this.daysWaiting,
+  });
+
+  final String budgetId;
+  final String clientId;
+  final String clientName;
+  final int totalCents;
+  final int daysWaiting;
+}
+
+/// Resumo do negócio pra Home virar painel, não só porta de entrada — ver
+/// docs/ROADMAP_UX_UI_E_FEATURES_APP1.md, seção 3. Consulta única (não
+/// reativa), mesmo padrão de `countAwaitingResponse`/`ClientsRepository.countActive`.
+class HomeSummary {
+  const HomeSummary({
+    required this.totalOpenCents,
+    required this.totalAwaitingCents,
+    required this.totalAcceptedCents,
+    required this.totalReceivedCents,
+    required this.pending,
+  });
+
+  /// Soma de todos os orçamentos ativos (qualquer status exceto recusado).
+  final int totalOpenCents;
+  final int totalAwaitingCents;
+  final int totalAcceptedCents;
+  final int totalReceivedCents;
+
+  /// Orçamentos parados em "Enviado", do mais atrasado pro mais recente,
+  /// limitado aos 5 primeiros — a Home mostra o que precisa de ação, não
+  /// a lista inteira (isso já existe na aba Orçamentos).
+  final List<PendingBudgetSummary> pending;
+}
+
 /// Repositório de orçamentos (ver CLAUDE.md, "Retenção precisa de
 /// mecanismo, não só de métrica" — status é o mecanismo central aqui).
 class BudgetsRepository {
@@ -113,6 +155,65 @@ class BudgetsRepository {
               b.updatedAt.isSmallerOrEqualValue(cutoff)))
         .get();
     return rows.length;
+  }
+
+  /// Monta o resumo financeiro da Home — ver `HomeSummary`. Uma consulta
+  /// por tabela (budgets/items/payments/clients) em vez de N+1 por
+  /// orçamento; agrupa em memória, que é barato pro volume deste app
+  /// (um profissional solo, não milhares de orçamentos).
+  Future<HomeSummary> loadHomeSummary() async {
+    final budgets = await (_db.select(_db.budgets)..where((b) => b.deletedAt.isNull())).get();
+    final items = await (_db.select(_db.budgetItems)..where((i) => i.deletedAt.isNull())).get();
+    final payments = await (_db.select(_db.payments)..where((p) => p.deletedAt.isNull())).get();
+    final clients = await _db.select(_db.clients).get();
+
+    final itemsByBudget = <String, List<BudgetItem>>{};
+    for (final item in items) {
+      itemsByBudget.putIfAbsent(item.budgetId, () => []).add(item);
+    }
+    final clientNameById = {for (final c in clients) c.id: c.name};
+
+    var totalOpen = 0;
+    var totalAwaiting = 0;
+    var totalAccepted = 0;
+    final pending = <PendingBudgetSummary>[];
+
+    for (final budget in budgets) {
+      if (budget.status == BudgetStatus.declined) continue;
+      final budgetItems = itemsByBudget[budget.id] ?? const [];
+      final total = BudgetTotals.fromItems(
+        items: budgetItems
+            .map((i) => BudgetLineItem(quantity: i.quantity, unitPriceCents: i.unitPriceCents))
+            .toList(),
+        discountCents: budget.discountCents,
+      ).totalCents;
+
+      totalOpen += total;
+      if (budget.status == BudgetStatus.sent) {
+        totalAwaiting += total;
+        pending.add(PendingBudgetSummary(
+          budgetId: budget.id,
+          clientId: budget.clientId,
+          clientName: clientNameById[budget.clientId] ?? 'Cliente removido',
+          totalCents: total,
+          // `updatedAt` como proxy de "desde quando está enviado" — mesma
+          // convenção já usada em `countAwaitingResponse`.
+          daysWaiting: DateTime.now().difference(budget.updatedAt).inDays,
+        ));
+      } else if (budget.status == BudgetStatus.accepted) {
+        totalAccepted += total;
+      }
+    }
+
+    pending.sort((a, b) => b.daysWaiting.compareTo(a.daysWaiting));
+
+    return HomeSummary(
+      totalOpenCents: totalOpen,
+      totalAwaitingCents: totalAwaiting,
+      totalAcceptedCents: totalAccepted,
+      totalReceivedCents: payments.fold(0, (sum, p) => sum + p.amountCents),
+      pending: pending.take(5).toList(),
+    );
   }
 
   /// Observa um orçamento com seus itens e pagamentos.

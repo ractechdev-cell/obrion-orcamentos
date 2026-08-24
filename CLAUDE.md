@@ -18,6 +18,8 @@ Já feito: projeto Flutter (`applicationId` `br.com.ractech.obrion.orcamentos`),
 - `docs/APP_FACTORY_RULES.md` — regras mestras: princípios, arquitetura, stack, schema de banco, monetização, autenticação, analytics, design system, tema, LGPD, publicação, testes.
 - `docs/PLANO_DE_NEGOCIO_INICIAL.md` — contexto de negócio: mercado, problema, público-alvo, diferencial, roadmap, riscos, KPIs.
 - `docs/ANALISE_E_MELHORIAS.md` — análise crítica do plano: riscos, lacunas e correções. **Onde este arquivo diverge dos três acima, ele explica o porquê e prevalece nos pontos técnicos já incorporados aqui.**
+- `docs/POSICIONAMENTO_E_FEATURES_APP1.md` e `docs/ANALISE_CONCORRENCIA_E_ESCOPO.md` — análises de posicionamento/concorrência de 24/08/2026 (o segundo corrige o primeiro em alguns pontos, ver Parte 6 dele).
+- `docs/ROADMAP_UX_UI_E_FEATURES_APP1.md` — roadmap de UX/UI e features trazido pelo fundador em 24/08/2026, novo ponto de partida pra elevar o app a nível profissional antes da ★ Validação. **`docs/PROGRESSO_ROADMAP_UX_UI.md` é o checklist vivo dele — sempre olhar esse arquivo primeiro** pra saber o que já saiu do papel antes de reimplementar algo.
 
 Este CLAUDE.md resume o essencial para o dia a dia de código; para qualquer dúvida de detalhe, a fonte de verdade são os arquivos acima — releia-os se algo aqui parecer desatualizado.
 

@@ -738,6 +738,21 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     AnalyticsService.trackEvent('pdf_generated', {'format': 'recibo'});
   }
 
+  /// `BudgetsRepository.duplicate` já existia, mas não tinha nenhum
+  /// caminho na UI desde que `budgets_screen.dart` foi removido — dado
+  /// como "alto uso real" no CLAUDE.md, mas ficou órfão nesse meio tempo.
+  Future<void> _duplicateBudget(BuildContext context) async {
+    final repo = ref.read(budgetsRepositoryProvider);
+    final newBudget = await repo.duplicate(_budgetId!);
+    if (!context.mounted) return;
+    AppSnackBar.show(context, 'Orçamento duplicado como rascunho.');
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => BudgetFormScreen(clientId: newBudget.clientId, budgetId: newBudget.id),
+      ),
+    );
+  }
+
   Future<void> _shareBudget(BuildContext context, BudgetWithItems data) async {
     final format = await AppBottomSheet.showActions<BudgetShareFormat>(
       context,
@@ -825,6 +840,21 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 onPressed: () => _pickService(context),
                 icon: const Icon(Icons.add),
                 tooltip: 'Adicionar item',
+              ),
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'duplicate') _duplicateBudget(context);
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: 'duplicate',
+                    child: ListTile(
+                      leading: Icon(Icons.copy_outlined),
+                      title: Text('Duplicar orçamento'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
