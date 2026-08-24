@@ -286,7 +286,8 @@ Regra para a IA: ao construir uma tela nova, primeiro verificar se o componente 
 
 Checklist mínimo antes de publicar qualquer app da família Obrion:
 - ⚠️ **`applicationId`/bundle id fixado antes do primeiro build** — ele é **imutável após a primeira publicação**, errar significa perder o app e a base de usuários. Convenção definitiva da família (decidida em 21/08/2026): `br.com.ractech.obrion.<app>` — `orcamentos`, `materiais`, `diario`, `medicoes`, `calculadora`. Mesmo valor em Android e iOS. Ver `../CLAUDE.md`, seção "Identidade visual da família", para a tabela completa.
-- ✅ Busca do nome na **Google Play e App Store** feita em 21/08/2026, sem conflito encontrado (além da busca formal de anterioridade no INPI, ainda pendente — ver Seção 13 do plano de negócio).
+- ✅ Busca do nome na **Google Play e App Store** feita em 21/08/2026, sem conflito encontrado.
+- ✅ Busca formal de anterioridade no INPI feita em 23/08/2026: existe marca "Obrion" registrada, mas na classe farmacêutica — classe diferente da de software, o que reduz mas não elimina o risco de colidência. **Confirmar com advogado de PI antes da Fase 4** (ver detalhe em `ANALISE_E_MELHORIAS.md`, seção C2).
 - Política de privacidade pública e vinculada na ficha da loja, cobrindo o dado pessoal de terceiro (seção 10).
 - Formulário de Segurança de Dados preenchido corretamente.
 - "Sem anúncios" destacado na descrição da ficha — é diferencial frente aos concorrentes (seção 5).

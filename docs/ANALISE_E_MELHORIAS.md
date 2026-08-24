@@ -309,11 +309,12 @@ Não é bloqueador, mas precisa estar escrito antes de publicar.
 
 ## C2 — Verificações de marca que faltam na lista
 
-Além da busca no INPI já prevista (§13), antes de fixar o nome:
+Antes de fixar o nome:
 
 - ✅ Busca de "Obrion" na **Google Play** e na App Store feita em 21/08/2026 — sem conflito encontrado. Conflito de nome de app impediria a listagem independentemente de marca registrada; sem conflito, o nome pode ser reservado com a criação do app/ficha da loja.
 - ✅ **`applicationId`/bundle id fixado em 21/08/2026:** `br.com.ractech.obrion.<app>` — mesmo valor em Android e iOS, sem acentos. Tabela completa em `APP_FACTORY_CORE.md` §13. Ele é **imutável após a primeira publicação** — errar aqui significaria perder o app e os usuários; fixar antes do primeiro build elimina o risco.
-- `obrion.app` exige HTTPS obrigatório (domínio `.app` está na lista HSTS pré-carregada). Ainda pendente.
+- ✅ **Busca formal de anterioridade no INPI feita (23/08/2026)** pelo fundador: encontrada uma marca "Obrion" já registrada, mas na classe farmacêutica. Como o INPI registra por classe (Classificação de Nice) — farmacêutico costuma cair na classe 5, software/app costuma cair nas classes 9 e/ou 42 —, uma marca de classe diferente **não necessariamente** impede o registro do app na classe de software. **Não é garantia**: só um profissional (advogado de PI) confirma se há risco real de colidência/diluição entre as classes. Vale essa confirmação antes da Fase 4 (Play Store) — o app_id já é imutável após publicado, e trocar de nome depois de usuários instalados é bem mais caro que agora.
+- `obrion.app` exige HTTPS obrigatório (domínio `.app` está na lista HSTS pré-carregada). Adiado — não é urgente antes da Fase 4.
 
 ---
 
