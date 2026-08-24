@@ -16,6 +16,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 
 ### Removed
 - `budgets_screen.dart` e `measurements_screen.dart` (listas separadas por cliente/obra) — substituídas pelo histórico unificado em `client_detail_screen.dart`, ficaram órfãs (nada mais navegava pra elas). Rota `/measurements/:projectId` removida do `app_router.dart` pelo mesmo motivo.
+- **Tema escuro** (`AppTheme.dark()`, `ThemeModeNotifier`/`themeModeProvider`, seção "Aparência" em Configurações, `PreferencesRepository.getThemeMode`/`saveThemeMode`): o esquema escuro era 100% gerado automaticamente pela seed âmbar via `ColorScheme.fromSeed`, sem ajuste manual de contraste — causa técnica real por trás do relato do fundador de cores "confusas" no escuro. Como o público do app usa ao sol/no canteiro (uso noturno atípico pra este produto), a decisão foi remover em vez de auditar/corrigir. App usa só `theme: AppTheme.light()` agora; `AppSemanticColors`/`AppSemanticPalette` mantêm só as variantes claras.
 
 ### Fixed
 - **Valores em R$ sem ponto de milhar** (`R$ 95115,00` em vez de `R$ 95.115,00`) na tela do orçamento e na Lista de Preços — `formatCents`/formatação inline usavam `toStringAsFixed(2).replaceAll('.', ',')`, que só troca o separador decimal, nunca insere o de milhar. `budget_pdf_content.dart` já formatava certo (com regex de milhar) só no PDF; centralizado num único helper `lib/utils/currency_format.dart` (`formatCurrencyBrl`), reaproveitado nos três lugares — acaba a duplicação e a divergência entre tela e PDF.

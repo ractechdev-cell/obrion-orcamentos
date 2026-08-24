@@ -41,17 +41,6 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     onWarningContainer: AppSemanticPalette.onWarningContainer,
   );
 
-  static const dark = AppSemanticColors(
-    success: AppSemanticPalette.successDark,
-    onSuccess: AppSemanticPalette.onSuccessDark,
-    successContainer: AppSemanticPalette.successContainerDark,
-    onSuccessContainer: AppSemanticPalette.onSuccessContainerDark,
-    warning: AppSemanticPalette.warningDark,
-    onWarning: AppSemanticPalette.onWarningDark,
-    warningContainer: AppSemanticPalette.warningContainerDark,
-    onWarningContainer: AppSemanticPalette.onWarningContainerDark,
-  );
-
   @override
   AppSemanticColors copyWith({
     Color? success,

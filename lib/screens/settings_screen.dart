@@ -9,9 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 import '../providers/account_repository_provider.dart';
-import '../providers/preferences_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
-import '../providers/theme_mode_provider.dart';
 import '../repositories/account_repository.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
@@ -22,8 +20,7 @@ import 'login_screen.dart';
 
 /// Tela de configurações (módulo Settings do Core — ver
 /// docs/APP_FACTORY_CORE.md). Guarda o perfil do profissional (nome,
-/// telefone, logo) usado no cabeçalho do PDF de orçamento, e a
-/// preferência de tema do app.
+/// telefone, logo) usado no cabeçalho do PDF de orçamento.
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
@@ -142,12 +139,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  Future<void> _setThemeMode(ThemeMode mode) async {
-    ref.read(themeModeProvider.notifier).set(mode);
-    final repo = ref.read(preferencesRepositoryProvider);
-    await repo.saveThemeMode(mode);
-  }
-
   @override
   void dispose() {
     _nameController.dispose();
@@ -157,8 +148,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeModeProvider);
-
     return Scaffold(
       appBar: AppBar(title: const Text('Configurações')),
       body: _loading
@@ -197,20 +186,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   label: 'Salvar',
                   loading: _saving,
                   onPressed: _saving ? null : _save,
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                const Divider(),
-                const SizedBox(height: AppSpacing.md),
-                Text('Aparência', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: AppSpacing.md),
-                SegmentedButton<ThemeMode>(
-                  segments: const [
-                    ButtonSegment(value: ThemeMode.light, label: Text('Claro'), icon: Icon(Icons.light_mode)),
-                    ButtonSegment(value: ThemeMode.dark, label: Text('Escuro'), icon: Icon(Icons.dark_mode)),
-                    ButtonSegment(value: ThemeMode.system, label: Text('Sistema'), icon: Icon(Icons.brightness_auto)),
-                  ],
-                  selected: {themeMode},
-                  onSelectionChanged: (selection) => _setThemeMode(selection.first),
                 ),
                 if (_versionLabel != null) ...[
                   const SizedBox(height: AppSpacing.xl),

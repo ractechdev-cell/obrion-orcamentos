@@ -69,13 +69,10 @@ void main() {
     expect(find.text('Seu perfil profissional'), findsOneWidget);
   });
 
-  testWidgets('Light and dark themes both resolve without throwing',
+  testWidgets('Light theme resolves without throwing',
       (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(theme: AppTheme.light(), home: const SizedBox()),
-    );
-    await tester.pumpWidget(
-      MaterialApp(theme: AppTheme.dark(), home: const SizedBox()),
     );
   });
 }

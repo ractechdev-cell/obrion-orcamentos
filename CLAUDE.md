@@ -10,7 +10,7 @@ Primeiro produto: **Obrion Orçamentos** (App #1) — medir, montar orçamento e
 
 **Estado atual: Fases 0 e 1 concluídas. Fase 1.5 em andamento — polimento interno (UI/UX, features, tela de login local) testado pelo próprio fundador. Ninguém externo instala o app ainda; ★ Validação (3–5 profissionais reais) só começa depois do polimento.**
 
-Já feito: projeto Flutter (`applicationId` `br.com.ractech.obrion.orcamentos`), tema light/dark Material 3 (`lib/theme/`), navegação `go_router` (`lib/routing/`), banco local Drift/SQLite (`lib/database/`) com schema completo (`clients`, `projects`, `measurements`, `services`, `budgets`/`budget_items`, `payments`, `app_settings`), DI com Riverpod, design system base (`lib/widgets/`), Crashlytics + Analytics inicializados no boot, barra de navegação inferior (`lib/screens/main_shell.dart`), tela de login/cadastro só de interface (decisão 5, `lib/screens/login_screen.dart`), lembrete local de orçamento aguardando resposta (`lib/notifications/notification_service.dart`, módulo Notifications do Core), controle básico de pagamentos por orçamento (`lib/repositories/payments_repository.dart`, semente do plano Pro), e os módulos de negócio: **Clientes → Medições → Lista de Preços → Orçamentos** (criação, status rascunho→enviado→aceito/recusado, duplicação, soft delete) com geração de PDF e compartilhamento via `share_plus` (WhatsApp na ponta). Ver `CHANGELOG.md` para o histórico exato.
+Já feito: projeto Flutter (`applicationId` `br.com.ractech.obrion.orcamentos`), tema Material 3 único claro (`lib/theme/` — dark mode removido em 23/08/2026, ver nota própria abaixo), navegação `go_router` (`lib/routing/`), banco local Drift/SQLite (`lib/database/`) com schema completo (`clients`, `projects`, `measurements`, `services`, `budgets`/`budget_items`, `payments`, `app_settings`), DI com Riverpod, design system base (`lib/widgets/`), Crashlytics + Analytics inicializados no boot, barra de navegação inferior (`lib/screens/main_shell.dart`), tela de login/cadastro só de interface (decisão 5, `lib/screens/login_screen.dart`), lembrete local de orçamento aguardando resposta (`lib/notifications/notification_service.dart`, módulo Notifications do Core), controle básico de pagamentos por orçamento (`lib/repositories/payments_repository.dart`, semente do plano Pro), e os módulos de negócio: **Clientes → Medições → Lista de Preços → Orçamentos** (criação, status rascunho→enviado→aceito/recusado, duplicação, soft delete) com geração de PDF e compartilhamento via `share_plus` (WhatsApp na ponta). Ver `CHANGELOG.md` para o histórico exato.
 
 ## Documentos-fonte (ler antes de gerar módulos)
 
@@ -57,7 +57,7 @@ Três decisões adicionais do fundador, que inserem uma fase entre a Fase 1 e a 
 |---|---|---|
 | **0 — Fundação mínima** (1 sprint) | Projeto Flutter, navegação, tokens de tema, componentes que o App #1 usa de fato, banco local (Drift), Crashlytics | ✅ **concluída** |
 | **1 — O fluxo que vale dinheiro** (3–4 sprints) | Clientes → Medição → Lista de preços → Orçamento → PDF → Compartilhar. **Tudo local: sem conta, sem nuvem, sem billing** | ✅ **concluída** — fluxo completo, PDF, compartilhamento (WhatsApp), duplicar/excluir |
-| **1.5 — Polimento interno** (sem prazo fixo) | UI/UX, features adicionais, tela de login/perfil (só interface — decisão 5), correção de bugs. Testado só pelo fundador | 🔄 **em andamento** |
+| **1.5 — Polimento interno** (sem prazo fixo) | UI/UX, features adicionais, tela de login/perfil (só interface — decisão 5), correção de bugs. **2ª rodada (23/08/2026): identidade visual/distintividade, caça a bugs visuais, tema único claro.** Testado só pelo fundador | 🔄 **em andamento** |
 | **★ Validação** | 3–5 profissionais reais usando de verdade, antes de nuvem ou monetização | ⏸️ aguardando fim do polimento |
 | **2 — Conta e nuvem** (1–2 sprints) | Supabase, login anônimo→e-mail, sync push, backup | ⏸️ aguardando validação |
 | **3 — Monetização** (1 sprint) | Play Billing, paywall por recurso. Sem ads | ⏸️ aguardando validação |
@@ -304,6 +304,14 @@ Focar no que erra silenciosamente e custa caro:
 - **CI simples** (GitHub Actions) rodando `flutter analyze` + `flutter test` a cada push. Sem CI, "rodar regressão contra todos os apps" não acontece na prática.
 - Teste manual de fluxo completo antes de cada release: criar cliente → medir → gerar orçamento → gerar PDF → compartilhar.
 - Ao alterar um módulo do Core, rodar regressão contra **todos** os apps que o consomem, não só o mais recente.
+
+### Segunda rodada da Fase 1.5 — tema único claro, sem dark mode (23/08/2026)
+
+Fundador reportou o tema escuro "confuso" — investigação confirmou causa técnica real, não só gosto: o Material 3 gera o esquema escuro 100% automaticamente a partir da seed âmbar (`ColorScheme.fromSeed`), sem nenhum ajuste manual de contraste (só os tokens `success`/`warning` eram tunados à mão, e só no claro). Seeds saturadas em laranja/âmbar tendem a gerar esquemas escuros "sujos" quando gerados automaticamente.
+
+**Decisão:** remover o tema escuro em vez de auditá-lo/corrigi-lo. Justificativa: o público do app trabalha ao sol/poeira no canteiro — uso noturno/indoor é atípico para este produto específico — então o ganho de manter dark mode não paga o custo de mantê-lo (mais uma superfície pra testar/manter, e nenhum ajuste manual já existia). `AppTheme.dark()`, `ThemeMode`/`themeModeProvider`, a seção "Aparência" em Configurações e a persistência de preferência de tema em `app_settings` foram removidos; `AppSemanticColors`/`AppSemanticPalette` mantêm só as variantes claras. `MaterialApp.router` usa só `theme: AppTheme.light()`, sem `darkTheme`/`themeMode`.
+
+Isso também respondeu a segunda pergunta do fundador na mesma rodada ("o app está muito genérico?") — não, não era intenção: a cor âmbar (revisão de tema abaixo) já foi uma correção deliberada de genericidade uma vez. O que a família **compartilha por design** é a arquitetura do tema (seed → `ColorScheme.fromSeed`, tokens semânticos) e o sistema de ícone/monograma — não a personalidade visual específica de cada app, que deve continuar distintiva. Uma rodada de tipografia/iconografia mais autoral (via skill `frontend-design`) fica como próximo passo em aberto, não decidido ainda.
 
 ### Revisão de tema (23/08/2026) — âmbar de segurança
 

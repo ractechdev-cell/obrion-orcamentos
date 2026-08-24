@@ -29,14 +29,4 @@ class AppSemanticPalette {
   static const onWarning = Color(0xFFFFFFFF);
   static const warningContainer = Color(0xFFFFE0B2);
   static const onWarningContainer = Color(0xFF4A2800);
-
-  static const successDark = Color(0xFF81C995);
-  static const onSuccessDark = Color(0xFF0B3B0E);
-  static const successContainerDark = Color(0xFF1B5E20);
-  static const onSuccessContainerDark = Color(0xFFC8E6C9);
-
-  static const warningDark = Color(0xFFFFB74D);
-  static const onWarningDark = Color(0xFF4A2800);
-  static const warningContainerDark = Color(0xFFB35C00);
-  static const onWarningContainerDark = Color(0xFFFFE0B2);
 }

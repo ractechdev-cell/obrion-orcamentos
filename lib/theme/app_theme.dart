@@ -10,24 +10,18 @@ import 'app_semantic_colors.dart';
 class AppTheme {
   const AppTheme._();
 
-  static ThemeData light() => _build(Brightness.light);
-  static ThemeData dark() => _build(Brightness.dark);
-
-  static ThemeData _build(Brightness brightness) {
+  static ThemeData light() {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: obrionSeed,
-      brightness: brightness,
+      brightness: Brightness.light,
     );
-    final semanticColors = brightness == Brightness.light
-        ? AppSemanticColors.light
-        : AppSemanticColors.dark;
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      brightness: brightness,
+      brightness: Brightness.light,
       scaffoldBackgroundColor: colorScheme.surface,
-      extensions: [semanticColors],
+      extensions: [AppSemanticColors.light],
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
