@@ -143,29 +143,33 @@ Padrões que os dois concorrentes usam e que o Obrion não tem. Ordenados por im
 |---|---|---|---|
 | 1 | **Dados de exemplo com selo [exemplo]** | Cliente e itens de catálogo pré-carregados, marcados e apagáveis | O app **nunca abre vazio**. Resolve o cold start melhor que qualquer texto de estado vazio, e mostra o formato esperado. *Também resolve o impasse do "nunca sugerir preço": um preço marcado `[exemplo]` não é sugestão, é amostra.* |
 | 2 | **Home como painel, não como estado vazio** | "Recebido este mês", "Aguardando aprovação", "A vencer em 7 dias", pendências com barra | Responde "como está meu negócio?" em vez de "crie um orçamento". É o que faz o app parecer um sistema. **A tabela `payments` já existe** — o dado está lá |
-| 3 | **Campos opcionais recolhidos** | "Adicionar endereço e mais detalhes (Opcional)" fechado por padrão | É **o** truque que deixa os concorrentes completos e simples ao mesmo tempo. Permite crescer sem parecer complexo |
+| 3 | **Campos opcionais recolhidos, com o motivo escrito ao lado** | "Adicionar endereço e mais detalhes (Opcional)" fechado por padrão. No campo de telefone do cliente, um aviso: *"Com telefone: envia por WhatsApp em um clique."* | Não é só esconder campo — é **explicar o ganho no momento da escolha**, pra quem não sabe por que preencheria algo opcional. Copy barata, sem tela nova |
 | 4 | **Wizard com passos** | ITENS → DETALHES → COBRANÇA → ENVIAR, com progresso | O `budget_form_screen.dart` tem 29 KB — provavelmente um formulão único. Dividir reduz a sensação de esforço |
 | 5 | **Importar contato do telefone** | Puxa nome e telefone da agenda | Elimina a digitação mais chata do fluxo |
 | 6 | **Ações rápidas no cliente** | WhatsApp · Ligar · Nova obra na ficha | Transforma a ficha em ponto de ação, não de consulta |
+| 7 | **Grade de atalhos na Home** | 6 ícones fixos: Novo cliente · Nova obra · Catálogo · Orçamentos · Recibos · Listas | Complementa o item 2 (home-painel): não é só mostrar número, é também tirar 1 toque de cada ação comum. Puro roteamento — Obrion já tem todas as telas de destino |
+| 8 | **Descrição da obra no PDF** | Bloco "PROJETO/OBRA" com parágrafo livre acima da tabela de itens ("Assentamento de porcelanato retificado 90x90 em cozinha de alto padrão…"), separado da descrição de cada item | O PDF do Obrion hoje só tem descrição por item (`budget_pdf_content.dart`), nenhum resumo do trabalho como um todo. É barato (1 campo de texto no orçamento) e é exatamente o que sustenta a promessa de "medição + orçamento" da Parte 4 — dá o lugar certo pra registrar o que foi medido |
 
 ### Nível 2 — fecham o ciclo do trabalho
 
 | # | Padrão | Observação |
 |---|---|---|
-| 7 | **Assinatura no PDF** | Duas linhas (profissional + contratante, com CPF/CNPJ e data). Vira mini-contrato. **Não confundir** com assinatura digital ICP-Brasil |
-| 8 | **Emitir recibo** | Mesmo motor de PDF, casa com `payments` |
-| 9 | **Lista de compras a partir dos itens** | O "App #2" como botão |
-| 10 | **Fotos no orçamento** | Antes/depois, estado do local. Reduz discussão com o cliente |
-| 11 | **Desconto percentual** | Hoje o Obrion só tem `discountCents` (valor fixo) |
-| 12 | **Catálogo unificado serviços + materiais** | Chips "Ver todas / Serviços / Materiais". Hoje o Obrion só tem `services` |
+| 9 | **Assinatura no PDF** | Duas linhas (profissional + contratante, com CPF/CNPJ e data). Vira mini-contrato. **Não confundir** com assinatura digital ICP-Brasil |
+| 10 | **Emitir recibo** | Mesmo motor de PDF, casa com `payments` |
+| 11 | **Lista de compras a partir dos itens** | O "App #2" como botão |
+| 12 | **Fotos no orçamento** | Antes/depois, estado do local. Reduz discussão com o cliente |
+| 13 | **Desconto percentual** | Hoje o Obrion só tem `discountCents` (valor fixo) |
+| 14 | **Catálogo unificado serviços + materiais** | Chips "Ver todas / Serviços / Materiais". Hoje o Obrion só tem `services` |
 
 ### Nível 3 — depende de IA/nuvem
 
 | # | Padrão | Observação |
 |---|---|---|
-| 13 | **Orçamento por voz** | Ambos têm. Deixou de ser diferencial e virou **tabela**. Mas o espaço livre continua sendo **voz na medição** (as duas mãos na trena), que nenhum dos dois ataca |
-| 14 | **Análise de margem por IA** | "Descobrir custos ocultos" — vende insegurança real do profissional |
-| 15 | **Alerta de valor fora do padrão** | Ninguém faz. Na captura do concorrente há um item de **619 m² de alvenaria em uma "Reforma Banheiro"**, aceito sem nenhum aviso. Um "confere?" nesse momento evita orçamento errado indo pro cliente |
+| 15 | **Orçamento por voz** | Ambos têm. Deixou de ser diferencial e virou **tabela**. Mas o espaço livre continua sendo **voz na medição** (as duas mãos na trena), que nenhum dos dois ataca |
+| 16 | **Análise de margem por IA** | "Descobrir custos ocultos" — vende insegurança real do profissional |
+| 17 | **Alerta de valor fora do padrão** | Ninguém faz. Na captura do concorrente há um item de **619 m² de alvenaria em uma "Reforma Banheiro"**, aceito sem nenhum aviso, por R$ 52.615,00 — **confirmado em print real**, não é hipótese. Um "confere?" nesse momento evita orçamento errado indo pro cliente |
+
+**Verificado direto no código (24/08/2026), pra não duplicar trabalho:** "notas internas do cliente" (campo livre visto no formulário de cliente do concorrente) **já existe** no Obrion — `clients.notes`, exposto em `client_form_screen.dart`. Não é gap, é só confirmação de algo que já foi feito.
 
 ---
 
