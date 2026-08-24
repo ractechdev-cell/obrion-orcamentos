@@ -286,7 +286,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 ? const AppLoading()
                 : _entries.isEmpty
                     ? AppEmptyState(
-                        message: 'Nenhuma medição ou orçamento ainda.',
+                        message: 'Este cliente ainda não tem medição nem orçamento.\n\n'
+                            'Crie o primeiro orçamento para começar o histórico dele.',
                         actionLabel: 'Criar orçamento',
                         onAction: _addBudget,
                       )

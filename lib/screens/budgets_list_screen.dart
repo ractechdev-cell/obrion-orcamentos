@@ -125,7 +125,8 @@ class BudgetsListScreen extends ConsumerWidget {
           final items = snapshot.data!;
           if (items.isEmpty) {
             return AppEmptyState(
-              message: 'Nenhum orçamento ainda.',
+              message: 'Você ainda não criou nenhum orçamento.\n\n'
+                  'Crie o primeiro para começar a enviar propostas pelo WhatsApp.',
               actionLabel: 'Criar orçamento',
               onAction: () => _createBudget(context, ref),
               secondaryActionLabel: 'Ver um exemplo',

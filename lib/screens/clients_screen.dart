@@ -75,7 +75,8 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                 if (clients.isEmpty) {
                   return AppEmptyState(
                     message: _query.isEmpty
-                        ? 'Nenhum cliente cadastrado ainda.'
+                        ? 'Você ainda não tem nenhum cliente cadastrado.\n\n'
+                            'Cadastre o primeiro para criar um orçamento mais rápido.'
                         : 'Nenhum cliente encontrado para "$_query".',
                     actionLabel: _query.isEmpty ? 'Cadastrar cliente' : null,
                     onAction: _query.isEmpty

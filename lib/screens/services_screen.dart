@@ -169,10 +169,19 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                     : allServices.where((s) => s.name.toLowerCase().contains(_query.toLowerCase())).toList();
 
                 if (services.isEmpty) {
+                  if (_query.isNotEmpty) {
+                    return AppEmptyState(
+                      message: 'Nenhum serviço encontrado para "$_query".',
+                    );
+                  }
                   return AppEmptyState(
-                    message: 'Nenhum serviço cadastrado.',
+                    message: 'Você ainda não tem serviços na sua lista de preços.\n\n'
+                        'Carregue os sugeridos para o seu ofício ou adicione o seu, '
+                        'para montar orçamentos em poucos toques.',
                     actionLabel: 'Carregar sugestões padrão',
                     onAction: () => _populateDefaults(context),
+                    secondaryActionLabel: 'Adicionar serviço',
+                    onSecondaryAction: () => _showForm(context),
                   );
                 }
                 return ListView.separated(
