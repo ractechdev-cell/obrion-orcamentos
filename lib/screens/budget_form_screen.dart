@@ -6,15 +6,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../analytics/analytics_service.dart';
 import '../budget/budget_calculations.dart';
 import '../database/database.dart';
+import '../measurement/measurement_math.dart';
 import '../review/review_service.dart';
 import '../database/enums.dart';
 import '../pdf/budget_share_service.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
+import '../providers/measurements_repository_provider.dart';
 import '../providers/payments_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
 import '../repositories/budgets_repository.dart';
+import '../repositories/measurements_repository.dart';
 import '../theme/app_semantic_colors.dart';
 import '../utils/currency_format.dart';
 import '../widgets/app_bottom_sheet.dart';
@@ -42,6 +45,65 @@ String statusLabel(BudgetStatus status) {
 }
 
 String formatCents(int cents) => formatCurrencyBrl(cents);
+
+/// Grandeza derivada de uma medição que pode virar quantidade de item de
+/// orçamento — ver docs/POSICIONAMENTO_E_FEATURES_APP1.md, Parte 4, item
+/// 3 ("medição → item de orçamento com quantidade preenchida", a promessa
+/// central do app: medir no local e sair com o orçamento pronto, em vez
+/// de redigitar o número na mão).
+enum _MeasurementQuantity { wallArea, floorArea, ceilingArea, perimeter, effectivePerimeter }
+
+String _measurementQuantityLabel(_MeasurementQuantity q) {
+  switch (q) {
+    case _MeasurementQuantity.wallArea:
+      return 'Área de parede';
+    case _MeasurementQuantity.floorArea:
+      return 'Área de piso';
+    case _MeasurementQuantity.ceilingArea:
+      return 'Área de teto';
+    case _MeasurementQuantity.perimeter:
+      return 'Perímetro';
+    case _MeasurementQuantity.effectivePerimeter:
+      return 'Perímetro útil';
+  }
+}
+
+double _measurementQuantityValue(_MeasurementQuantity q, RoomDerivedQuantities d) {
+  switch (q) {
+    case _MeasurementQuantity.wallArea:
+      return d.wallAreaSqM;
+    case _MeasurementQuantity.floorArea:
+      return d.floorAreaSqM;
+    case _MeasurementQuantity.ceilingArea:
+      return d.ceilingAreaSqM;
+    case _MeasurementQuantity.perimeter:
+      return d.perimeterMeters;
+    case _MeasurementQuantity.effectivePerimeter:
+      return d.effectivePerimeterMeters;
+  }
+}
+
+/// Só oferece "usar medição" quando a unidade do serviço corresponde a
+/// alguma grandeza derivada — não faz sentido pra `un`/`ponto`/`diária`/
+/// `verba`.
+List<_MeasurementQuantity> _measurementOptionsForUnit(ServiceUnit unit) {
+  switch (unit) {
+    case ServiceUnit.squareMeter:
+      return const [
+        _MeasurementQuantity.wallArea,
+        _MeasurementQuantity.floorArea,
+        _MeasurementQuantity.ceilingArea,
+      ];
+    case ServiceUnit.linearMeter:
+      return const [_MeasurementQuantity.perimeter, _MeasurementQuantity.effectivePerimeter];
+    case ServiceUnit.cubicMeter:
+    case ServiceUnit.unit:
+    case ServiceUnit.point:
+    case ServiceUnit.dailyRate:
+    case ServiceUnit.lumpSum:
+      return const [];
+  }
+}
 
 class BudgetFormScreen extends ConsumerStatefulWidget {
   const BudgetFormScreen({super.key, required this.clientId, this.budgetId});
@@ -158,6 +220,94 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     return confirmed == true;
   }
 
+  /// Ponte medição → item de orçamento: pede pro usuário escolher (se
+  /// houver mais de uma) qual medição do cliente usar, depois qual
+  /// grandeza dela — e devolve o valor pronto pra preencher a quantidade
+  /// (ainda editável depois). `null` se não houver medição cadastrada ou o
+  /// usuário cancelar em qualquer passo. Busca por `clientId`, não por
+  /// `budget.projectId` — orçamentos hoje nunca guardam projeto (nenhuma
+  /// tela passa esse valor), então a ligação real é sempre cliente → obra.
+  Future<double?> _pickMeasurementQuantity(BuildContext context, ServiceUnit unit) async {
+    final options = _measurementOptionsForUnit(unit);
+    if (options.isEmpty) return null;
+
+    final measurementsRepo = ref.read(measurementsRepositoryProvider);
+    final projects = await measurementsRepo.watchProjectsByClient(widget.clientId).first;
+    final allMeasurements = <MeasurementWithDetails>[];
+    for (final project in projects) {
+      allMeasurements.addAll(await measurementsRepo.watchByProject(project.id).first);
+    }
+
+    if (!context.mounted) return null;
+    if (allMeasurements.isEmpty) {
+      AppSnackBar.show(
+        context,
+        'Nenhuma medição cadastrada pra esse cliente ainda.',
+        variant: AppSnackBarVariant.warning,
+      );
+      return null;
+    }
+
+    MeasurementWithDetails? chosen = allMeasurements.first;
+    if (allMeasurements.length > 1) {
+      chosen = await showModalBottomSheet<MeasurementWithDetails>(
+        context: context,
+        showDragHandle: true,
+        builder: (context) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text('Qual medição?', style: Theme.of(context).textTheme.titleMedium),
+              ),
+              const SizedBox(height: 8),
+              for (final m in allMeasurements)
+                ListTile(
+                  title: Text(m.measurement.name),
+                  onTap: () => Navigator.of(context).pop(m),
+                ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      );
+      if (chosen == null || !context.mounted) return null;
+    }
+
+    final derived = RoomDerivedQuantities.fromMeasurement(
+      lengthMeters: chosen.measurement.lengthMeters,
+      widthMeters: chosen.measurement.widthMeters,
+      heightMeters: chosen.measurement.heightMeters,
+      openings: chosen.openings,
+    );
+
+    if (!context.mounted) return null;
+    return showModalBottomSheet<double>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text('Qual grandeza?', style: Theme.of(context).textTheme.titleMedium),
+            ),
+            const SizedBox(height: 8),
+            for (final option in options)
+              ListTile(
+                title: Text(_measurementQuantityLabel(option)),
+                trailing: Text(_measurementQuantityValue(option, derived).toStringAsFixed(2)),
+                onTap: () => Navigator.of(context).pop(_measurementQuantityValue(option, derived)),
+              ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _showAddItemSheet(BuildContext context, Service service) async {
     final quantityController = TextEditingController();
     int? priceCents = service.defaultPriceCents;
@@ -181,9 +331,25 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
             children: [
               Text(service.name, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),
-              AppNumberInput(
-                label: 'Quantidade (${serviceUnitLabel(service.unit)})',
-                controller: quantityController,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: AppNumberInput(
+                      label: 'Quantidade (${serviceUnitLabel(service.unit)})',
+                      controller: quantityController,
+                    ),
+                  ),
+                  if (_measurementOptionsForUnit(service.unit).isNotEmpty)
+                    IconButton(
+                      tooltip: 'Usar medição',
+                      icon: const Icon(Icons.straighten_outlined),
+                      onPressed: () async {
+                        final value = await _pickMeasurementQuantity(context, service.unit);
+                        if (value != null) quantityController.text = value.toStringAsFixed(2);
+                      },
+                    ),
+                ],
               ),
               const SizedBox(height: 16),
               AppCurrencyInput(
@@ -268,9 +434,25 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              AppNumberInput(
-                label: 'Quantidade (${serviceUnitLabel(unit)})',
-                controller: quantityController,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: AppNumberInput(
+                      label: 'Quantidade (${serviceUnitLabel(unit)})',
+                      controller: quantityController,
+                    ),
+                  ),
+                  if (_measurementOptionsForUnit(unit).isNotEmpty)
+                    IconButton(
+                      tooltip: 'Usar medição',
+                      icon: const Icon(Icons.straighten_outlined),
+                      onPressed: () async {
+                        final value = await _pickMeasurementQuantity(context, unit);
+                        if (value != null) quantityController.text = value.toStringAsFixed(2);
+                      },
+                    ),
+                ],
               ),
               const SizedBox(height: 16),
               AppCurrencyInput(
