@@ -8,6 +8,7 @@ import '../providers/clients_repository_provider.dart';
 import '../providers/measurements_repository_provider.dart';
 import '../repositories/measurements_repository.dart';
 import '../theme/app_spacing.dart';
+import '../utils/phone_actions.dart';
 import '../widgets/app_bottom_sheet.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_dialog.dart';
@@ -277,16 +278,20 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
         tooltip: 'Adicionar',
         child: const Icon(Icons.add),
       ),
-      body: _loading
-          ? const AppLoading()
-          : _entries.isEmpty
-              ? AppEmptyState(
-                  message: 'Nenhuma medição ou orçamento ainda.',
-                  actionLabel: 'Criar orçamento',
-                  onAction: _addBudget,
-                )
-              : RefreshIndicator(
-                  onRefresh: _load,
+      body: Column(
+        children: [
+          if ((widget.client.phone ?? '').isNotEmpty) _buildContactActions(context),
+          Expanded(
+            child: _loading
+                ? const AppLoading()
+                : _entries.isEmpty
+                    ? AppEmptyState(
+                        message: 'Nenhuma medição ou orçamento ainda.',
+                        actionLabel: 'Criar orçamento',
+                        onAction: _addBudget,
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _load,
                   child: ListView.separated(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     itemCount: _entries.length,
@@ -337,6 +342,37 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                     },
                   ),
                 ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Ligar / WhatsApp direto da ficha — ver
+  /// docs/ANALISE_CONCORRENCIA_E_ESCOPO.md, Parte 5, item 6.
+  Widget _buildContactActions(BuildContext context) {
+    final phone = widget.client.phone!;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () => PhoneActions.openWhatsApp(context, phone),
+              icon: const Icon(Icons.chat_outlined, size: 18),
+              label: const Text('WhatsApp'),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () => PhoneActions.call(context, phone),
+              icon: const Icon(Icons.call_outlined, size: 18),
+              label: const Text('Ligar'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
