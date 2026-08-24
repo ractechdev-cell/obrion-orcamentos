@@ -106,4 +106,25 @@ void main() {
 
     expect(content.notes, 'Entrega em 15 dias.');
   });
+
+  test('mostra descrição da obra só quando preenchida', () async {
+    final client = await clientsRepo.create(name: 'Cliente Teste');
+    final budget = await budgetsRepo.create(clientId: client.id);
+    var data = await budgetsRepo.watchById(budget.id).first;
+    var content = BudgetPdfContent.fromData(
+      data: data!,
+      client: client,
+      professional: const ProfessionalProfile(),
+    );
+    expect(content.jobDescription, isNull);
+
+    await budgetsRepo.updateDetails(budget.id, jobDescription: 'Reforma completa do banheiro social.');
+    data = await budgetsRepo.watchById(budget.id).first;
+    content = BudgetPdfContent.fromData(
+      data: data!,
+      client: client,
+      professional: const ProfessionalProfile(),
+    );
+    expect(content.jobDescription, 'Reforma completa do banheiro social.');
+  });
 }

@@ -45,6 +45,7 @@ class BudgetPdfContent {
     required this.discountFormatted,
     required this.totalFormatted,
     required this.notes,
+    required this.jobDescription,
   });
 
   factory BudgetPdfContent.fromData({
@@ -73,6 +74,8 @@ class BudgetPdfContent {
       discountFormatted: totals.discountCents > 0 ? formatCurrencyForPdf(totals.discountCents) : null,
       totalFormatted: formatCurrencyForPdf(totals.totalCents),
       notes: (data.budget.notes?.isNotEmpty ?? false) ? data.budget.notes : null,
+      jobDescription:
+          (data.budget.jobDescription?.isNotEmpty ?? false) ? data.budget.jobDescription : null,
     );
   }
 
@@ -87,4 +90,5 @@ class BudgetPdfContent {
   final String? discountFormatted;
   final String totalFormatted;
   final String? notes;
+  final String? jobDescription;
 }

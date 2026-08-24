@@ -47,6 +47,12 @@ class BudgetPdfGenerator {
         build: (context) => [
           pw.SizedBox(height: 16),
           _buildClientInfo(content),
+          if (content.jobDescription != null) ...[
+            pw.SizedBox(height: 16),
+            pw.Text('Projeto / Obra', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 4),
+            pw.Text(content.jobDescription!),
+          ],
           pw.SizedBox(height: 24),
           _buildItemsTable(content.items),
           pw.SizedBox(height: 16),

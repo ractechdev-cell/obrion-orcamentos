@@ -417,6 +417,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
 
   Future<void> _editDetails(Budget budget) async {
     final notesController = TextEditingController(text: budget.notes ?? '');
+    final jobDescriptionController = TextEditingController(text: budget.jobDescription ?? '');
     DateTime? validUntil = budget.validUntil;
 
     await showModalBottomSheet(
@@ -437,6 +438,13 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
               Text('Detalhes do orçamento', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),
               AppTextField(
+                label: 'Descrição da obra (opcional)',
+                hint: 'O que vai ser feito, resumido — aparece no PDF acima dos itens',
+                controller: jobDescriptionController,
+                maxLines: 3,
+              ),
+              const SizedBox(height: 16),
+              AppTextField(
                 label: 'Observações',
                 hint: 'Condições de pagamento, prazo, garantia',
                 controller: notesController,
@@ -454,10 +462,12 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 onPressed: () async {
                   final repo = ref.read(budgetsRepositoryProvider);
                   final notes = notesController.text.trim();
+                  final jobDescription = jobDescriptionController.text.trim();
                   await repo.updateDetails(
                     _budgetId!,
                     notes: notes.isEmpty ? null : notes,
                     validUntil: validUntil,
+                    jobDescription: jobDescription.isEmpty ? null : jobDescription,
                   );
                   if (context.mounted) Navigator.of(context).pop();
                 },
