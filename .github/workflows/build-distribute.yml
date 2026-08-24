@@ -1,8 +1,17 @@
 name: Build & Distribute APK
 
+# Desativado o disparo automático a cada push em 24/08/2026 — este
+# workflow é o fluxo antigo de distribuição (Firebase App Distribution),
+# substituído pelo Shorebird OTA (ver CLAUDE.md, decisão 6). Ficou ativo
+# em paralelo sem ninguém perceber, mandando um APK novo (com R8 ligado,
+# nunca testado num aparelho) a cada commit — inclusive commits só de
+# doc — e é o motivo mais provável do app instalado ter travado em tela
+# branca: o fundador recebeu a notificação e instalou por engano, achando
+# que era a mesma coisa que o Shorebird. Disparo manual só quando
+# realmente precisar de um APK fora do fluxo Shorebird (ex.: debug de algo
+# que só reproduz fora do sandbox do Shorebird).
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   build-and-distribute:

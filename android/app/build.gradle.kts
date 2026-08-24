@@ -42,21 +42,20 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
-            // Religado em 23/08/2026 — o motivo original de desligar (build
-            // local lento nesta máquina) não existe mais desde que os
-            // releases passaram a rodar na nuvem (GitHub Actions). Testar de
-            // verdade num aparelho depois de cada mudança aqui: o R8 pode
-            // cortar/renomear algo que só quebra em runtime, não no build.
-            // Se algo parar de funcionar depois disto, o primeiro passo pra
-            // diagnosticar é voltar isMinifyEnabled = false temporariamente
-            // pra confirmar se a causa é o R8, e então adicionar uma regra
-            // específica em proguard-rules.pro pro que quebrou.
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
+            // Desligado de novo em 24/08/2026 — religado em 23/08 sem nunca
+            // ter sido testado num aparelho real, e foi exatamente o
+            // problema previsto neste comentário: app instalado a partir de
+            // um build R8 ficava travado em tela branca (Firebase.initializeApp()
+            // trava antes de runApp() rodar, sem handler de erro do Flutter
+            // ativo ainda — sintoma clássico de classe removida/renomeada
+            // pelo R8 que o Firebase precisa achar via reflexão em runtime).
+            // Voltar a religar exige: 1) regra de -keep específica pros
+            // componentes de descoberta do Firebase em proguard-rules.pro,
+            // 2) testar instalando de verdade num aparelho antes de
+            // considerar resolvido — nunca só confiar em build verde da CI,
+            // que não pega esse tipo de erro (roda flutter test, não o APK).
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }

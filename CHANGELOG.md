@@ -4,6 +4,10 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 
 ## [Unreleased]
 
+### Fixed
+- **App travando em tela branca ao abrir** — causado pelo R8/minificação (religado em 23/08, nunca testado num aparelho real) removendo/renomeando algo que o Firebase precisa achar via reflexão em runtime; `Firebase.initializeApp()` travava antes de `runApp()` rodar, sem handler de erro do Flutter ativo ainda. `flutter analyze`/`flutter test` não pegam esse tipo de bug (rodam contra o Dart VM, não o APK minificado). Revertido `isMinifyEnabled`/`isShrinkResources` pra `false` em `android/app/build.gradle.kts`. Versão bumped pra `0.1.5+5`.
+- `build-distribute.yml` (Firebase App Distribution) estava disparando a cada push no `main` desde antes da migração pro Shorebird OTA, sem ninguém notar — provável causa do fundador ter instalado um build fora do fluxo Shorebird por engano. Trocado pra disparo manual (`workflow_dispatch`).
+
 ### Added
 - **Camada de ofício** (`docs/POSICIONAMENTO_E_FEATURES_APP1.md`, Parte 3): a 3ª tela do onboarding, antes só informativa, agora pergunta "O que você faz?" (múltipla escolha — pedreiro, pintor, gesseiro, azulejista, eletricista, encanador), pulável como as outras. Editável depois em Ajustes (nova seção "Seus ofícios", mesmo seletor de chips). Guardado em `app_settings` via `ProfileRepository` (`Trade` enum novo em `database/enums.dart`), sem migração de schema — mesmo padrão chave/valor do nome/telefone/logo. O botão "Sugestões" da Lista de Preços agora filtra os 23 serviços padrão pelo(s) ofício(s) do perfil — antes despejava tudo de uma vez mesmo pra quem só faz um; perfil sem ofício informado mantém o comportamento antigo (insere tudo).
 
