@@ -123,17 +123,43 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                     keyboardType: TextInputType.phone,
                     validator: phoneValidator,
                   ),
-                  const SizedBox(height: 16),
-                  AppTextField(
-                    controller: _addressController,
-                    label: 'Endereço da obra',
-                    maxLines: 2,
+                  const SizedBox(height: 4),
+                  Text(
+                    'Com telefone, dá pra chamar o cliente no WhatsApp direto da ficha.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                   ),
-                  const SizedBox(height: 16),
-                  AppTextField(
-                    controller: _notesController,
-                    label: 'Observações',
-                    maxLines: 3,
+                  const SizedBox(height: 8),
+                  Theme(
+                    // Some a linha divisória padrão do ExpansionTile — aqui
+                    // ele é só um jeito de esconder campo opcional, não uma
+                    // seção separada da tela.
+                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      // Já vem aberto se estiver editando um cliente que já
+                      // tem esses dados — senão a pessoa acha que perdeu o
+                      // que preencheu antes.
+                      initiallyExpanded:
+                          _addressController.text.isNotEmpty || _notesController.text.isNotEmpty,
+                      tilePadding: EdgeInsets.zero,
+                      childrenPadding: const EdgeInsets.only(top: 16),
+                      title: const Text('Adicionar endereço e mais detalhes'),
+                      subtitle: const Text('Opcional'),
+                      children: [
+                        AppTextField(
+                          controller: _addressController,
+                          label: 'Endereço da obra',
+                          maxLines: 2,
+                        ),
+                        const SizedBox(height: 16),
+                        AppTextField(
+                          controller: _notesController,
+                          label: 'Observações',
+                          maxLines: 3,
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 24),
                   AppButton(
