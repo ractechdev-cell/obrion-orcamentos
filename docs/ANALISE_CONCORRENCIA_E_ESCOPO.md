@@ -4,10 +4,11 @@
 **Base:** capturas de tela de dois concorrentes diretos, testados pelo próprio fundador + código real do Obrion (v0.1.4+4)
 **Origem:** o fundador apontou que "genérico" não significava falta de nicho por ofício, e sim **distância de UI/UX e de escopo em relação à concorrência** — e levantou a hipótese de que os concorrentes são mais completos porque o plano de negócio deles é **tudo em um app só**.
 
-> **Conclusão principal: a hipótese está certa, e a recomendação é colapsar os 5 apps em um.**
-> Os dois concorrentes analisados são all-in-one. Um deles (**Azulejista+**) tem nome de ofício e produto completo — ou seja, **o nicho está no nome e no posicionamento, não na fronteira do app.** Os "5 apps" do plano Obrion são cinco visões do mesmo grafo de dados (cliente → obra → orçamento → item → pagamento), e separá-los exige a nuvem, que ainda não existe.
+> **Conclusão principal:** os dois concorrentes analisados são all-in-one, e um deles (**Azulejista+**) tem nome de ofício com produto completo — ou seja, **o nicho está no nome e no posicionamento, não na fronteira do app.** Isso confirma a hipótese do fundador sobre *por que* eles parecem mais completos.
 >
-> **Correção da recomendação anterior:** eu havia sugerido validar com 3 pintores antes de construir. O fundador coordena obras com pintor, pedreiro, caldeireiro, soldador e ajudantes, e faz orçamentos — **ele é o usuário**. A recomendação de validação externa cai; o que substitui está na Parte 6.
+> **Sobre a estratégia de 5 apps:** a primeira versão deste documento recomendava colapsar tudo em um app. **Essa recomendação foi revista** (ver Parte 2) depois que o fundador esclareceu que a separação é uma **estratégia de produção com convergência planejada** — construir o #1, reaproveitar a base para erguer os seguintes rapidamente, e **juntar tudo no final** — e não a arquitetura final do produto. Com isso, a estratégia se sustenta; o que muda é o que precisa ser decidido hoje para que ela funcione.
+>
+> **Correção de uma recomendação anterior:** eu havia sugerido validar com 3 pintores antes de construir. O fundador coordena obras com pintor, pedreiro, caldeireiro, soldador e ajudantes, e faz orçamentos — **ele é o usuário**. A recomendação de validação externa cai; o que substitui está na Parte 6.
 
 ---
 
@@ -55,34 +56,34 @@
 
 ---
 
-# Parte 2 — A pergunta central: "tudo em um app" é o motivo?
+# Parte 2 — Um app ou vários: a estratégia revisitada
 
-**Sim.** E a evidência é mais forte do que a intuição sugeria.
+A primeira versão desta análise recomendava colapsar os 5 apps em 1. O fundador corrigiu o raciocínio, e a correção procede: a separação por app não é a arquitetura final do produto — é uma **estratégia de produção**. Constrói-se o #1 pequeno e focado; a base técnica (Core) faz o #2 sair mais rápido que o #1; e, quando cada um já provou sua dor específica, **junta-se no final**. Isso é literalmente o que já estava escrito em `APP_FACTORY_RULES.md` §1 ("primeiro produto pequeno, depois plataforma") — a análise anterior perdeu esse fio.
 
-O plano Obrion prevê cinco apps. Olhando o que os concorrentes fazem com essas mesmas funções:
+**A analogia certa não é a Adobe — é a Autodesk**, e ela é mais forte exatamente na direção que o fundador apontou. AutoCAD (desenho 2D), Revit (modelagem BIM) e Navisworks (coordenação/detecção de conflito entre disciplinas) atendem **papéis diferentes dentro da mesma obra** — projetista, arquiteto, coordenador de obra — com fluxos de trabalho genuinamente distintos, não a mesma tarefa fatiada em telas. A Autodesk podia ter feito um "AutoCAD Tudo-em-Um". Não fez. Em vez disso, mantém produtos focados que **interoperam por formato de dado compartilhado** (IFC, DWG) e vende um pacote (AEC Collection) para quem usa vários ao mesmo tempo — sem forçar ninguém que só precisa de um a instalar o resto.
 
-| Plano Obrion | Onde isso vive no concorrente |
-|---|---|
-| App #2 — **Materiais / lista de compra** | Um **botão** dentro do orçamento ("Lista de Compras") + aba "Materiais" no catálogo |
-| App #3 — **Diário de obra** | Dentro de "Obras" / "Pedidos" |
-| App #4 — **Medições do empreiteiro** (contrato × executado × recebido) | É a **home**: "Recebido este mês / Aguardando aprovação / Pendências de Recebimento" |
-| App #5 — **Calculadora** | Um item do catálogo que vira linha do orçamento |
+Isso é o modelo certo para "juntar no final": **não é fundir em um binário único**, é oferecer um pacote/conta única sobre produtos que continuam focados. É exatamente o que o Obrion Core (login único, dados compartilhados via Supabase na Fase 2) já foi desenhado para viabilizar.
 
-Nenhum deles é um produto separado na cabeça do usuário. **São visões do mesmo grafo de dados.**
+## Onde a análise anterior errou
 
-## Por que separar sai caro (e não barato)
+Eu vi as funções dos concorrentes (Lista de Compras, Recibo, painel financeiro) vivendo *dentro* do fluxo de orçamento deles e concluí que isso provava que deveriam viver dentro de *um* app Obrion também. Mas isso confunde duas coisas diferentes:
 
-1. **Os dados são um só.** cliente → obra → orçamento → item → pagamento. Toda função nova consulta esse mesmo grafo. Cinco apps significam **cinco cópias** ou dependência de nuvem para compartilhar.
-2. **A nuvem não existe.** O login único que justifica a família é da Fase 2. Hoje, cinco apps Obrion seriam cinco silos que não se falam. A promessa de "reuso" ainda não é executável.
-3. **Custo fixo por app, para um fundador solo.** Cinco fichas de loja, cinco conjuntos de prints, cinco notas de avaliação, cinco pipelines de release, cinco formulários de Segurança de Dados. Isso é imposto recorrente, não custo único.
-4. **A analogia da Adobe não se aplica.** Photoshop e Illustrator são tarefas diferentes, de pessoas diferentes, em momentos diferentes. Aqui é o mesmo profissional, no mesmo celular, na mesma obra, no mesmo dia.
-5. **A assimetria decide.** Separar depois é barato (um módulo já é código isolado). Juntar depois é caro (migração de dados, usuários com dois apps, duas bases instaladas). **Na dúvida, comece junto.**
+1. **Bloat dentro de um produto** — que é exatamente a queixa original de "genérico": o Concorrente A tem Pedidos, Clientes, Despesas, Relatórios, Materiais, Modelos, Pontos no menu "Mais". Isso não é foco, é acúmulo.
+2. **Produtos distintos para pessoas/momentos distintos** — que é o que o fundador está descrevendo: o pedreiro que só quer passar orçamento e acompanhar não é a mesma pessoa (ou o mesmo momento) do "cara que quer um relatório diário". Forçar os dois dentro do mesmo app, mesmo com telas diferentes, é o mesmo erro do item 1 em escala menor.
 
-## O que sobrevive da estratégia de família
+O fato de um concorrente ter enfiado tudo num app só não é evidência de que essa é a arquitetura certa — pode muito bem ser a causa do problema que a queixa "genérico" está apontando.
 
-O **Obrion Core** continua fazendo sentido — só muda o momento da extração. Módulos dentro de um app são tão extraíveis quanto apps separados. E se um módulo provar, com dado, que merece instalação própria (o Diário é o candidato mais plausível, por ter uso diário no canteiro e público diferente), ele sai depois.
+## O que isso muda na prática
 
-**Decisão recomendada:** Obrion vira **um app** com módulos. A família volta à mesa quando houver dado que a justifique.
+**App #1 (Orçamentos) fica mais estreito, não mais largo.** O escopo é: criar orçamento, medir, gerar PDF, enviar, acompanhar status (aceito/recusado/pago). Registrar recibo de pagamento continua fazendo sentido *dentro* dele, porque é o mesmo objeto de dado (este orçamento, foi pago?) — não é o mesmo tipo de decisão que "construir um app de diário".
+
+**A ordem dos próximos apps deixa de ser fixa por opinião.** O plano original tinha Materiais como #2. Mas o fundador aponta um sinal real: existe gente que não quer orçamento nenhum, só quer relatório diário de obra. Se esse sinal for mais forte que o de Materiais, o Diário deveria furar a fila — a Fase ★ Extração do Core (que já existe no roadmap) é o ponto certo para essa decisão, com dado da experiência de coordenar obras, não com a ordem #1→#5 herdada do plano original.
+
+**O Core precisa ser desenhado para o modelo Autodesk desde já**, mesmo construindo um app de cada vez: dados no formato que permite interoperar depois (cliente e obra como entidades compartilháveis, IDs estáveis) — sem isso, "juntar no final" vira reescrita, não integração.
+
+## O que continua valendo da análise de concorrência
+
+Nada do teardown muda: os padrões de UI/UX das Partes 3–5 (onboarding tardio, dados de exemplo, home como painel, campos recolhidos) continuam sendo o que falta no Obrion Orçamentos — só que agora claramente como melhorias do **App #1 focado**, não como justificativa para incorporar módulos de outros apps.
 
 ---
 
@@ -175,14 +176,18 @@ Padrões que os dois concorrentes usam e que o Obrion não tem. Ordenados por im
 | "Vá validar com 3 pintores antes de construir" | **Cai.** O fundador coordena obras com pintor, pedreiro, caldeireiro, soldador e ajudantes, e faz os orçamentos. Ele é o usuário. O que substitui: **usar o app nos próprios orçamentos reais desta semana** — dogfooding é validação legítima e mais rápida aqui |
 | "Camada de ofício é a correção mais importante (~1 dia)" | **Continua valendo, mas desce de prioridade.** O concorrente já faz isso (passo PROFISSÃO no onboarding, "Pintor" no perfil) — é tabela, não diferencial. E como o fundador atua em vários ofícios, o valor maior está em **pré-carregar o catálogo certo** e **mostrar a profissão no PDF**, não em esconder campos |
 | "Escolha um ofício para lançar (pintor)" | **Reformula.** O Azulejista+ prova o modelo certo: **nome de ofício, produto completo**. O nicho vai para o nome e para a ficha da loja; o produto atende todo mundo |
-| "Cuidado com a fronteira App #1 × App #5" | **Some**, se houver um app só |
-| "As 5 apps são visões do mesmo grafo" (Parte 7 do doc anterior) | **Confirmado por evidência**, e vira decisão |
+| "Cuidado com a fronteira App #1 × App #5" | **Continua valendo — e fica mais importante, não menos.** Com apps separados de verdade, essa fronteira precisa ser desenhada de propósito (ver Parte 2: dados compartilháveis, IDs estáveis de cliente/obra), em vez de deixada para "resolver depois" |
+| "As 5 apps são visões do mesmo grafo" (Parte 7 do doc anterior) | **Reformula.** Não são visões do mesmo grafo — são **produtos distintos para dores/momentos distintos** (orçamento ≠ diário ≠ materiais). O que é compartilhado é a base técnica (Core) e, no final, o pacote/conta — não a tela nem o propósito de cada app |
 
 ---
 
 # Parte 7 — O que decidir antes de codar
 
-**1. Um app ou cinco.** Recomendação: **um**. Se aceita, atualizar `PLANO_DE_NEGOCIO_INICIAL.md` §11 e `APP_FACTORY_CORE.md` §13, que hoje descrevem a família de cinco.
+**1. Escopo do App #1, e o que "juntar no final" significa na prática.** Recomendação: manter os 5 apps como produtos focados (ver Parte 2) — não fundir em um binário. Três coisas precisam virar decisão explícita, não ficar implícitas:
+
+- **Travar o escopo do #1** no que está listado na Parte 2 (orçamento, medição, PDF, envio, status, recibo de pagamento). Qualquer coisa fora disso — diário de obra, catálogo completo de materiais, agenda — é candidato a outro app, não a uma aba nova.
+- **"Juntar no final" = pacote/conta única sobre o Core** (modelo AEC Collection: login único, dados compartilháveis), não fusão de código. `PLANO_DE_NEGOCIO_INICIAL.md` §11 e `APP_FACTORY_CORE.md` §13 já descrevem a família de cinco apps com login único — **não precisam de revisão**, a análise anterior é que estava desalinhada com eles.
+- **A ordem #2→#5 deixa de ser fixa por opinião.** O plano original tinha Materiais como #2; o sinal do fundador (gente que só quer diário, não orçamento) é candidato real ao #2 e deve ser decidido com dado real de uso, na fase ★ Extração do Core do roadmap — não travado agora por herança do documento original.
 
 **2. Qual usuário é o alvo — e isso importa mais do que parece.**
 
@@ -202,7 +207,7 @@ O plano de negócio mira o primeiro; o fundador é o segundo. Não é contradiç
 
 # Próximos passos sugeridos
 
-1. **Decidir um app × cinco apps** (Parte 2) e **qual home** (Parte 7.2). São as duas decisões que travam tudo o mais.
+1. **Confirmar o escopo travado do App #1 e qual home construir** (Parte 7.1 e 7.2). São as duas decisões que travam tudo o mais.
 2. **Nível 1 da Parte 5**, em ordem: dados de exemplo → home-painel → campos recolhidos → wizard → importar contato. É o pacote que fecha o gap de percepção.
 3. **Reposicionar a promessa** em torno de medição (Parte 4) — é a única coisa que os dois concorrentes não fazem e que já está construída.
 4. **Onboarding no momento da necessidade** (Parte 3), em vez de cadastro na porta.
@@ -213,6 +218,6 @@ O plano de negócio mira o primeiro; o fundador é o segundo. Não é contradiç
 ## Documentos relacionados
 
 - `POSICIONAMENTO_E_FEATURES_APP1.md` — análise anterior; ver Parte 6 acima para o que foi corrigido
-- `PLANO_DE_NEGOCIO_INICIAL.md` — §11 (portfólio) precisa de revisão se a decisão for um app só
-- `APP_FACTORY_CORE.md` — §13 (identidade da família) idem
+- `PLANO_DE_NEGOCIO_INICIAL.md` — §11 (portfólio) já descreve a família de cinco; **não precisa de revisão**
+- `APP_FACTORY_CORE.md` — §13 (identidade da família) idem, **não precisa de revisão**
 - `ANALISE_E_MELHORIAS.md` — decisões R1–R3, que seguem válidas
