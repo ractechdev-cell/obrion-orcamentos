@@ -27,6 +27,7 @@ class _TimelineEntry {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.onDelete,
   });
 
   final _TimelineKind kind;
@@ -34,6 +35,10 @@ class _TimelineEntry {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+
+  /// Só preenchido pra medição — excluir orçamento não faz parte deste
+  /// menu (o orçamento tem seu próprio ciclo de vida via status).
+  final VoidCallback? onDelete;
 }
 
 /// Histórico do cliente — medições e orçamentos juntos numa linha do
@@ -85,6 +90,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
           title: item.measurement.name,
           subtitle: '${_floorAreaLabel(item)} de piso',
           onTap: () => _openMeasurement(projectId!, item.measurement.id),
+          onDelete: () => _deleteMeasurement(item.measurement.id, item.measurement.name),
         ),
       for (final budget in budgets)
         _TimelineEntry(
@@ -123,6 +129,26 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       ),
     );
     _load();
+  }
+
+  /// Excluir medição — não tinha nenhum caminho na UI até agora
+  /// (`MeasurementsRepository.softDeleteMeasurement` existia, mas nenhuma
+  /// tela chamava). Mesmo padrão de confirmação usado pra excluir cliente.
+  Future<void> _deleteMeasurement(String measurementId, String name) async {
+    final confirmed = await AppDialog.confirm(
+      context,
+      isDestructive: true,
+      title: 'Excluir "$name"?',
+      message: 'Esta ação não pode ser desfeita.',
+      confirmLabel: 'Excluir',
+    );
+    if (confirmed == true) {
+      await ref.read(measurementsRepositoryProvider).softDeleteMeasurement(measurementId);
+      if (mounted) {
+        AppSnackBar.show(context, 'Medição excluída.', variant: AppSnackBarVariant.destructive);
+        _load();
+      }
+    }
   }
 
   Future<void> _openBudget(String budgetId) async {
@@ -167,6 +193,31 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       await _addBudget();
     } else if (action == 'measurement') {
       await _addMeasurement();
+    }
+  }
+
+  /// Menu por item da linha do tempo — só as medições têm ação de
+  /// excluir hoje (ver `_TimelineEntry.onDelete`). Ícone visível em vez de
+  /// depender de long-press, pro mesmo público de baixa familiaridade
+  /// digital que o resto do app já leva em conta.
+  Future<void> _openTimelineEntryMenu(BuildContext context, _TimelineEntry entry) async {
+    final action = await AppBottomSheet.showActions<String>(
+      context,
+      title: entry.title,
+      actions: const [
+        AppBottomSheetAction(label: 'Editar', value: 'edit', icon: Icons.edit_outlined),
+        AppBottomSheetAction(
+          label: 'Excluir',
+          value: 'delete',
+          icon: Icons.delete_outline,
+          isDestructive: true,
+        ),
+      ],
+    );
+    if (action == 'edit') {
+      entry.onTap();
+    } else if (action == 'delete') {
+      entry.onDelete?.call();
     }
   }
 
@@ -274,6 +325,12 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                                     color: colorScheme.onSurfaceVariant,
                                   ),
                             ),
+                            if (entry.onDelete != null)
+                              IconButton(
+                                icon: const Icon(Icons.more_vert, size: 20),
+                                tooltip: 'Mais opções',
+                                onPressed: () => _openTimelineEntryMenu(context, entry),
+                              ),
                           ],
                         ),
                       );

@@ -47,4 +47,22 @@ void main() {
     expect(details.first.openings, hasLength(1));
     expect(details.first.openings.first.type, OpeningType.door);
   });
+
+  test('softDeleteMeasurement excludes measurement from watchByProject', () async {
+    final client = await clientsRepo.create(name: 'José Empreiteiro');
+    final project = await measurementsRepo.createProject(clientId: client.id, name: 'Reforma');
+    final measurement = await measurementsRepo.createMeasurement(
+      projectId: project.id,
+      name: 'Sala',
+      lengthMeters: 5.0,
+      widthMeters: 4.0,
+      heightMeters: 2.7,
+    );
+
+    final deleted = await measurementsRepo.softDeleteMeasurement(measurement.id);
+
+    expect(deleted, isTrue);
+    final details = await measurementsRepo.watchByProject(project.id).first;
+    expect(details, isEmpty);
+  });
 }

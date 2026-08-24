@@ -5,6 +5,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 ## [Unreleased]
 
 ### Fixed
+- **Excluir medição não tinha nenhum caminho na UI** — `MeasurementsRepository.softDeleteMeasurement` existia no repositório, mas nenhuma tela chamava. Editar cliente/medição e gerenciar vãos já funcionavam. Adicionado menu (⋮ visível, não long-press, mesmo raciocínio de baixa familiaridade digital do resto do app) em cada item da linha do tempo do cliente com "Editar"/"Excluir", só pra medições — orçamento fica de fora desse menu (ciclo de vida próprio via status).
 - **App travando em tela branca ao abrir** — causado pelo R8/minificação (religado em 23/08, nunca testado num aparelho real) removendo/renomeando algo que o Firebase precisa achar via reflexão em runtime; `Firebase.initializeApp()` travava antes de `runApp()` rodar, sem handler de erro do Flutter ativo ainda. `flutter analyze`/`flutter test` não pegam esse tipo de bug (rodam contra o Dart VM, não o APK minificado). Revertido `isMinifyEnabled`/`isShrinkResources` pra `false` em `android/app/build.gradle.kts`. Versão bumped pra `0.1.5+5`.
 - `build-distribute.yml` (Firebase App Distribution) estava disparando a cada push no `main` desde antes da migração pro Shorebird OTA, sem ninguém notar — provável causa do fundador ter instalado um build fora do fluxo Shorebird por engano. Trocado pra disparo manual (`workflow_dispatch`).
 
