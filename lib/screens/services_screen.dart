@@ -7,6 +7,7 @@ import '../database/database.dart';
 import '../database/enums.dart';
 import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
+import '../theme/app_spacing.dart';
 import '../utils/currency_format.dart';
 import '../utils/validators.dart';
 import '../widgets/app_button.dart';
@@ -50,19 +51,19 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text('Reajustar preços', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               'Aplica o percentual a todos os serviços com preço já definido. Use negativo pra reduzir.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
             AppTextField(
               label: 'Reajuste (%)',
               hint: 'Ex: 10 ou -5',
               controller: controller,
               keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
             AppButton(
               label: 'Aplicar',
               onPressed: () {
@@ -70,7 +71,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                 Navigator.of(context).pop(value);
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
           ],
         ),
       ),
@@ -132,7 +133,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
             icon: const Icon(Icons.playlist_add, size: 20),
             label: const Text('Sugestões'),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: AppSpacing.xs),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -143,7 +144,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: AppTextField(
               label: 'Buscar serviço',
               hint: 'Ex: Reboco, pintura...',
@@ -175,9 +176,9 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                   );
                 }
                 return ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   itemCount: services.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 8),
+                  separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
                   itemBuilder: (context, index) {
                     final s = services[index];
                     final priceText = s.defaultPriceCents != null
@@ -193,7 +194,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(s.name, style: Theme.of(context).textTheme.titleMedium),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: AppSpacing.xs),
                                 Text(
                                   'Unidade: ${serviceUnitLabel(s.unit)} • $priceText',
                                   style: Theme.of(context).textTheme.bodySmall,
@@ -304,7 +305,7 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -316,13 +317,13 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
                 widget.service == null ? 'Novo Serviço' : 'Editar Serviço',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               AppTextField(
                 controller: _nameController,
                 label: 'Nome do serviço',
                 validator: requiredValidator('o nome'),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<ServiceUnit>(
                 initialValue: _unit,
                 decoration: const InputDecoration(labelText: 'Unidade de medida'),
@@ -336,26 +337,26 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
                   if (val != null) setState(() => _unit = val);
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               AppCurrencyInput(
                 initialValueCents: _priceCents,
                 label: 'Preço padrão (R\$)',
                 onChangedCents: (cents) => setState(() => _priceCents = cents),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               CheckboxListTile(
                 title: const Text('Inclui material'),
                 value: _includesMaterial,
                 onChanged: (val) => setState(() => _includesMaterial = val ?? false),
                 contentPadding: EdgeInsets.zero,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               AppTextField(
                 controller: _noteController,
                 label: 'Observação padrão',
                 maxLines: 2,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.lg),
               Row(
                 children: [
                   if (widget.service != null) ... [
@@ -364,7 +365,7 @@ class _ServiceFormSheetState extends ConsumerState<_ServiceFormSheet> {
                       icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
                       tooltip: 'Excluir serviço',
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.sm),
                   ],
                   Expanded(
                     child: AppButton(

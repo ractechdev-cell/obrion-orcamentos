@@ -18,6 +18,7 @@ import '../providers/services_repository_provider.dart';
 import '../repositories/budgets_repository.dart';
 import '../repositories/measurements_repository.dart';
 import '../theme/app_semantic_colors.dart';
+import '../theme/app_spacing.dart';
 import '../utils/currency_format.dart';
 import '../widgets/app_bottom_sheet.dart';
 import '../widgets/app_button.dart';
@@ -176,7 +177,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 child: services.isEmpty
                     ? const Center(
                         child: Padding(
-                          padding: EdgeInsets.all(24),
+                          padding: EdgeInsets.all(AppSpacing.lg),
                           child: Text(
                             'Nenhum serviço na Lista de Preços ainda.\nUse "Item avulso" acima ou cadastre um serviço na aba Preços.',
                             textAlign: TextAlign.center,
@@ -250,13 +251,13 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text('Qual medição?', style: Theme.of(context).textTheme.titleMedium),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               for (final m in allMeasurements)
                 ListTile(
                   title: Text(m.measurement.name),
                   onTap: () => Navigator.of(context).pop(m),
                 ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
             ],
           ),
         ),
@@ -283,14 +284,14 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text('Qual grandeza?', style: Theme.of(context).textTheme.titleMedium),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             for (final option in options)
               ListTile(
                 title: Text(_measurementQuantityLabel(option)),
                 trailing: Text(_measurementQuantityValue(option, derived).toStringAsFixed(2)),
                 onTap: () => Navigator.of(context).pop(_measurementQuantityValue(option, derived)),
               ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
           ],
         ),
       ),
@@ -319,13 +320,13 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(service.name, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               AppNumberInput(
                 label: 'Quantidade (${serviceUnitLabel(service.unit)})',
                 controller: quantityController,
               ),
               if (_measurementOptionsForUnit(service.unit).isNotEmpty) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: OutlinedButton.icon(
@@ -339,13 +340,13 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                   ),
                 ),
               ],
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               AppCurrencyInput(
                 label: 'Preço unitário (R\$)',
                 initialValueCents: priceCents,
                 onChangedCents: (cents) => priceCents = cents,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.lg),
               AppButton(
                 label: 'Adicionar item',
                 onPressed: () async {
@@ -403,12 +404,12 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text('Item avulso', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               AppTextField(
                 controller: descriptionController,
                 label: 'Descrição',
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<ServiceUnit>(
                 initialValue: unit,
                 decoration: const InputDecoration(labelText: 'Unidade'),
@@ -419,13 +420,13 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                   if (val != null) setSheetState(() => unit = val);
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               AppNumberInput(
                 label: 'Quantidade (${serviceUnitLabel(unit)})',
                 controller: quantityController,
               ),
               if (_measurementOptionsForUnit(unit).isNotEmpty) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: OutlinedButton.icon(
@@ -439,12 +440,12 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                   ),
                 ),
               ],
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               AppCurrencyInput(
                 label: 'Preço unitário (R\$)',
                 onChangedCents: (cents) => priceCents = cents,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.lg),
               AppButton(
                 label: 'Adicionar item',
                 onPressed: () async {
@@ -471,7 +472,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                   if (context.mounted) Navigator.of(context).pop();
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
             ],
           ),
         ),
@@ -513,18 +514,18 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text('Registrar pagamento', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
             AppCurrencyInput(
               label: 'Valor recebido (R\$)',
               onChangedCents: (cents) => amountCents = cents,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
             AppTextField(
               controller: notesController,
               label: 'Observação (opcional)',
               hint: 'Ex.: entrada, parcela 2',
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
             AppButton(
               label: 'Registrar',
               onPressed: () async {
@@ -549,7 +550,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 }
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
           ],
         ),
       ),
@@ -593,7 +594,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text('Desconto', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               SegmentedButton<bool>(
                 segments: const [
                   ButtonSegment(value: false, label: Text('Valor fixo')),
@@ -602,7 +603,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 selected: {isPercent},
                 onSelectionChanged: (selection) => setSheetState(() => isPercent = selection.first),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               if (isPercent)
                 AppNumberInput(
                   label: 'Desconto (%)',
@@ -614,7 +615,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                   initialValueCents: currentDiscountCents == 0 ? null : currentDiscountCents,
                   onChangedCents: (cents) => newDiscount = cents,
                 ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.lg),
               AppButton(
                 label: 'Salvar',
                 onPressed: () async {
@@ -655,27 +656,27 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text('Detalhes do orçamento', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               AppTextField(
                 label: 'Descrição da obra (opcional)',
                 hint: 'O que vai ser feito, resumido — aparece no PDF acima dos itens',
                 controller: jobDescriptionController,
                 maxLines: 3,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               AppTextField(
                 label: 'Observações',
                 hint: 'Condições de pagamento, prazo, garantia',
                 controller: notesController,
                 maxLines: 4,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               AppDatePicker(
                 label: 'Válido até',
                 value: validUntil,
                 onChanged: (date) => setSheetState(() => validUntil = date),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.lg),
               AppButton(
                 label: 'Salvar',
                 onPressed: () async {
@@ -691,7 +692,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                   if (context.mounted) Navigator.of(context).pop();
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
             ],
           ),
         ),
@@ -864,7 +865,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 child: data.items.isEmpty
                     ? const Center(child: Text('Toque em + para adicionar itens.'))
                     : ListView(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(AppSpacing.md),
                         children: [
                           for (final item in data.items) ...[
                             AppCard(
@@ -893,12 +894,12 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: AppSpacing.sm),
                           ],
                           if (data.payments.isNotEmpty) ...[
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSpacing.md),
                             Text('Pagamentos recebidos', style: Theme.of(context).textTheme.titleMedium),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: AppSpacing.sm),
                             for (final payment in data.payments) ...[
                               AppCard(
                                 child: Row(
@@ -927,14 +928,14 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: AppSpacing.sm),
                             ],
                           ],
                         ],
                       ),
               ),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surfaceContainerLow,
                   border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
@@ -949,7 +950,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                         Text(formatCents(totals.subtotalCents)),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -976,7 +977,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                       ],
                     ),
                     if (data.items.isNotEmpty) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -990,7 +991,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -1007,7 +1008,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                         ],
                       ),
                       if (data.totalPaidCents > 0) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.sm),
                         Align(
                           alignment: Alignment.centerLeft,
                           child: OutlinedButton.icon(
@@ -1019,7 +1020,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                         ),
                       ],
                     ],
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     if (budget.validUntil != null) ...[
                       Text(
                         // Ver CLAUDE.md, "Retenção precisa de mecanismo":
@@ -1032,7 +1033,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                     ],
                     Row(
                       children: [
@@ -1049,7 +1050,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                             variant: AppButtonVariant.secondary,
                           ),
                         if (budget.status == BudgetStatus.sent) ...[
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           IconButton(
                             onPressed: _declineStatus,
                             icon: const Icon(Icons.close),

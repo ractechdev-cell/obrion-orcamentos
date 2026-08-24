@@ -5,6 +5,7 @@ import '../database/database.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
 import '../repositories/example_data_seeder.dart';
+import '../theme/app_spacing.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
@@ -42,7 +43,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: AppTextField(
               label: 'Buscar cliente',
               hint: 'Nome, telefone ou endereço',
@@ -92,9 +93,9 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                   );
                 }
                 return ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   itemCount: clients.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
                   itemBuilder: (context, index) {
                     final client = clients[index];
                     return AppCard(
@@ -108,11 +109,11 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                         children: [
                           Text(client.name, style: Theme.of(context).textTheme.titleMedium),
                           if (client.phone != null && client.phone!.isNotEmpty) ...[
-                            const SizedBox(height: 4),
+                            const SizedBox(height: AppSpacing.xs),
                             Text(client.phone!),
                           ],
                           if (client.address != null && client.address!.isNotEmpty) ...[
-                            const SizedBox(height: 4),
+                            const SizedBox(height: AppSpacing.xs),
                             Text(client.address!),
                           ],
                         ],

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/clients_repository_provider.dart';
+import '../theme/app_spacing.dart';
 import '../utils/validators.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_loading.dart';
@@ -159,35 +160,35 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
           : Form(
               key: _formKey,
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 children: [
                   AppTextField(
                     controller: _nameController,
                     label: 'Nome',
                     validator: requiredValidator('o nome'),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
                   AppTextField(
                     controller: _phoneController,
                     label: 'Telefone',
                     keyboardType: TextInputType.phone,
                     validator: phoneValidator,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     'Com telefone, dá pra chamar o cliente no WhatsApp direto da ficha.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
                   AppTextField(
                     controller: _emailController,
                     label: 'E-mail (opcional)',
                     keyboardType: TextInputType.emailAddress,
                     validator: optionalEmailValidator,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   // Cabeçalho colapsável controlado à mão (em vez de
                   // `ExpansionTile`) — pra garantir que a seta de
                   // expandir/recolher sempre apareça, sem depender do
@@ -222,12 +223,12 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                     ),
                   ),
                   if (_detailsExpanded) ...[
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       controller: _documentController,
                       label: 'CPF/CNPJ (opcional)',
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -238,7 +239,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                             label: 'Rua',
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           flex: 1,
                           child: AppTextField(
@@ -249,26 +250,26 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       controller: _neighborhoodController,
                       label: 'Bairro',
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       controller: _addressController,
                       label: 'Complemento / referência da obra',
                       hint: 'Ponto de referência, apartamento, etc.',
                       maxLines: 2,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     AppTextField(
                       controller: _notesController,
                       label: 'Observações',
                       maxLines: 3,
                     ),
                   ],
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.lg),
                   AppButton(
                     label: _isEditing ? 'Salvar alterações' : 'Salvar cliente',
                     loading: _saving,
