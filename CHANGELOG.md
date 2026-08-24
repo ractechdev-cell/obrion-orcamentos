@@ -10,6 +10,18 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 
 ### Added
 - **Camada de ofício** (`docs/POSICIONAMENTO_E_FEATURES_APP1.md`, Parte 3): a 3ª tela do onboarding, antes só informativa, agora pergunta "O que você faz?" (múltipla escolha — pedreiro, pintor, gesseiro, azulejista, eletricista, encanador), pulável como as outras. Editável depois em Ajustes (nova seção "Seus ofícios", mesmo seletor de chips). Guardado em `app_settings` via `ProfileRepository` (`Trade` enum novo em `database/enums.dart`), sem migração de schema — mesmo padrão chave/valor do nome/telefone/logo. O botão "Sugestões" da Lista de Preços agora filtra os 23 serviços padrão pelo(s) ofício(s) do perfil — antes despejava tudo de uma vez mesmo pra quem só faz um; perfil sem ofício informado mantém o comportamento antigo (insere tudo).
+- **Lote de polimento pós-análise de concorrência** (`docs/ANALISE_CONCORRENCIA_E_ESCOPO.md`, `docs/POSICIONAMENTO_E_FEATURES_APP1.md`), 11 melhorias em commits pequenos e verificáveis:
+  - **Descrição da obra no PDF**: campo opcional (`budgets.jobDescription`, schema v2→v3) renderizado num bloco "Projeto / Obra" acima da tabela de itens.
+  - **Assinatura no PDF**: duas linhas (profissional + contratante), sem CPF/CNPJ — transforma o orçamento num mini-contrato informal, não confundir com assinatura digital ICP-Brasil.
+  - **Alerta de valor fora do padrão**: confirma antes de adicionar um item cujo total passe de R$ 10.000 — motivado por evidência real (619 m² aceito sem aviso num concorrente).
+  - **Desconto percentual**: seletor Valor fixo/Percentual no orçamento; só `discountCents` é persistido, percentual é o modo de entrada.
+  - **Reajuste de preços em massa**: ícone na Lista de Preços aplica um percentual (aceita negativo) a todos os serviços com preço já definido.
+  - **Lembrete de validade**: `budgets.validUntil` (já existia, nunca esteve ligado a nada) agora agenda um lembrete local 1 dia antes de vencer.
+  - **Campos opcionais recolhidos no formulário de cliente**: Endereço/Observações num `ExpansionTile` fechado por padrão, com microcopy explicando o ganho do telefone.
+  - **Dados de exemplo `[exemplo]`**: ação "Ver um exemplo" nos estados vazios de Clientes/Orçamentos, cria 1 cliente + 1 orçamento de demonstração, soft-deletáveis como qualquer registro real.
+  - **Ponte medição → item de orçamento**: botão "Usar medição" nos dois fluxos de adicionar item, preenche a quantidade a partir da grandeza derivada certa pra unidade do serviço. Achado: orçamentos nunca guardavam `projectId` (nenhuma tela passava esse valor) — a busca usa `clientId`.
+  - **Emitir recibo**: motor de PDF reduzido (`ReceiptPdfGenerator`), botão na seção de pagamentos quando já houver valor recebido.
+  - Grade de atalhos na Home foi avaliada e **descartada de propósito** — já existe uma decisão documentada contra atalhos redundantes com a barra inferior, e as ações do concorrente (Novo Cliente, Lista de Preços, Orçamentos) já são abas próprias aqui.
 
 ### Changed
 - R8/minificação religada (`android/app/build.gradle.kts`, `isMinifyEnabled`/`isShrinkResources = true` + `proguard-rules.pro` novo, vazio de propósito) — motivo original de ter desligado (build local lento) não existe mais desde que os releases passaram a rodar na nuvem. Mudança nativa (Gradle): só entra em vigor num release completo, não num patch. Versão bumped pra `0.1.4+4`, primeira a usar o esquema `x.y.build+build`.
