@@ -16,6 +16,14 @@ String? emailValidator(String? value) {
   return valid ? null : 'E-mail inválido';
 }
 
+/// E-mail opcional — só valida formato se algo foi digitado (ao
+/// contrário de [emailValidator], que exige o campo preenchido).
+String? optionalEmailValidator(String? value) {
+  if (value == null || value.trim().isEmpty) return null;
+  final valid = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim());
+  return valid ? null : 'E-mail inválido';
+}
+
 /// Telefone é opcional em todo o app — só valida formato se algo foi
 /// digitado. Aceita qualquer combinação de dígitos/espaços/parênteses/
 /// hífen com pelo menos 8 dígitos (cobre fixo e celular, com ou sem DDD).

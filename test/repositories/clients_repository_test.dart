@@ -64,4 +64,13 @@ void main() {
     expect(updated!.streetNumber, '142B');
     expect(updated.street, 'Rua das Azaléias');
   });
+
+  test('create and update persist email', () async {
+    final client = await repository.create(name: 'Ana Pintora', email: 'ana@example.com');
+    expect(client.email, 'ana@example.com');
+
+    await repository.update(id: client.id, email: const Value('ana.pintora@example.com'));
+    final updated = await repository.getById(client.id);
+    expect(updated!.email, 'ana.pintora@example.com');
+  });
 }

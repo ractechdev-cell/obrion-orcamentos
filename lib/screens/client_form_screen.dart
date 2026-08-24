@@ -25,6 +25,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _addressController = TextEditingController();
   final _notesController = TextEditingController();
   final _documentController = TextEditingController();
@@ -54,6 +55,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     if (client != null) {
       _nameController.text = client.name;
       _phoneController.text = client.phone ?? '';
+      _emailController.text = client.email ?? '';
       _addressController.text = client.address ?? '';
       _notesController.text = client.notes ?? '';
       _documentController.text = client.document ?? '';
@@ -80,6 +82,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
     _addressController.dispose();
     _notesController.dispose();
     _documentController.dispose();
@@ -95,6 +98,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     final repository = ref.read(clientsRepositoryProvider);
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim();
+    final email = _emailController.text.trim().isEmpty ? null : _emailController.text.trim();
     final address = _addressController.text.trim().isEmpty ? null : _addressController.text.trim();
     final notes = _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
     final document = _documentController.text.trim().isEmpty ? null : _documentController.text.trim();
@@ -109,6 +113,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         id: widget.clientId!,
         name: Value(name),
         phone: Value(phone),
+        email: Value(email),
         address: Value(address),
         notes: Value(notes),
         document: Value(document),
@@ -124,6 +129,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
       final client = await repository.create(
         name: name,
         phone: phone,
+        email: email,
         address: address,
         notes: notes,
         document: document,
@@ -173,6 +179,13 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
+                  ),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: _emailController,
+                    label: 'E-mail (opcional)',
+                    keyboardType: TextInputType.emailAddress,
+                    validator: optionalEmailValidator,
                   ),
                   const SizedBox(height: 8),
                   // Cabeçalho colapsável controlado à mão (em vez de

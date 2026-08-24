@@ -37,6 +37,7 @@ class ClientsRepository {
   Future<Client> create({
     required String name,
     String? phone,
+    String? email,
     String? address,
     String? notes,
     String? document,
@@ -49,6 +50,7 @@ class ClientsRepository {
           ClientsCompanion.insert(
             name: name,
             phone: Value(phone),
+            email: Value(email),
             address: Value(address),
             notes: Value(notes),
             document: Value(document),
@@ -71,6 +73,7 @@ class ClientsRepository {
     required String id,
     Value<String> name = const Value.absent(),
     Value<String?> phone = const Value.absent(),
+    Value<String?> email = const Value.absent(),
     Value<String?> address = const Value.absent(),
     Value<String?> notes = const Value.absent(),
     Value<String?> document = const Value.absent(),
@@ -82,6 +85,7 @@ class ClientsRepository {
     final companion = ClientsCompanion(
       name: name,
       phone: phone,
+      email: email,
       address: address,
       notes: notes,
       document: document,

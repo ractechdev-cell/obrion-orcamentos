@@ -8,6 +8,7 @@ import 'entity_mixin.dart';
 class Clients extends Table with EntityMixin {
   TextColumn get name => text().withLength(min: 1, max: 200)();
   TextColumn get phone => text().nullable()();
+  TextColumn get email => text().nullable()();
   TextColumn get address => text().nullable()();
   TextColumn get notes => text().nullable()();
   /// CPF/CNPJ — opcional, usado em recibo/contrato informal. Campos de

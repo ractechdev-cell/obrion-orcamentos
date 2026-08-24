@@ -75,6 +75,15 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _emailMeta = const VerificationMeta('email');
+  @override
+  late final GeneratedColumn<String> email = GeneratedColumn<String>(
+    'email',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _addressMeta = const VerificationMeta(
     'address',
   );
@@ -145,6 +154,7 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
     deletedAt,
     name,
     phone,
+    email,
     address,
     notes,
     document,
@@ -197,6 +207,12 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
       context.handle(
         _phoneMeta,
         phone.isAcceptableOrUnknown(data['phone']!, _phoneMeta),
+      );
+    }
+    if (data.containsKey('email')) {
+      context.handle(
+        _emailMeta,
+        email.isAcceptableOrUnknown(data['email']!, _emailMeta),
       );
     }
     if (data.containsKey('address')) {
@@ -274,6 +290,10 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
         DriftSqlType.string,
         data['${effectivePrefix}phone'],
       ),
+      email: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}email'],
+      ),
       address: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}address'],
@@ -314,6 +334,7 @@ class Client extends DataClass implements Insertable<Client> {
   final DateTime? deletedAt;
   final String name;
   final String? phone;
+  final String? email;
   final String? address;
   final String? notes;
 
@@ -333,6 +354,7 @@ class Client extends DataClass implements Insertable<Client> {
     this.deletedAt,
     required this.name,
     this.phone,
+    this.email,
     this.address,
     this.notes,
     this.document,
@@ -352,6 +374,9 @@ class Client extends DataClass implements Insertable<Client> {
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || phone != null) {
       map['phone'] = Variable<String>(phone);
+    }
+    if (!nullToAbsent || email != null) {
+      map['email'] = Variable<String>(email);
     }
     if (!nullToAbsent || address != null) {
       map['address'] = Variable<String>(address);
@@ -386,6 +411,9 @@ class Client extends DataClass implements Insertable<Client> {
       phone: phone == null && nullToAbsent
           ? const Value.absent()
           : Value(phone),
+      email: email == null && nullToAbsent
+          ? const Value.absent()
+          : Value(email),
       address: address == null && nullToAbsent
           ? const Value.absent()
           : Value(address),
@@ -419,6 +447,7 @@ class Client extends DataClass implements Insertable<Client> {
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       name: serializer.fromJson<String>(json['name']),
       phone: serializer.fromJson<String?>(json['phone']),
+      email: serializer.fromJson<String?>(json['email']),
       address: serializer.fromJson<String?>(json['address']),
       notes: serializer.fromJson<String?>(json['notes']),
       document: serializer.fromJson<String?>(json['document']),
@@ -437,6 +466,7 @@ class Client extends DataClass implements Insertable<Client> {
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'name': serializer.toJson<String>(name),
       'phone': serializer.toJson<String?>(phone),
+      'email': serializer.toJson<String?>(email),
       'address': serializer.toJson<String?>(address),
       'notes': serializer.toJson<String?>(notes),
       'document': serializer.toJson<String?>(document),
@@ -453,6 +483,7 @@ class Client extends DataClass implements Insertable<Client> {
     Value<DateTime?> deletedAt = const Value.absent(),
     String? name,
     Value<String?> phone = const Value.absent(),
+    Value<String?> email = const Value.absent(),
     Value<String?> address = const Value.absent(),
     Value<String?> notes = const Value.absent(),
     Value<String?> document = const Value.absent(),
@@ -466,6 +497,7 @@ class Client extends DataClass implements Insertable<Client> {
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     name: name ?? this.name,
     phone: phone.present ? phone.value : this.phone,
+    email: email.present ? email.value : this.email,
     address: address.present ? address.value : this.address,
     notes: notes.present ? notes.value : this.notes,
     document: document.present ? document.value : this.document,
@@ -481,6 +513,7 @@ class Client extends DataClass implements Insertable<Client> {
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       name: data.name.present ? data.name.value : this.name,
       phone: data.phone.present ? data.phone.value : this.phone,
+      email: data.email.present ? data.email.value : this.email,
       address: data.address.present ? data.address.value : this.address,
       notes: data.notes.present ? data.notes.value : this.notes,
       document: data.document.present ? data.document.value : this.document,
@@ -503,6 +536,7 @@ class Client extends DataClass implements Insertable<Client> {
           ..write('deletedAt: $deletedAt, ')
           ..write('name: $name, ')
           ..write('phone: $phone, ')
+          ..write('email: $email, ')
           ..write('address: $address, ')
           ..write('notes: $notes, ')
           ..write('document: $document, ')
@@ -521,6 +555,7 @@ class Client extends DataClass implements Insertable<Client> {
     deletedAt,
     name,
     phone,
+    email,
     address,
     notes,
     document,
@@ -538,6 +573,7 @@ class Client extends DataClass implements Insertable<Client> {
           other.deletedAt == this.deletedAt &&
           other.name == this.name &&
           other.phone == this.phone &&
+          other.email == this.email &&
           other.address == this.address &&
           other.notes == this.notes &&
           other.document == this.document &&
@@ -553,6 +589,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
   final Value<DateTime?> deletedAt;
   final Value<String> name;
   final Value<String?> phone;
+  final Value<String?> email;
   final Value<String?> address;
   final Value<String?> notes;
   final Value<String?> document;
@@ -567,6 +604,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     this.deletedAt = const Value.absent(),
     this.name = const Value.absent(),
     this.phone = const Value.absent(),
+    this.email = const Value.absent(),
     this.address = const Value.absent(),
     this.notes = const Value.absent(),
     this.document = const Value.absent(),
@@ -582,6 +620,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     this.deletedAt = const Value.absent(),
     required String name,
     this.phone = const Value.absent(),
+    this.email = const Value.absent(),
     this.address = const Value.absent(),
     this.notes = const Value.absent(),
     this.document = const Value.absent(),
@@ -597,6 +636,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     Expression<DateTime>? deletedAt,
     Expression<String>? name,
     Expression<String>? phone,
+    Expression<String>? email,
     Expression<String>? address,
     Expression<String>? notes,
     Expression<String>? document,
@@ -612,6 +652,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (name != null) 'name': name,
       if (phone != null) 'phone': phone,
+      if (email != null) 'email': email,
       if (address != null) 'address': address,
       if (notes != null) 'notes': notes,
       if (document != null) 'document': document,
@@ -629,6 +670,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     Value<DateTime?>? deletedAt,
     Value<String>? name,
     Value<String?>? phone,
+    Value<String?>? email,
     Value<String?>? address,
     Value<String?>? notes,
     Value<String?>? document,
@@ -644,6 +686,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
       deletedAt: deletedAt ?? this.deletedAt,
       name: name ?? this.name,
       phone: phone ?? this.phone,
+      email: email ?? this.email,
       address: address ?? this.address,
       notes: notes ?? this.notes,
       document: document ?? this.document,
@@ -674,6 +717,9 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     }
     if (phone.present) {
       map['phone'] = Variable<String>(phone.value);
+    }
+    if (email.present) {
+      map['email'] = Variable<String>(email.value);
     }
     if (address.present) {
       map['address'] = Variable<String>(address.value);
@@ -708,6 +754,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
           ..write('deletedAt: $deletedAt, ')
           ..write('name: $name, ')
           ..write('phone: $phone, ')
+          ..write('email: $email, ')
           ..write('address: $address, ')
           ..write('notes: $notes, ')
           ..write('document: $document, ')
@@ -4932,6 +4979,7 @@ typedef $$ClientsTableCreateCompanionBuilder = ClientsCompanion Function({
   Value<DateTime?> deletedAt,
   required String name,
   Value<String?> phone,
+  Value<String?> email,
   Value<String?> address,
   Value<String?> notes,
   Value<String?> document,
@@ -4947,6 +4995,7 @@ typedef $$ClientsTableUpdateCompanionBuilder = ClientsCompanion Function({
   Value<DateTime?> deletedAt,
   Value<String> name,
   Value<String?> phone,
+  Value<String?> email,
   Value<String?> address,
   Value<String?> notes,
   Value<String?> document,
@@ -5035,6 +5084,11 @@ class $$ClientsTableFilterComposer
 
   ColumnFilters<String> get phone => $composableBuilder(
     column: $table.phone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get email => $composableBuilder(
+    column: $table.email,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5158,6 +5212,11 @@ class $$ClientsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get email => $composableBuilder(
+    column: $table.email,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get address => $composableBuilder(
     column: $table.address,
     builder: (column) => ColumnOrderings(column),
@@ -5215,6 +5274,9 @@ class $$ClientsTableAnnotationComposer
 
   GeneratedColumn<String> get phone =>
       $composableBuilder(column: $table.phone, builder: (column) => column);
+
+  GeneratedColumn<String> get email =>
+      $composableBuilder(column: $table.email, builder: (column) => column);
 
   GeneratedColumn<String> get address =>
       $composableBuilder(column: $table.address, builder: (column) => column);
@@ -5323,6 +5385,7 @@ class $$ClientsTableTableManager
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> phone = const Value.absent(),
+                Value<String?> email = const Value.absent(),
                 Value<String?> address = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<String?> document = const Value.absent(),
@@ -5337,6 +5400,7 @@ class $$ClientsTableTableManager
                 deletedAt: deletedAt,
                 name: name,
                 phone: phone,
+                email: email,
                 address: address,
                 notes: notes,
                 document: document,
@@ -5353,6 +5417,7 @@ class $$ClientsTableTableManager
                 Value<DateTime?> deletedAt = const Value.absent(),
                 required String name,
                 Value<String?> phone = const Value.absent(),
+                Value<String?> email = const Value.absent(),
                 Value<String?> address = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<String?> document = const Value.absent(),
@@ -5367,6 +5432,7 @@ class $$ClientsTableTableManager
                 deletedAt: deletedAt,
                 name: name,
                 phone: phone,
+                email: email,
                 address: address,
                 notes: notes,
                 document: document,
