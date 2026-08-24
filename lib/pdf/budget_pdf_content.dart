@@ -39,6 +39,7 @@ class BudgetPdfContent {
     required this.clientName,
     required this.clientPhone,
     required this.clientAddress,
+    required this.clientDocument,
     required this.dateFormatted,
     required this.items,
     required this.subtotalFormatted,
@@ -60,6 +61,7 @@ class BudgetPdfContent {
       clientName: client.name,
       clientPhone: client.phone?.isNotEmpty ?? false ? client.phone : null,
       clientAddress: client.address?.isNotEmpty ?? false ? client.address : null,
+      clientDocument: client.document?.isNotEmpty ?? false ? client.document : null,
       dateFormatted: formatDateForPdf(data.budget.createdAt),
       items: [
         for (final item in data.items)
@@ -84,6 +86,7 @@ class BudgetPdfContent {
   final String clientName;
   final String? clientPhone;
   final String? clientAddress;
+  final String? clientDocument;
   final String dateFormatted;
   final List<BudgetPdfItemLine> items;
   final String subtotalFormatted;

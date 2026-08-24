@@ -53,6 +53,8 @@ class ReceiptPdfGenerator {
             pw.Text('Recibo', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 16),
             pw.Text('Recebi de ${client.name} a quantia de:'),
+            if (client.document?.isNotEmpty ?? false)
+              pw.Text('CPF/CNPJ: ${client.document}', style: const pw.TextStyle(fontSize: 10)),
             pw.SizedBox(height: 8),
             pw.Text(
               formatCurrencyForPdf(amountCents),

@@ -136,6 +136,7 @@ class BudgetPdfGenerator {
           children: [
             pw.Text('Cliente', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
             pw.Text(content.clientName),
+            if (content.clientDocument != null) pw.Text('CPF/CNPJ: ${content.clientDocument}'),
             if (content.clientPhone != null) pw.Text(content.clientPhone!),
             if (content.clientAddress != null) pw.Text(content.clientAddress!),
           ],
@@ -200,12 +201,18 @@ class BudgetPdfGenerator {
       children: [
         pw.Expanded(child: _buildSignatureLine(content.professionalName)),
         pw.SizedBox(width: 32),
-        pw.Expanded(child: _buildSignatureLine(content.clientName, label: 'Contratante')),
+        pw.Expanded(
+          child: _buildSignatureLine(
+            content.clientName,
+            label: 'Contratante',
+            document: content.clientDocument,
+          ),
+        ),
       ],
     );
   }
 
-  static pw.Widget _buildSignatureLine(String name, {String? label}) {
+  static pw.Widget _buildSignatureLine(String name, {String? label, String? document}) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -214,6 +221,8 @@ class BudgetPdfGenerator {
         pw.Text(name, style: const pw.TextStyle(fontSize: 10)),
         if (label != null)
           pw.Text(label, style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
+        if (document != null)
+          pw.Text('CPF/CNPJ: $document', style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
         pw.SizedBox(height: 8),
         pw.Text('Data: ___/___/___', style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
       ],

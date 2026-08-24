@@ -127,4 +127,27 @@ void main() {
     );
     expect(content.jobDescription, 'Reforma completa do banheiro social.');
   });
+
+  test('mostra CPF/CNPJ do cliente só quando preenchido', () async {
+    final withDocument = await clientsRepo.create(name: 'Cliente A', document: '123.456.789-00');
+    final withoutDocument = await clientsRepo.create(name: 'Cliente B');
+
+    final budgetA = await budgetsRepo.create(clientId: withDocument.id);
+    final dataA = await budgetsRepo.watchById(budgetA.id).first;
+    final contentA = BudgetPdfContent.fromData(
+      data: dataA!,
+      client: withDocument,
+      professional: const ProfessionalProfile(),
+    );
+    expect(contentA.clientDocument, '123.456.789-00');
+
+    final budgetB = await budgetsRepo.create(clientId: withoutDocument.id);
+    final dataB = await budgetsRepo.watchById(budgetB.id).first;
+    final contentB = BudgetPdfContent.fromData(
+      data: dataB!,
+      client: withoutDocument,
+      professional: const ProfessionalProfile(),
+    );
+    expect(contentB.clientDocument, isNull);
+  });
 }
