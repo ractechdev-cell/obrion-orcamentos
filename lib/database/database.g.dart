@@ -95,6 +95,48 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _documentMeta = const VerificationMeta(
+    'document',
+  );
+  @override
+  late final GeneratedColumn<String> document = GeneratedColumn<String>(
+    'document',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _streetMeta = const VerificationMeta('street');
+  @override
+  late final GeneratedColumn<String> street = GeneratedColumn<String>(
+    'street',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _streetNumberMeta = const VerificationMeta(
+    'streetNumber',
+  );
+  @override
+  late final GeneratedColumn<String> streetNumber = GeneratedColumn<String>(
+    'street_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _neighborhoodMeta = const VerificationMeta(
+    'neighborhood',
+  );
+  @override
+  late final GeneratedColumn<String> neighborhood = GeneratedColumn<String>(
+    'neighborhood',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -105,6 +147,10 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
     phone,
     address,
     notes,
+    document,
+    street,
+    streetNumber,
+    neighborhood,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -165,6 +211,36 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('document')) {
+      context.handle(
+        _documentMeta,
+        document.isAcceptableOrUnknown(data['document']!, _documentMeta),
+      );
+    }
+    if (data.containsKey('street')) {
+      context.handle(
+        _streetMeta,
+        street.isAcceptableOrUnknown(data['street']!, _streetMeta),
+      );
+    }
+    if (data.containsKey('street_number')) {
+      context.handle(
+        _streetNumberMeta,
+        streetNumber.isAcceptableOrUnknown(
+          data['street_number']!,
+          _streetNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('neighborhood')) {
+      context.handle(
+        _neighborhoodMeta,
+        neighborhood.isAcceptableOrUnknown(
+          data['neighborhood']!,
+          _neighborhoodMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -206,6 +282,22 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      document: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}document'],
+      ),
+      street: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}street'],
+      ),
+      streetNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}street_number'],
+      ),
+      neighborhood: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}neighborhood'],
+      ),
     );
   }
 
@@ -224,6 +316,16 @@ class Client extends DataClass implements Insertable<Client> {
   final String? phone;
   final String? address;
   final String? notes;
+
+  /// CPF/CNPJ — opcional, usado em recibo/contrato informal. Campos de
+  /// endereço estruturado (complementam `address`, que continua livre
+  /// pra quem não precisa detalhar) — ver feedback de teste manual: pedido
+  /// pra ficar mais parecido com o formulário do concorrente (Documento,
+  /// Rua, Número, Bairro).
+  final String? document;
+  final String? street;
+  final String? streetNumber;
+  final String? neighborhood;
   const Client({
     required this.id,
     required this.createdAt,
@@ -233,6 +335,10 @@ class Client extends DataClass implements Insertable<Client> {
     this.phone,
     this.address,
     this.notes,
+    this.document,
+    this.street,
+    this.streetNumber,
+    this.neighborhood,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -252,6 +358,18 @@ class Client extends DataClass implements Insertable<Client> {
     }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || document != null) {
+      map['document'] = Variable<String>(document);
+    }
+    if (!nullToAbsent || street != null) {
+      map['street'] = Variable<String>(street);
+    }
+    if (!nullToAbsent || streetNumber != null) {
+      map['street_number'] = Variable<String>(streetNumber);
+    }
+    if (!nullToAbsent || neighborhood != null) {
+      map['neighborhood'] = Variable<String>(neighborhood);
     }
     return map;
   }
@@ -274,6 +392,18 @@ class Client extends DataClass implements Insertable<Client> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      document: document == null && nullToAbsent
+          ? const Value.absent()
+          : Value(document),
+      street: street == null && nullToAbsent
+          ? const Value.absent()
+          : Value(street),
+      streetNumber: streetNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(streetNumber),
+      neighborhood: neighborhood == null && nullToAbsent
+          ? const Value.absent()
+          : Value(neighborhood),
     );
   }
 
@@ -291,6 +421,10 @@ class Client extends DataClass implements Insertable<Client> {
       phone: serializer.fromJson<String?>(json['phone']),
       address: serializer.fromJson<String?>(json['address']),
       notes: serializer.fromJson<String?>(json['notes']),
+      document: serializer.fromJson<String?>(json['document']),
+      street: serializer.fromJson<String?>(json['street']),
+      streetNumber: serializer.fromJson<String?>(json['streetNumber']),
+      neighborhood: serializer.fromJson<String?>(json['neighborhood']),
     );
   }
   @override
@@ -305,6 +439,10 @@ class Client extends DataClass implements Insertable<Client> {
       'phone': serializer.toJson<String?>(phone),
       'address': serializer.toJson<String?>(address),
       'notes': serializer.toJson<String?>(notes),
+      'document': serializer.toJson<String?>(document),
+      'street': serializer.toJson<String?>(street),
+      'streetNumber': serializer.toJson<String?>(streetNumber),
+      'neighborhood': serializer.toJson<String?>(neighborhood),
     };
   }
 
@@ -317,6 +455,10 @@ class Client extends DataClass implements Insertable<Client> {
     Value<String?> phone = const Value.absent(),
     Value<String?> address = const Value.absent(),
     Value<String?> notes = const Value.absent(),
+    Value<String?> document = const Value.absent(),
+    Value<String?> street = const Value.absent(),
+    Value<String?> streetNumber = const Value.absent(),
+    Value<String?> neighborhood = const Value.absent(),
   }) => Client(
     id: id ?? this.id,
     createdAt: createdAt ?? this.createdAt,
@@ -326,6 +468,10 @@ class Client extends DataClass implements Insertable<Client> {
     phone: phone.present ? phone.value : this.phone,
     address: address.present ? address.value : this.address,
     notes: notes.present ? notes.value : this.notes,
+    document: document.present ? document.value : this.document,
+    street: street.present ? street.value : this.street,
+    streetNumber: streetNumber.present ? streetNumber.value : this.streetNumber,
+    neighborhood: neighborhood.present ? neighborhood.value : this.neighborhood,
   );
   Client copyWithCompanion(ClientsCompanion data) {
     return Client(
@@ -337,6 +483,14 @@ class Client extends DataClass implements Insertable<Client> {
       phone: data.phone.present ? data.phone.value : this.phone,
       address: data.address.present ? data.address.value : this.address,
       notes: data.notes.present ? data.notes.value : this.notes,
+      document: data.document.present ? data.document.value : this.document,
+      street: data.street.present ? data.street.value : this.street,
+      streetNumber: data.streetNumber.present
+          ? data.streetNumber.value
+          : this.streetNumber,
+      neighborhood: data.neighborhood.present
+          ? data.neighborhood.value
+          : this.neighborhood,
     );
   }
 
@@ -350,7 +504,11 @@ class Client extends DataClass implements Insertable<Client> {
           ..write('name: $name, ')
           ..write('phone: $phone, ')
           ..write('address: $address, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('document: $document, ')
+          ..write('street: $street, ')
+          ..write('streetNumber: $streetNumber, ')
+          ..write('neighborhood: $neighborhood')
           ..write(')'))
         .toString();
   }
@@ -365,6 +523,10 @@ class Client extends DataClass implements Insertable<Client> {
     phone,
     address,
     notes,
+    document,
+    street,
+    streetNumber,
+    neighborhood,
   );
   @override
   bool operator ==(Object other) =>
@@ -377,7 +539,11 @@ class Client extends DataClass implements Insertable<Client> {
           other.name == this.name &&
           other.phone == this.phone &&
           other.address == this.address &&
-          other.notes == this.notes);
+          other.notes == this.notes &&
+          other.document == this.document &&
+          other.street == this.street &&
+          other.streetNumber == this.streetNumber &&
+          other.neighborhood == this.neighborhood);
 }
 
 class ClientsCompanion extends UpdateCompanion<Client> {
@@ -389,6 +555,10 @@ class ClientsCompanion extends UpdateCompanion<Client> {
   final Value<String?> phone;
   final Value<String?> address;
   final Value<String?> notes;
+  final Value<String?> document;
+  final Value<String?> street;
+  final Value<String?> streetNumber;
+  final Value<String?> neighborhood;
   final Value<int> rowid;
   const ClientsCompanion({
     this.id = const Value.absent(),
@@ -399,6 +569,10 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     this.phone = const Value.absent(),
     this.address = const Value.absent(),
     this.notes = const Value.absent(),
+    this.document = const Value.absent(),
+    this.street = const Value.absent(),
+    this.streetNumber = const Value.absent(),
+    this.neighborhood = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ClientsCompanion.insert({
@@ -410,6 +584,10 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     this.phone = const Value.absent(),
     this.address = const Value.absent(),
     this.notes = const Value.absent(),
+    this.document = const Value.absent(),
+    this.street = const Value.absent(),
+    this.streetNumber = const Value.absent(),
+    this.neighborhood = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : name = Value(name);
   static Insertable<Client> custom({
@@ -421,6 +599,10 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     Expression<String>? phone,
     Expression<String>? address,
     Expression<String>? notes,
+    Expression<String>? document,
+    Expression<String>? street,
+    Expression<String>? streetNumber,
+    Expression<String>? neighborhood,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -432,6 +614,10 @@ class ClientsCompanion extends UpdateCompanion<Client> {
       if (phone != null) 'phone': phone,
       if (address != null) 'address': address,
       if (notes != null) 'notes': notes,
+      if (document != null) 'document': document,
+      if (street != null) 'street': street,
+      if (streetNumber != null) 'street_number': streetNumber,
+      if (neighborhood != null) 'neighborhood': neighborhood,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -445,6 +631,10 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     Value<String?>? phone,
     Value<String?>? address,
     Value<String?>? notes,
+    Value<String?>? document,
+    Value<String?>? street,
+    Value<String?>? streetNumber,
+    Value<String?>? neighborhood,
     Value<int>? rowid,
   }) {
     return ClientsCompanion(
@@ -456,6 +646,10 @@ class ClientsCompanion extends UpdateCompanion<Client> {
       phone: phone ?? this.phone,
       address: address ?? this.address,
       notes: notes ?? this.notes,
+      document: document ?? this.document,
+      street: street ?? this.street,
+      streetNumber: streetNumber ?? this.streetNumber,
+      neighborhood: neighborhood ?? this.neighborhood,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -487,6 +681,18 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (document.present) {
+      map['document'] = Variable<String>(document.value);
+    }
+    if (street.present) {
+      map['street'] = Variable<String>(street.value);
+    }
+    if (streetNumber.present) {
+      map['street_number'] = Variable<String>(streetNumber.value);
+    }
+    if (neighborhood.present) {
+      map['neighborhood'] = Variable<String>(neighborhood.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -504,6 +710,10 @@ class ClientsCompanion extends UpdateCompanion<Client> {
           ..write('phone: $phone, ')
           ..write('address: $address, ')
           ..write('notes: $notes, ')
+          ..write('document: $document, ')
+          ..write('street: $street, ')
+          ..write('streetNumber: $streetNumber, ')
+          ..write('neighborhood: $neighborhood, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4724,6 +4934,10 @@ typedef $$ClientsTableCreateCompanionBuilder = ClientsCompanion Function({
   Value<String?> phone,
   Value<String?> address,
   Value<String?> notes,
+  Value<String?> document,
+  Value<String?> street,
+  Value<String?> streetNumber,
+  Value<String?> neighborhood,
   Value<int> rowid,
 });
 typedef $$ClientsTableUpdateCompanionBuilder = ClientsCompanion Function({
@@ -4735,6 +4949,10 @@ typedef $$ClientsTableUpdateCompanionBuilder = ClientsCompanion Function({
   Value<String?> phone,
   Value<String?> address,
   Value<String?> notes,
+  Value<String?> document,
+  Value<String?> street,
+  Value<String?> streetNumber,
+  Value<String?> neighborhood,
   Value<int> rowid,
 });
 
@@ -4827,6 +5045,26 @@ class $$ClientsTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get document => $composableBuilder(
+    column: $table.document,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get street => $composableBuilder(
+    column: $table.street,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get streetNumber => $composableBuilder(
+    column: $table.streetNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get neighborhood => $composableBuilder(
+    column: $table.neighborhood,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4929,6 +5167,26 @@ class $$ClientsTableOrderingComposer
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get document => $composableBuilder(
+    column: $table.document,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get street => $composableBuilder(
+    column: $table.street,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get streetNumber => $composableBuilder(
+    column: $table.streetNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get neighborhood => $composableBuilder(
+    column: $table.neighborhood,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ClientsTableAnnotationComposer
@@ -4963,6 +5221,22 @@ class $$ClientsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get document =>
+      $composableBuilder(column: $table.document, builder: (column) => column);
+
+  GeneratedColumn<String> get street =>
+      $composableBuilder(column: $table.street, builder: (column) => column);
+
+  GeneratedColumn<String> get streetNumber => $composableBuilder(
+    column: $table.streetNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get neighborhood => $composableBuilder(
+    column: $table.neighborhood,
+    builder: (column) => column,
+  );
 
   Expression<T> projectsRefs<T extends Object>(
     Expression<T> Function($$ProjectsTableAnnotationComposer a) f,
@@ -5051,6 +5325,10 @@ class $$ClientsTableTableManager
                 Value<String?> phone = const Value.absent(),
                 Value<String?> address = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String?> document = const Value.absent(),
+                Value<String?> street = const Value.absent(),
+                Value<String?> streetNumber = const Value.absent(),
+                Value<String?> neighborhood = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ClientsCompanion(
                 id: id,
@@ -5061,6 +5339,10 @@ class $$ClientsTableTableManager
                 phone: phone,
                 address: address,
                 notes: notes,
+                document: document,
+                street: street,
+                streetNumber: streetNumber,
+                neighborhood: neighborhood,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -5073,6 +5355,10 @@ class $$ClientsTableTableManager
                 Value<String?> phone = const Value.absent(),
                 Value<String?> address = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String?> document = const Value.absent(),
+                Value<String?> street = const Value.absent(),
+                Value<String?> streetNumber = const Value.absent(),
+                Value<String?> neighborhood = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ClientsCompanion.insert(
                 id: id,
@@ -5083,6 +5369,10 @@ class $$ClientsTableTableManager
                 phone: phone,
                 address: address,
                 notes: notes,
+                document: document,
+                street: street,
+                streetNumber: streetNumber,
+                neighborhood: neighborhood,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

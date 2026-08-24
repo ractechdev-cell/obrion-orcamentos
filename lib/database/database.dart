@@ -40,13 +40,15 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   /// v1 → v2: adiciona `payments` (controle de pagamentos, ver CLAUDE.md,
   /// monetização). v2 → v3: adiciona `budgets.jobDescription` (descrição
-  /// da obra no PDF, ver `budgets_table.dart`). Instalações já existentes
-  /// precisam dessas migrações pra não perder dado nenhum; um `onCreate`
-  /// sozinho só resolveria instalações novas do zero.
+  /// da obra no PDF, ver `budgets_table.dart`). v3 → v4: adiciona
+  /// `clients.document`/`street`/`streetNumber`/`neighborhood` (formulário
+  /// de cliente mais estruturado, ver `clients_table.dart`). Instalações
+  /// já existentes precisam dessas migrações pra não perder dado nenhum;
+  /// um `onCreate` sozinho só resolveria instalações novas do zero.
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) => m.createAll(),
@@ -56,6 +58,12 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 3) {
             await m.addColumn(budgets, budgets.jobDescription);
+          }
+          if (from < 4) {
+            await m.addColumn(clients, clients.document);
+            await m.addColumn(clients, clients.street);
+            await m.addColumn(clients, clients.streetNumber);
+            await m.addColumn(clients, clients.neighborhood);
           }
         },
       );

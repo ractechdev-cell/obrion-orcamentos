@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../analytics/analytics_service.dart';
-import '../budget/budget_calculations.dart';
 import '../database/database.dart';
 import '../measurement/measurement_math.dart';
 import '../review/review_service.dart';
@@ -116,12 +115,16 @@ class BudgetFormScreen extends ConsumerStatefulWidget {
 }
 
 class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
-  /// Acima disso, confirma antes de adicionar o item — ver
-  /// docs/ANALISE_CONCORRENCIA_E_ESCOPO.md, Parte 5, item 17: evidência
-  /// real de um item de 619 m² aceito num concorrente sem nenhum aviso.
-  /// Sem histórico de preços suficiente pra uma baseline estatística por
-  /// serviço, um teto fixo é a versão simples e generalizável do "confere?".
-  static const _highValueThresholdCents = 1000000; // R$ 10.000,00
+  /// Botões pequenos dentro do painel de totais (Desconto, Registrar
+  /// pagamento, Emitir recibo) — visivelmente clicáveis (preenchidos/com
+  /// borda, não texto solto), mas compactos pra caber lado a lado com o
+  /// valor. Ver feedback de teste manual: os `TextButton` de antes
+  /// pareciam "invisíveis".
+  static const _compactButtonStyle = ButtonStyle(
+    visualDensity: VisualDensity.compact,
+    padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 12)),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+  );
 
   String? _budgetId;
 
@@ -204,20 +207,6 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     } else if (selected is Service) {
       await _showAddItemSheet(context, selected);
     }
-  }
-
-  /// `true` se pode adicionar direto; se o total passar do teto, pede
-  /// confirmação antes — ver `_highValueThresholdCents`.
-  Future<bool> _confirmIfHighValue(BuildContext context, {required double quantity, required int unitPriceCents}) async {
-    final totalCents = BudgetItemCalculation.itemTotalCents(quantity: quantity, unitPriceCents: unitPriceCents);
-    if (totalCents <= _highValueThresholdCents) return true;
-    final confirmed = await AppDialog.confirm(
-      context,
-      title: 'Confere?',
-      message: 'Esse item soma ${formatCurrencyBrl(totalCents)}. Confere a quantidade e o preço antes de adicionar?',
-      confirmLabel: 'Confere, adicionar',
-    );
-    return confirmed == true;
   }
 
   /// Ponte medição → item de orçamento: pede pro usuário escolher (se
@@ -331,26 +320,25 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
             children: [
               Text(service.name, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: AppNumberInput(
-                      label: 'Quantidade (${serviceUnitLabel(service.unit)})',
-                      controller: quantityController,
-                    ),
-                  ),
-                  if (_measurementOptionsForUnit(service.unit).isNotEmpty)
-                    IconButton(
-                      tooltip: 'Usar medição',
-                      icon: const Icon(Icons.straighten_outlined),
-                      onPressed: () async {
-                        final value = await _pickMeasurementQuantity(context, service.unit);
-                        if (value != null) quantityController.text = value.toStringAsFixed(2);
-                      },
-                    ),
-                ],
+              AppNumberInput(
+                label: 'Quantidade (${serviceUnitLabel(service.unit)})',
+                controller: quantityController,
               ),
+              if (_measurementOptionsForUnit(service.unit).isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton.icon(
+                    style: _compactButtonStyle,
+                    icon: const Icon(Icons.straighten_outlined, size: 18),
+                    label: const Text('Usar medição'),
+                    onPressed: () async {
+                      final value = await _pickMeasurementQuantity(context, service.unit);
+                      if (value != null) quantityController.text = value.toStringAsFixed(2);
+                    },
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               AppCurrencyInput(
                 label: 'Preço unitário (R\$)',
@@ -370,8 +358,6 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     );
                     return;
                   }
-                  final ok = await _confirmIfHighValue(context, quantity: quantity, unitPriceCents: priceCents!);
-                  if (!ok) return;
                   final repo = ref.read(budgetsRepositoryProvider);
                   await repo.addItem(
                     _budgetId!,
@@ -434,26 +420,25 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: AppNumberInput(
-                      label: 'Quantidade (${serviceUnitLabel(unit)})',
-                      controller: quantityController,
-                    ),
-                  ),
-                  if (_measurementOptionsForUnit(unit).isNotEmpty)
-                    IconButton(
-                      tooltip: 'Usar medição',
-                      icon: const Icon(Icons.straighten_outlined),
-                      onPressed: () async {
-                        final value = await _pickMeasurementQuantity(context, unit);
-                        if (value != null) quantityController.text = value.toStringAsFixed(2);
-                      },
-                    ),
-                ],
+              AppNumberInput(
+                label: 'Quantidade (${serviceUnitLabel(unit)})',
+                controller: quantityController,
               ),
+              if (_measurementOptionsForUnit(unit).isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton.icon(
+                    style: _compactButtonStyle,
+                    icon: const Icon(Icons.straighten_outlined, size: 18),
+                    label: const Text('Usar medição'),
+                    onPressed: () async {
+                      final value = await _pickMeasurementQuantity(context, unit);
+                      if (value != null) quantityController.text = value.toStringAsFixed(2);
+                    },
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               AppCurrencyInput(
                 label: 'Preço unitário (R\$)',
@@ -473,8 +458,6 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     );
                     return;
                   }
-                  final ok = await _confirmIfHighValue(context, quantity: quantity, unitPriceCents: priceCents!);
-                  if (!ok) return;
                   final repo = ref.read(budgetsRepositoryProvider);
                   await repo.addItem(
                     _budgetId!,
@@ -936,12 +919,15 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                         Text(formatCents(totals.subtotalCents)),
                       ],
                     ),
+                    const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        TextButton(
+                        FilledButton.tonalIcon(
+                          style: _compactButtonStyle,
                           onPressed: () => _editDiscount(budget.discountCents, totals.subtotalCents),
-                          child: const Text('Desconto'),
+                          icon: const Icon(Icons.percent_outlined, size: 18),
+                          label: const Text('Desconto'),
                         ),
                         Text('- ${formatCents(totals.discountCents)}'),
                       ],
@@ -974,12 +960,15 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          TextButton(
+                          FilledButton.tonalIcon(
+                            style: _compactButtonStyle,
                             onPressed: () => _registerPayment(context),
-                            child: const Text('Registrar pagamento'),
+                            icon: const Icon(Icons.add_card_outlined, size: 18),
+                            label: const Text('Registrar pagamento'),
                           ),
                           Text(
                             'Pendente: ${formatCents(data.pendingCents)}',
@@ -987,15 +976,18 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                           ),
                         ],
                       ),
-                      if (data.totalPaidCents > 0)
+                      if (data.totalPaidCents > 0) ...[
+                        const SizedBox(height: 8),
                         Align(
                           alignment: Alignment.centerLeft,
-                          child: TextButton.icon(
+                          child: OutlinedButton.icon(
+                            style: _compactButtonStyle,
                             onPressed: () => _emitReceipt(context, data),
                             icon: const Icon(Icons.receipt_long_outlined, size: 18),
                             label: const Text('Emitir recibo'),
                           ),
                         ),
+                      ],
                     ],
                     const SizedBox(height: 16),
                     Row(

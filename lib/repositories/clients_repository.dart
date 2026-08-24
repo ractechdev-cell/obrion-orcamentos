@@ -39,6 +39,10 @@ class ClientsRepository {
     String? phone,
     String? address,
     String? notes,
+    String? document,
+    String? street,
+    String? streetNumber,
+    String? neighborhood,
   }) {
     final now = DateTime.now();
     return _db.into(_db.clients).insertReturning(
@@ -47,6 +51,10 @@ class ClientsRepository {
             phone: Value(phone),
             address: Value(address),
             notes: Value(notes),
+            document: Value(document),
+            street: Value(street),
+            streetNumber: Value(streetNumber),
+            neighborhood: Value(neighborhood),
             createdAt: Value(now),
             updatedAt: Value(now),
           ),
@@ -65,6 +73,10 @@ class ClientsRepository {
     Value<String?> phone = const Value.absent(),
     Value<String?> address = const Value.absent(),
     Value<String?> notes = const Value.absent(),
+    Value<String?> document = const Value.absent(),
+    Value<String?> street = const Value.absent(),
+    Value<String?> streetNumber = const Value.absent(),
+    Value<String?> neighborhood = const Value.absent(),
   }) async {
     final now = DateTime.now();
     final companion = ClientsCompanion(
@@ -72,6 +84,10 @@ class ClientsRepository {
       phone: phone,
       address: address,
       notes: notes,
+      document: document,
+      street: street,
+      streetNumber: streetNumber,
+      neighborhood: neighborhood,
       updatedAt: Value(now),
     );
     final count = await (_db.update(_db.clients)..where((c) => c.id.equals(id))).write(companion);

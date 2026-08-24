@@ -122,10 +122,10 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
       appBar: AppBar(
         title: const Text('Lista de Preços'),
         actions: [
-          IconButton(
+          TextButton.icon(
             onPressed: () => _bulkAdjustPrices(context),
-            icon: const Icon(Icons.percent_outlined),
-            tooltip: 'Reajustar preços',
+            icon: const Icon(Icons.percent_outlined, size: 20),
+            label: const Text('Reajustar'),
           ),
           TextButton.icon(
             onPressed: _populating ? null : () => _populateDefaults(context),

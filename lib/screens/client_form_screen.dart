@@ -27,8 +27,13 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
   final _notesController = TextEditingController();
+  final _documentController = TextEditingController();
+  final _streetController = TextEditingController();
+  final _streetNumberController = TextEditingController();
+  final _neighborhoodController = TextEditingController();
   bool _saving = false;
   bool _loading = true;
+  bool _detailsExpanded = false;
 
   bool get _isEditing => widget.clientId != null;
 
@@ -51,8 +56,24 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
       _phoneController.text = client.phone ?? '';
       _addressController.text = client.address ?? '';
       _notesController.text = client.notes ?? '';
+      _documentController.text = client.document ?? '';
+      _streetController.text = client.street ?? '';
+      _streetNumberController.text = client.streetNumber ?? '';
+      _neighborhoodController.text = client.neighborhood ?? '';
     }
-    setState(() => _loading = false);
+    setState(() {
+      _loading = false;
+      // Já vem aberto se estiver editando um cliente que já tem algum
+      // desses dados — senão a pessoa acha que perdeu o que preencheu.
+      _detailsExpanded = [
+        _addressController,
+        _notesController,
+        _documentController,
+        _streetController,
+        _streetNumberController,
+        _neighborhoodController,
+      ].any((c) => c.text.isNotEmpty);
+    });
   }
 
   @override
@@ -61,6 +82,10 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     _phoneController.dispose();
     _addressController.dispose();
     _notesController.dispose();
+    _documentController.dispose();
+    _streetController.dispose();
+    _streetNumberController.dispose();
+    _neighborhoodController.dispose();
     super.dispose();
   }
 
@@ -72,6 +97,12 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     final phone = _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim();
     final address = _addressController.text.trim().isEmpty ? null : _addressController.text.trim();
     final notes = _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
+    final document = _documentController.text.trim().isEmpty ? null : _documentController.text.trim();
+    final street = _streetController.text.trim().isEmpty ? null : _streetController.text.trim();
+    final streetNumber =
+        _streetNumberController.text.trim().isEmpty ? null : _streetNumberController.text.trim();
+    final neighborhood =
+        _neighborhoodController.text.trim().isEmpty ? null : _neighborhoodController.text.trim();
 
     if (_isEditing) {
       await repository.update(
@@ -80,13 +111,26 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         phone: Value(phone),
         address: Value(address),
         notes: Value(notes),
+        document: Value(document),
+        street: Value(street),
+        streetNumber: Value(streetNumber),
+        neighborhood: Value(neighborhood),
       );
       if (mounted) {
         AppSnackBar.show(context, 'Cliente atualizado.');
         Navigator.of(context).pop();
       }
     } else {
-      final client = await repository.create(name: name, phone: phone, address: address, notes: notes);
+      final client = await repository.create(
+        name: name,
+        phone: phone,
+        address: address,
+        notes: notes,
+        document: document,
+        street: street,
+        streetNumber: streetNumber,
+        neighborhood: neighborhood,
+      );
       // Continua direto pro histórico do cliente — criar o cliente sozinho
       // não completa a promessa da Home ("Comece um orçamento novo"); sem
       // isso a pessoa fica sem saber que dá pra criar orçamento por ali
@@ -131,36 +175,86 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                         ),
                   ),
                   const SizedBox(height: 8),
-                  Theme(
-                    // Some a linha divisória padrão do ExpansionTile — aqui
-                    // ele é só um jeito de esconder campo opcional, não uma
-                    // seção separada da tela.
-                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                    child: ExpansionTile(
-                      // Já vem aberto se estiver editando um cliente que já
-                      // tem esses dados — senão a pessoa acha que perdeu o
-                      // que preencheu antes.
-                      initiallyExpanded:
-                          _addressController.text.isNotEmpty || _notesController.text.isNotEmpty,
-                      tilePadding: EdgeInsets.zero,
-                      childrenPadding: const EdgeInsets.only(top: 16),
-                      title: const Text('Adicionar endereço e mais detalhes'),
-                      subtitle: const Text('Opcional'),
+                  // Cabeçalho colapsável controlado à mão (em vez de
+                  // `ExpansionTile`) — pra garantir que a seta de
+                  // expandir/recolher sempre apareça, sem depender do
+                  // ícone padrão do widget.
+                  InkWell(
+                    onTap: () => setState(() => _detailsExpanded = !_detailsExpanded),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Adicionar endereço e mais detalhes'),
+                                Text(
+                                  'Opcional',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          AnimatedRotation(
+                            turns: _detailsExpanded ? 0.5 : 0,
+                            duration: const Duration(milliseconds: 200),
+                            child: const Icon(Icons.keyboard_arrow_down),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_detailsExpanded) ...[
+                    const SizedBox(height: 16),
+                    AppTextField(
+                      controller: _documentController,
+                      label: 'CPF/CNPJ (opcional)',
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        AppTextField(
-                          controller: _addressController,
-                          label: 'Endereço da obra',
-                          maxLines: 2,
+                        Expanded(
+                          flex: 3,
+                          child: AppTextField(
+                            controller: _streetController,
+                            label: 'Rua',
+                          ),
                         ),
-                        const SizedBox(height: 16),
-                        AppTextField(
-                          controller: _notesController,
-                          label: 'Observações',
-                          maxLines: 3,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 1,
+                          child: AppTextField(
+                            controller: _streetNumberController,
+                            label: 'Número',
+                            keyboardType: TextInputType.number,
+                          ),
                         ),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    AppTextField(
+                      controller: _neighborhoodController,
+                      label: 'Bairro',
+                    ),
+                    const SizedBox(height: 16),
+                    AppTextField(
+                      controller: _addressController,
+                      label: 'Complemento / referência da obra',
+                      hint: 'Ponto de referência, apartamento, etc.',
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 16),
+                    AppTextField(
+                      controller: _notesController,
+                      label: 'Observações',
+                      maxLines: 3,
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   AppButton(
                     label: _isEditing ? 'Salvar alterações' : 'Salvar cliente',

@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:orcamentos/database/database.dart';
@@ -42,5 +43,25 @@ void main() {
     final resultsByPhone = await repository.search('77777');
     expect(resultsByPhone, hasLength(1));
     expect(resultsByPhone.first.name, 'Mariana Gesseiro');
+  });
+
+  test('create and update persist document and structured address fields', () async {
+    final client = await repository.create(
+      name: 'Roberto Alves',
+      document: '123.456.789-00',
+      street: 'Rua das Azaléias',
+      streetNumber: '142',
+      neighborhood: 'Jardim Paulista',
+    );
+
+    expect(client.document, '123.456.789-00');
+    expect(client.street, 'Rua das Azaléias');
+    expect(client.streetNumber, '142');
+    expect(client.neighborhood, 'Jardim Paulista');
+
+    await repository.update(id: client.id, streetNumber: const Value('142B'));
+    final updated = await repository.getById(client.id);
+    expect(updated!.streetNumber, '142B');
+    expect(updated.street, 'Rua das Azaléias');
   });
 }

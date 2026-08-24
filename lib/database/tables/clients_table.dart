@@ -10,6 +10,15 @@ class Clients extends Table with EntityMixin {
   TextColumn get phone => text().nullable()();
   TextColumn get address => text().nullable()();
   TextColumn get notes => text().nullable()();
+  /// CPF/CNPJ — opcional, usado em recibo/contrato informal. Campos de
+  /// endereço estruturado (complementam `address`, que continua livre
+  /// pra quem não precisa detalhar) — ver feedback de teste manual: pedido
+  /// pra ficar mais parecido com o formulário do concorrente (Documento,
+  /// Rua, Número, Bairro).
+  TextColumn get document => text().nullable()();
+  TextColumn get street => text().nullable()();
+  TextColumn get streetNumber => text().nullable()();
+  TextColumn get neighborhood => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
