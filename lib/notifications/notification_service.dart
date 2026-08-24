@@ -96,7 +96,59 @@ class NotificationService {
     }
   }
 
+  /// Agenda o lembrete de validade — 1 dia antes de `validUntil` (`Budgets`
+  /// já guarda esse campo, nunca esteve ligado a uma notificação, ver
+  /// docs/POSICIONAMENTO_E_FEATURES_APP1.md, Parte 4, item 5). Não agenda
+  /// se a data já passou — mandar notificação de algo que já venceu não
+  /// ajuda em nada.
+  static Future<void> scheduleValidUntilReminder(String budgetId, DateTime validUntil) async {
+    if (!_initialized) return;
+    final targetInstant = validUntil.subtract(const Duration(days: 1));
+    if (targetInstant.isBefore(DateTime.now())) return;
+    try {
+      final scheduledDate = tz.TZDateTime.from(targetInstant, tz.UTC);
+      await _plugin.zonedSchedule(
+        id: _notificationId(budgetId, salt: 'valid_until'),
+        title: 'Orçamento perto de vencer',
+        body: 'Esse orçamento vence amanhã — vale a pena dar um retorno pro cliente antes disso.',
+        scheduledDate: scheduledDate,
+        notificationDetails: const NotificationDetails(
+          android: AndroidNotificationDetails(
+            _channelId,
+            _channelName,
+            channelDescription: _channelDescription,
+            importance: Importance.defaultImportance,
+            priority: Priority.defaultPriority,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      );
+    } catch (error, stack) {
+      if (kDebugMode) {
+        debugPrint('NotificationService.scheduleValidUntilReminder() falhou: $error\n$stack');
+      }
+    }
+  }
+
+  /// Cancela o lembrete de validade — chamado quando `validUntil` é
+  /// limpo/alterado (reagenda com a data nova) ou o orçamento é excluído.
+  static Future<void> cancelValidUntilReminder(String budgetId) async {
+    if (!_initialized) return;
+    try {
+      await _plugin.cancel(id: _notificationId(budgetId, salt: 'valid_until'));
+    } catch (error, stack) {
+      if (kDebugMode) {
+        debugPrint('NotificationService.cancelValidUntilReminder() falhou: $error\n$stack');
+      }
+    }
+  }
+
   /// IDs de notificação do Android são `int32` — reduz o hash da UUID do
-  /// orçamento a um inteiro positivo de 32 bits.
-  static int _notificationId(String budgetId) => budgetId.hashCode & 0x7FFFFFFF;
+  /// orçamento a um inteiro positivo de 32 bits. `salt` dá um id diferente
+  /// por tipo de lembrete do mesmo orçamento; vazio preserva exatamente a
+  /// fórmula original (`budgetId.hashCode`), pra não perder a referência
+  /// de lembretes de "aguardando resposta" já agendados em aparelhos com
+  /// versões anteriores do app instaladas.
+  static int _notificationId(String budgetId, {String salt = ''}) =>
+      (salt.isEmpty ? budgetId : '$budgetId::$salt').hashCode & 0x7FFFFFFF;
 }

@@ -219,6 +219,15 @@ class BudgetsRepository {
         updatedAt: Value(DateTime.now()),
       ),
     );
+    if (count > 0) {
+      // Reagenda do zero (cancela + agenda de novo se houver data) — cobre
+      // criar, mudar e limpar a validade com o mesmo caminho, sem precisar
+      // saber qual era o valor anterior.
+      await NotificationService.cancelValidUntilReminder(budgetId);
+      if (validUntil != null) {
+        await NotificationService.scheduleValidUntilReminder(budgetId, validUntil);
+      }
+    }
     return count > 0;
   }
 
@@ -250,7 +259,10 @@ class BudgetsRepository {
   Future<bool> softDelete(String id) async {
     final count = await (_db.update(_db.budgets)..where((b) => b.id.equals(id)))
         .write(BudgetsCompanion(deletedAt: Value(DateTime.now())));
-    if (count > 0) await NotificationService.cancelAwaitingResponseReminder(id);
+    if (count > 0) {
+      await NotificationService.cancelAwaitingResponseReminder(id);
+      await NotificationService.cancelValidUntilReminder(id);
+    }
     return count > 0;
   }
 
