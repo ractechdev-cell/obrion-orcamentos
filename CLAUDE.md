@@ -305,6 +305,12 @@ Focar no que erra silenciosamente e custa caro:
 - Teste manual de fluxo completo antes de cada release: criar cliente → medir → gerar orçamento → gerar PDF → compartilhar.
 - Ao alterar um módulo do Core, rodar regressão contra **todos** os apps que o consomem, não só o mais recente.
 
+### Usuário-alvo confirmado: prestador solo, não coordenador/empreiteiro (24/08/2026)
+
+`docs/ANALISE_CONCORRENCIA_E_ESCOPO.md` (teardown de 2 concorrentes) levantou a hipótese de pivotar o usuário-alvo pra coordenador/empreiteiro (perfil de uso do próprio fundador, que coordena pintor/pedreiro/caldeireiro/soldador), com home virando painel de obras/saldos/pendências em vez de criação rápida de orçamento. **Fundador decidiu manter o plano original: prestador solo** (ex. pintor), home continua orientada a criar orçamento rápido. Motivo prático: pivotar pra coordenador tensiona com "gestão de equipe fora do MVP" (ver "Fora de escopo" no fim deste arquivo) — um painel de obras/saldos de vários trabalhadores puxa naturalmente pra multi-usuário. Uso pessoal do fundador informa prioridade de features, não redefine o público.
+
+**Ainda em aberto, não decidido:** a recomendação do mesmo documento de colapsar os 5 apps da família (Materiais/Diário/Medições/Calculadora) em módulos de um único app, em vez de apps separados. `PLANO_DE_NEGOCIO_INICIAL.md` §11 e `APP_FACTORY_CORE.md` §13 (família de 5 apps) **não foram alterados** — a estratégia de família continua valendo até essa decisão ser tomada explicitamente.
+
 ### Segunda rodada da Fase 1.5 — tema único claro, sem dark mode (23/08/2026)
 
 Fundador reportou o tema escuro "confuso" — investigação confirmou causa técnica real, não só gosto: o Material 3 gera o esquema escuro 100% automaticamente a partir da seed âmbar (`ColorScheme.fromSeed`), sem nenhum ajuste manual de contraste (só os tokens `success`/`warning` eram tunados à mão, e só no claro). Seeds saturadas em laranja/âmbar tendem a gerar esquemas escuros "sujos" quando gerados automaticamente.
