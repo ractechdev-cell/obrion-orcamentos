@@ -49,7 +49,7 @@
 | 6 | Controle simples de pagamentos | ✅ Feito | `payments` + resumo Recebido/Pendente no orçamento. |
 | 7 | Recibo | ✅ Feito | `ReceiptPdfGenerator`. |
 | 8 | Modelos de orçamento | ⏸️ Pendente | Nada implementado — schema novo necessário (`templates`?). Marcado P1/PRO no roadmap. |
-| 9 | Melhorias no catálogo | 🔶 Parcial | Reajuste em massa feito; categoria/filtro por categoria (seção 5 do roadmap) não existe — `services` não tem campo de categoria. |
+| 9 | Melhorias no catálogo | ✅ Feito (24/08/2026) | Reajuste em massa (já feito antes) + categoria/filtro por categoria (seção 5 do roadmap): `services.category` (schema v5→v6, opcional, texto livre — mesma regra de "nunca sugerir preço" aplicada aqui, sem lista fixa inventada), chips de filtro na Lista de Preços (`lib/utils/service_filter.dart`, lógica pura testada). "Duplicar serviço" (também citado na seção 5) não entrou — não avaliado ainda se vale o esforço. |
 | 10 | Reajuste de preços | ✅ Feito | Ícone "Reajustar" na Lista de Preços, aceita percentual negativo. |
 | 11 | Notificações úteis | ✅ Feito | Lembrete "aguardando resposta" (3 dias) + lembrete de validade (1 dia antes). |
 
@@ -94,6 +94,6 @@ O roadmap pede uma varredura de contradições entre os `.md` sempre que uma mud
 2. ~~Auditoria visual (cor+espaçamento) + microcopy + estados vazios~~ ✅ feito 24/08/2026 — escopo restrito a espaçamento/cor (item 1) e às 4 telas com `AppEmptyState` (itens 8/9); navegação, componentes, tipografia e responsividade continuam pendentes.
 3. **Decidir o wizard** (Fase 1, item 6) — tensão real entre este roadmap (P0) e a decisão anterior de adiar; precisa de conversa com o fundador antes de começar, é a maior mudança estrutural pendente.
 4. **Importar contato** (Fase 1, item 15) — só quando houver disposição pra um release completo (não patch) — bom candidato a agrupar com outras mudanças nativas se/quando surgirem.
-5. **Categoria no catálogo** (Fase 2, item 9) — schema pequeno, complementa o reajuste em massa já feito.
+5. ~~Categoria no catálogo~~ ✅ feito 24/08/2026 — `services.category` + chips de filtro na Lista de Preços.
 6. **Revisão de navegação/componentes/tipografia/responsividade** (Fase 1, itens 11/12/13/21) — o que sobrou da "auditoria visual" original; nenhum achado concreto ainda, precisa de passe formal tela por tela.
 7. Varredura de consistência dos documentos (seção acima) — baixo risco de código, mas trabalhoso; fazer numa sessão dedicada só a isso.
