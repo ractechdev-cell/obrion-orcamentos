@@ -43,7 +43,7 @@
 |---|---|---|---|
 | 1 | Status de orçamento | ✅ Feito | `rascunho → enviado → aceito/recusado`, um toque. |
 | 2 | Área "Aguardando resposta" | ✅ Feito | Home (pendências) + chip na lista de orçamentos. |
-| 3 | Follow-up manual | ⏸️ Pendente | Botão "Enviar lembrete" com mensagem pré-pronta (seção 10 do roadmap) não existe — dá pra reaproveitar `PhoneActions.openWhatsApp` (já existe) só faltando montar o texto e o gatilho na tela/lista de pendências. |
+| 3 | Follow-up manual | ✅ Feito (24/08/2026) | Botão "Enviar lembrete" (WhatsApp com mensagem pré-pronta, `lib/utils/follow_up_message.dart`) na Home (pendências) e na aba Orçamentos, pra qualquer orçamento "Enviado" com telefone salvo. Nunca envia sozinho — só pré-preenche a conversa. |
 | 4 | Histórico do cliente | ✅ Feito | `client_detail_screen.dart`. |
 | 5 | Histórico de orçamentos | ✅ Feito | `BudgetsListScreen`. |
 | 6 | Controle simples de pagamentos | ✅ Feito | `payments` + resumo Recebido/Pendente no orçamento. |
@@ -90,7 +90,7 @@ O roadmap pede uma varredura de contradições entre os `.md` sempre que uma mud
 
 ## Próximos passos sugeridos (ordem de retorno/esforço)
 
-1. **Follow-up manual** (Fase 2, item 3) — barato, reaproveita `PhoneActions` já pronto, fecha o ciclo "aguardando resposta" que a Home agora torna visível.
+1. ~~Follow-up manual~~ ✅ feito 24/08/2026.
 2. **Auditoria visual + microcopy + estados vazios** (Fase 1, itens 1/8/9) — sem código novo, é revisão; maior retorno em percepção de "produto acabado" por hora investida.
 3. **Decidir o wizard** (Fase 1, item 6) — tensão real entre este roadmap (P0) e a decisão anterior de adiar; precisa de conversa com o fundador antes de começar, é a maior mudança estrutural pendente.
 4. **Importar contato** (Fase 1, item 15) — só quando houver disposição pra um release completo (não patch) — bom candidato a agrupar com outras mudanças nativas se/quando surgirem.

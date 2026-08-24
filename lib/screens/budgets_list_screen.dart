@@ -9,10 +9,13 @@ import '../repositories/budgets_repository.dart';
 import '../repositories/example_data_seeder.dart';
 import '../theme/app_semantic_colors.dart';
 import '../theme/app_spacing.dart';
+import '../utils/follow_up_message.dart';
+import '../utils/phone_actions.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
+import '../widgets/app_snackbar.dart';
 import 'budget_form_screen.dart';
 
 Color _statusColor(BuildContext context, BudgetStatus status) {
@@ -85,6 +88,20 @@ class BudgetsListScreen extends ConsumerWidget {
     }
   }
 
+  /// Busca o telefone do cliente só na hora de mandar o lembrete (evita
+  /// carregar isso pra lista inteira via `BudgetWithClientName`, que hoje
+  /// não guarda telefone — ver `PhoneActions.openWhatsApp`).
+  Future<void> _sendFollowUp(BuildContext context, WidgetRef ref, String clientId, String clientName) async {
+    final client = await ref.read(clientsRepositoryProvider).getById(clientId);
+    final phone = client?.phone;
+    if (!context.mounted) return;
+    if (phone == null || phone.isEmpty) {
+      AppSnackBar.show(context, 'Esse cliente não tem telefone salvo.', variant: AppSnackBarVariant.warning);
+      return;
+    }
+    await PhoneActions.openWhatsApp(context, phone, message: followUpMessage(clientName));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final repo = ref.watch(budgetsRepositoryProvider);
@@ -141,52 +158,70 @@ class BudgetsListScreen extends ConsumerWidget {
                     builder: (_) => BudgetFormScreen(clientId: budget.clientId, budgetId: budget.id),
                   ),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '$number',
-                        style: TextStyle(color: color, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(entry.clientName, style: Theme.of(context).textTheme.titleMedium),
-                          Text(
-                            '${budget.createdAt.day}/${budget.createdAt.month}/${budget.createdAt.year}',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                ),
+                    Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
                           ),
-                        ],
-                      ),
+                          child: Text(
+                            '$number',
+                            style: TextStyle(color: color, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(entry.clientName, style: Theme.of(context).textTheme.titleMedium),
+                              Text(
+                                '${budget.createdAt.day}/${budget.createdAt.month}/${budget.createdAt.year}',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            switch (budget.status) {
+                              BudgetStatus.draft => 'Rascunho',
+                              BudgetStatus.sent => 'Enviado',
+                              BudgetStatus.accepted => 'Aceito',
+                              BudgetStatus.declined => 'Recusado',
+                            },
+                            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
+                        ),
+                      ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(999),
+                    if (budget.status == BudgetStatus.sent) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          style: const ButtonStyle(visualDensity: VisualDensity.compact),
+                          onPressed: () =>
+                              _sendFollowUp(context, ref, budget.clientId, entry.clientName),
+                          icon: const Icon(Icons.chat_outlined, size: 16),
+                          label: const Text('Enviar lembrete'),
+                        ),
                       ),
-                      child: Text(
-                        switch (budget.status) {
-                          BudgetStatus.draft => 'Rascunho',
-                          BudgetStatus.sent => 'Enviado',
-                          BudgetStatus.accepted => 'Aceito',
-                          BudgetStatus.declined => 'Recusado',
-                        },
-                        style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
-                      ),
-                    ),
+                    ],
                   ],
                 ),
               );

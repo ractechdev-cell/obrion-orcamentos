@@ -3530,7 +3530,7 @@ O produto deve parecer simples na superfície e poderoso quando necessário.
 |---|---|---|---|
 | 1 | Status de orçamento | ✅ Feito | `rascunho → enviado → aceito/recusado`, um toque. |
 | 2 | Área "Aguardando resposta" | ✅ Feito | Home (pendências) + chip na lista de orçamentos. |
-| 3 | Follow-up manual | ⏸️ Pendente | Botão "Enviar lembrete" com mensagem pré-pronta (seção 10 do roadmap) não existe — dá pra reaproveitar `PhoneActions.openWhatsApp` (já existe) só faltando montar o texto e o gatilho na tela/lista de pendências. |
+| 3 | Follow-up manual | ✅ Feito (24/08/2026) | Botão "Enviar lembrete" (WhatsApp com mensagem pré-pronta, `lib/utils/follow_up_message.dart`) na Home (pendências) e na aba Orçamentos, pra qualquer orçamento "Enviado" com telefone salvo. Nunca envia sozinho — só pré-preenche a conversa. |
 | 4 | Histórico do cliente | ✅ Feito | `client_detail_screen.dart`. |
 | 5 | Histórico de orçamentos | ✅ Feito | `BudgetsListScreen`. |
 | 6 | Controle simples de pagamentos | ✅ Feito | `payments` + resumo Recebido/Pendente no orçamento. |
@@ -3577,7 +3577,7 @@ O roadmap pede uma varredura de contradições entre os `.md` sempre que uma mud
 
 ## Próximos passos sugeridos (ordem de retorno/esforço)
 
-1. **Follow-up manual** (Fase 2, item 3) — barato, reaproveita `PhoneActions` já pronto, fecha o ciclo "aguardando resposta" que a Home agora torna visível.
+1. ~~Follow-up manual~~ ✅ feito 24/08/2026.
 2. **Auditoria visual + microcopy + estados vazios** (Fase 1, itens 1/8/9) — sem código novo, é revisão; maior retorno em percepção de "produto acabado" por hora investida.
 3. **Decidir o wizard** (Fase 1, item 6) — tensão real entre este roadmap (P0) e a decisão anterior de adiar; precisa de conversa com o fundador antes de começar, é a maior mudança estrutural pendente.
 4. **Importar contato** (Fase 1, item 15) — só quando houver disposição pra um release completo (não patch) — bom candidato a agrupar com outras mudanças nativas se/quando surgirem.
@@ -3596,6 +3596,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 ## [Unreleased]
 
 ### Added
+- **Follow-up manual**: botão "Enviar lembrete" (WhatsApp com mensagem pré-pronta, `lib/utils/follow_up_message.dart`) em qualquer orçamento "Enviado" com telefone salvo — na Home (pendências) e na aba Orçamentos. Nunca envia sozinho, só pré-preenche a conversa (`PhoneActions.openWhatsApp` ganhou parâmetro `message`).
 - **`docs/ROADMAP_UX_UI_E_FEATURES_APP1.md`** (trazido pelo fundador, 24/08/2026) — novo roadmap de UX/UI/features, ponto de partida pra elevar o app a nível profissional antes da ★ Validação. **`docs/PROGRESSO_ROADMAP_UX_UI.md`** é o checklist vivo dele, cruzado contra o código real — ver esse arquivo pra status detalhado por item.
 - **Home virou painel** (`HomeScreen`, `BudgetsRepository.loadHomeSummary`): resumo financeiro (em orçamentos / aguardando resposta / aprovados / recebidos) + lista de pendências (orçamentos "Enviado", tocável, leva direto pro orçamento). Grade de atalhos do concorrente não entrou — decisão já registrada de que é redundante com a barra inferior.
 - **Duplicar orçamento voltou a funcionar** — `BudgetsRepository.duplicate()` já existia e era testado, mas ficou órfão (nenhuma tela chamava) desde que `budgets_screen.dart` foi removido na unificação do histórico do cliente. Menu ⋮ no orçamento agora tem "Duplicar orçamento".

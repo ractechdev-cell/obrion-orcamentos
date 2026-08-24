@@ -5,6 +5,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 ## [Unreleased]
 
 ### Added
+- **Follow-up manual**: botão "Enviar lembrete" (WhatsApp com mensagem pré-pronta, `lib/utils/follow_up_message.dart`) em qualquer orçamento "Enviado" com telefone salvo — na Home (pendências) e na aba Orçamentos. Nunca envia sozinho, só pré-preenche a conversa (`PhoneActions.openWhatsApp` ganhou parâmetro `message`).
 - **`docs/ROADMAP_UX_UI_E_FEATURES_APP1.md`** (trazido pelo fundador, 24/08/2026) — novo roadmap de UX/UI/features, ponto de partida pra elevar o app a nível profissional antes da ★ Validação. **`docs/PROGRESSO_ROADMAP_UX_UI.md`** é o checklist vivo dele, cruzado contra o código real — ver esse arquivo pra status detalhado por item.
 - **Home virou painel** (`HomeScreen`, `BudgetsRepository.loadHomeSummary`): resumo financeiro (em orçamentos / aguardando resposta / aprovados / recebidos) + lista de pendências (orçamentos "Enviado", tocável, leva direto pro orçamento). Grade de atalhos do concorrente não entrou — decisão já registrada de que é redundante com a barra inferior.
 - **Duplicar orçamento voltou a funcionar** — `BudgetsRepository.duplicate()` já existia e era testado, mas ficou órfão (nenhuma tela chamava) desde que `budgets_screen.dart` foi removido na unificação do histórico do cliente. Menu ⋮ no orçamento agora tem "Duplicar orçamento".

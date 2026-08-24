@@ -221,7 +221,7 @@ void main() {
 
   group('resumo da Home', () {
     test('loadHomeSummary soma por status e ignora recusados', () async {
-      final client = await clientsRepo.create(name: 'Fernanda Azulejista');
+      final client = await clientsRepo.create(name: 'Fernanda Azulejista', phone: '11999998888');
 
       final sent = await budgetsRepo.create(clientId: client.id);
       await budgetsRepo.addItem(
@@ -269,6 +269,7 @@ void main() {
       expect(summary.totalOpenCents, 60000); // aguardando + aprovado, recusado fora
       expect(summary.pending, hasLength(1));
       expect(summary.pending.single.clientName, 'Fernanda Azulejista');
+      expect(summary.pending.single.clientPhone, '11999998888');
       expect(summary.pending.single.totalCents, 50000);
     });
   });

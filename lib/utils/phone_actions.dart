@@ -19,9 +19,15 @@ class PhoneActions {
     await _launch(context, uri);
   }
 
-  static Future<void> openWhatsApp(BuildContext context, String phone) async {
+  /// [message], quando informado, vai pré-preenchido na conversa (ex.:
+  /// follow-up de orçamento aguardando resposta — ver
+  /// docs/ROADMAP_UX_UI_E_FEATURES_APP1.md, seção 10). Nunca enviado
+  /// automaticamente: só pré-preenche, quem manda é o usuário.
+  static Future<void> openWhatsApp(BuildContext context, String phone, {String? message}) async {
     final digits = _normalizeToBrazilianDigits(phone);
-    final uri = Uri.parse('https://wa.me/$digits');
+    final uri = Uri.parse('https://wa.me/$digits').replace(
+      queryParameters: (message == null || message.isEmpty) ? null : {'text': message},
+    );
     await _launch(context, uri);
   }
 

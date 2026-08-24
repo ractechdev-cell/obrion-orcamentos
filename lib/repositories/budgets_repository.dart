@@ -72,6 +72,7 @@ class PendingBudgetSummary {
     required this.budgetId,
     required this.clientId,
     required this.clientName,
+    required this.clientPhone,
     required this.totalCents,
     required this.daysWaiting,
   });
@@ -79,6 +80,10 @@ class PendingBudgetSummary {
   final String budgetId;
   final String clientId;
   final String clientName;
+
+  /// `null` quando o cliente não tem telefone salvo — nesse caso o botão
+  /// de lembrete não aparece (não dá pra mandar WhatsApp sem número).
+  final String? clientPhone;
   final int totalCents;
   final int daysWaiting;
 }
@@ -172,6 +177,7 @@ class BudgetsRepository {
       itemsByBudget.putIfAbsent(item.budgetId, () => []).add(item);
     }
     final clientNameById = {for (final c in clients) c.id: c.name};
+    final clientPhoneById = {for (final c in clients) c.id: c.phone};
 
     var totalOpen = 0;
     var totalAwaiting = 0;
@@ -195,6 +201,7 @@ class BudgetsRepository {
           budgetId: budget.id,
           clientId: budget.clientId,
           clientName: clientNameById[budget.clientId] ?? 'Cliente removido',
+          clientPhone: clientPhoneById[budget.clientId],
           totalCents: total,
           // `updatedAt` como proxy de "desde quando está enviado" — mesma
           // convenção já usada em `countAwaitingResponse`.

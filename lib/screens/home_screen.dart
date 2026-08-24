@@ -6,6 +6,8 @@ import '../repositories/budgets_repository.dart';
 import '../theme/app_semantic_colors.dart';
 import '../theme/app_spacing.dart';
 import '../utils/currency_format.dart';
+import '../utils/follow_up_message.dart';
+import '../utils/phone_actions.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_card.dart';
 import 'budget_form_screen.dart';
@@ -164,30 +166,51 @@ class _PendingBudgetTile extends StatelessWidget {
           builder: (_) => BudgetFormScreen(clientId: item.clientId, budgetId: item.budgetId),
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.clientName, style: Theme.of(context).textTheme.titleSmall),
-                Text(
-                  item.daysWaiting <= 0
-                      ? 'Aguardando resposta'
-                      : 'Aguardando há ${item.daysWaiting}d',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: item.daysWaiting >= 3
-                            ? context.semanticColors.warning
-                            : Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(item.clientName, style: Theme.of(context).textTheme.titleSmall),
+                    Text(
+                      item.daysWaiting <= 0
+                          ? 'Aguardando resposta'
+                          : 'Aguardando há ${item.daysWaiting}d',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: item.daysWaiting >= 3
+                                ? context.semanticColors.warning
+                                : Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
+              Text(
+                formatCurrencyBrl(item.totalCents),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          if (item.clientPhone != null && item.clientPhone!.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                style: const ButtonStyle(visualDensity: VisualDensity.compact),
+                onPressed: () => PhoneActions.openWhatsApp(
+                  context,
+                  item.clientPhone!,
+                  message: followUpMessage(item.clientName),
+                ),
+                icon: const Icon(Icons.chat_outlined, size: 16),
+                label: const Text('Enviar lembrete'),
+              ),
             ),
-          ),
-          Text(
-            formatCurrencyBrl(item.totalCents),
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-          ),
+          ],
         ],
       ),
     );
