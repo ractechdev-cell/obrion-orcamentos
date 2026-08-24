@@ -5,6 +5,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 ## [Unreleased]
 
 ### Fixed
+- **4 básicos que a análise de concorrência deixou passar**: Ligar/WhatsApp direto da ficha do cliente (fecha uma promessa que a microcopy já fazia sem nunca ter sido construída); CPF/CNPJ do cliente ligado ao PDF e ao recibo (dado já capturado desde a rodada anterior, nunca usado em lugar nenhum); e-mail do cliente (`clients.email`, schema v4→v5); "Válido até" visível direto na tela do orçamento, não só dentro do sheet de Detalhes.
 - **App travava (bloco cinza) ao escolher "Válido até" no orçamento** — `AppDatePicker` formata com `DateFormat(..., 'pt_BR')`, mas o app nunca chamava `initializeDateFormatting('pt_BR')` (só os testes chamavam, isolado — nunca propagou pro `main.dart` de verdade). Achado em teste manual real no aparelho. Corrigido: `main.dart` inicializa o locale no boot, e o app ganhou `flutter_localizations` + `locale: pt_BR` configurado (também corrige o calendário nativo aparecendo em inglês). Teste de regressão novo em `test/widgets/app_date_picker_test.dart`.
 - **Botões pouco visíveis** (Desconto, Registrar pagamento, Emitir recibo no orçamento; reajuste de preços na Lista de Preços; "Usar medição" ao adicionar item) — trocados de `TextButton`/ícone solto pra botões com contorno/preenchimento visivelmente clicáveis, achado em teste manual.
 - Removida a confirmação obrigatória ao adicionar item acima de R$ 10.000 — atrapalhava mais do que ajudava, removido a pedido do fundador.

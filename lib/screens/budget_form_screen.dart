@@ -990,6 +990,20 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                       ],
                     ],
                     const SizedBox(height: 16),
+                    if (budget.validUntil != null) ...[
+                      Text(
+                        // Ver CLAUDE.md, "Retenção precisa de mecanismo":
+                        // antes só dava pra ver isso abrindo "Detalhes";
+                        // fica visível direto na tela, como no concorrente.
+                        'Válido até ${budget.validUntil!.day.toString().padLeft(2, '0')}/'
+                        '${budget.validUntil!.month.toString().padLeft(2, '0')}/'
+                        '${budget.validUntil!.year}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                     Row(
                       children: [
                         Expanded(
