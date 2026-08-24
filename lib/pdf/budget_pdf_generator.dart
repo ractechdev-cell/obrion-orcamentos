@@ -63,6 +63,8 @@ class BudgetPdfGenerator {
             pw.SizedBox(height: 4),
             pw.Text(content.notes!),
           ],
+          pw.SizedBox(height: 40),
+          _buildSignatures(content),
         ],
       ),
     );
@@ -183,6 +185,38 @@ class BudgetPdfGenerator {
         textAlign: align,
         style: pw.TextStyle(fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal),
       ),
+    );
+  }
+
+  /// Duas linhas de assinatura (profissional + contratante), sem CPF/CNPJ
+  /// — Obrion não guarda esse dado hoje, fica pra outra frente. Transforma
+  /// o orçamento num mini-contrato (ver
+  /// docs/ANALISE_CONCORRENCIA_E_ESCOPO.md, Parte 5, item 9). **Não
+  /// confundir** com assinatura digital ICP-Brasil: é só uma linha em
+  /// branco pra assinar à mão, sem validade jurídica de assinatura
+  /// eletrônica qualificada.
+  static pw.Widget _buildSignatures(BudgetPdfContent content) {
+    return pw.Row(
+      children: [
+        pw.Expanded(child: _buildSignatureLine(content.professionalName)),
+        pw.SizedBox(width: 32),
+        pw.Expanded(child: _buildSignatureLine(content.clientName, label: 'Contratante')),
+      ],
+    );
+  }
+
+  static pw.Widget _buildSignatureLine(String name, {String? label}) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Container(height: 1, color: PdfColors.grey600),
+        pw.SizedBox(height: 4),
+        pw.Text(name, style: const pw.TextStyle(fontSize: 10)),
+        if (label != null)
+          pw.Text(label, style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
+        pw.SizedBox(height: 8),
+        pw.Text('Data: ___/___/___', style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
+      ],
     );
   }
 
