@@ -58,7 +58,6 @@ SemVer (`MAJOR.MINOR.PATCH`) em `pubspec.yaml`, com tags Git `vX.Y.Z`. Enquanto 
 
 [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, `ci:`.
 
-
 ---
 
 # 2. CLAUDE.md
@@ -436,7 +435,6 @@ Aplique esse raciocínio internamente mesmo quando o usuário pedir algo em ling
 
 Gestão de equipe, cronograma, estoque, fornecedores, financeiro completo, emissão fiscal, marketplace, IA complexa, chat, integração bancária, mapa, assinatura digital avançada, ERP, versão desktop.
 
-
 ---
 
 # 3. docs/PLANO_DE_NEGOCIO_INICIAL.md
@@ -723,7 +721,6 @@ Se esses sinais aparecerem, avança-se para o Obrion Materiais reaproveitando o 
 - `ANALISE_E_MELHORIAS.md` — análise crítica deste plano: riscos, lacunas e correções que originaram a revisão de 21/08/2026.
 - `APP_FACTORY_RULES.md` — regras técnicas, padrões e stack.
 - `APP_FACTORY_CORE.md` — catálogo de módulos reutilizáveis do Core.
-
 
 ---
 
@@ -1048,7 +1045,6 @@ Ao pedir para a IA construir um novo módulo ou app, o prompt de referência é:
 
 A IA **não** deve reinventar autenticação, tema, componentes de UI, monetização ou analytics — apenas consumir o que já existe no Core e implementar a lógica específica do novo módulo.
 
-
 ---
 
 # 5. docs/APP_FACTORY_CORE.md
@@ -1298,7 +1294,6 @@ Regras:
 - Dentro de cada app, um card discreto de cross-promotion (ex.: "Você também controla materiais? Conheça o Obrion Materiais") aparece em momentos de baixa fricção (ex.: tela de sucesso após gerar um PDF) — nunca interrompendo uma tarefa em andamento.
 - Login único: uma conta Obrion (via módulo Authentication do Core) dá acesso a todos os apps da família instalados, reduzindo fricção ao migrar de um app para o outro.
 - Antes de registrar definitivamente a marca (INPI, domínio, CNPJ), fazer a busca formal de anterioridade — a checagem informal já feita indicou o nome como o mais livre entre os candidatos testados, mas não substitui a confirmação oficial.
-
 
 ---
 
@@ -1687,7 +1682,6 @@ Todas as três já foram propagadas para `../CLAUDE.md`, `APP_FACTORY_RULES.md` 
 - `APP_FACTORY_CORE.md` — catálogo de módulos do Core
 - `PLANO_DE_NEGOCIO_INICIAL.md` — contexto de negócio
 
-
 ---
 
 # 7. docs/POSICIONAMENTO_E_FEATURES_APP1.md
@@ -1927,7 +1921,6 @@ Isso **não** é um argumento para abandonar a estratégia de família: ela tem 
 - `APP_FACTORY_CORE.md` — catálogo de módulos do Core
 - `../CLAUDE.md` — guia operacional e decisões 1–6
 
-
 ---
 
 # 8. docs/ANALISE_CONCORRENCIA_E_ESCOPO.md
@@ -2159,7 +2152,6 @@ O plano de negócio mira o primeiro; o fundador é o segundo. Não é contradiç
 - `PLANO_DE_NEGOCIO_INICIAL.md` — §11 (portfólio) já descreve a família de cinco; **não precisa de revisão**
 - `APP_FACTORY_CORE.md` — §13 (identidade da família) idem, **não precisa de revisão**
 - `ANALISE_E_MELHORIAS.md` — decisões R1–R3, que seguem válidas
-
 
 ---
 
@@ -3480,7 +3472,6 @@ O produto deve parecer simples na superfície e poderoso quando necessário.
 
 **Primeiro tornar o fluxo principal excelente. Depois adicionar inteligência.**
 
-
 ---
 
 # 10. docs/PROGRESSO_ROADMAP_UX_UI.md
@@ -3498,15 +3489,15 @@ O produto deve parecer simples na superfície e poderoso quando necessário.
 
 | # | Item | Status | Nota |
 |---|---|---|---|
-| 1 | Auditoria visual de todas as telas | ⏸️ Pendente | Nunca foi feita como passe formal — o polimento até agora foi pontual (bug a bug, tela a tela conforme pedido). |
+| 1 | Auditoria visual de todas as telas | 🔶 Parcial (24/08/2026) | Passe restrito a **cor + espaçamento**: confirmado por grep que não há `Colors.*` (Material) hardcoded em nenhuma tela — só `PdfColors.*` legítimo nos geradores de PDF; e as 75 ocorrências de `SizedBox`/`EdgeInsets` com número solto em `budget_form_screen.dart`/`services_screen.dart`/`client_form_screen.dart`/`clients_screen.dart` trocadas por tokens `AppSpacing.*`. **Não** cobre navegação, componentes, tipografia nem responsividade (itens 11/12/13/21 continuam pendentes à parte). |
 | 2 | Home como painel | ✅ Feito (24/08/2026) | `lib/screens/home_screen.dart` + `BudgetsRepository.loadHomeSummary()` — resumo (em orçamentos / aguardando / aprovados / recebidos) + lista de pendências (orçamentos "Enviado", tocável, leva direto pro orçamento). Grade de atalhos (Clientes/Catálogo/Recibos/Listas) **não** entrou — já é redundante com a barra inferior, decisão registrada no `CHANGELOG.md`. |
 | 3 | Dados de exemplo | ✅ Feito | `lib/repositories/example_data_seeder.dart` — cliente + orçamento `[exemplo]`, ação "Ver um exemplo" nos estados vazios de Clientes/Orçamentos. |
 | 4 | Perfil por profissão | ✅ Feito | Onboarding pergunta "O que você faz?" (múltipla escolha), editável em Ajustes → "Seus ofícios". `Trade` enum em `database/enums.dart`. |
 | 5 | Serviços filtrados por profissão | ✅ Feito | `ServicesRepository.populateDefaultServices(trades:)` — "Sugestões" na Lista de Preços filtra pelo ofício do perfil. |
 | 6 | Wizard de orçamento | ⏸️ Pendente — decisão deliberada | Avaliado e adiado de propósito (ver plano de lote de 24/08/2026): `budget_form_screen.dart` hoje tem ~1040 linhas, uma tela só, sem sub-widgets. Extrair com segurança é trabalho isolado, maior risco de regressão — não bundlar com outras mudanças. **Tensão a resolver:** este roadmap marca como P0 obrigatório; decisão anterior tratou como "fora deste lote". Quem continuar precisa decidir explicitamente se entra agora. |
 | 7 | Campos opcionais recolhidos | ✅ Feito | Formulário de cliente: cabeçalho colapsável (seta garantida, controlado à mão) escondendo CPF/CNPJ, Rua, Número, Bairro, Complemento, Observações. |
-| 8 | Microcopy | 🔶 Parcial | Alguns pontos ajustados (telefone → "Com telefone, dá pra chamar o cliente no WhatsApp direto da ficha"). Não houve revisão completa tela por tela contra a seção 16 do roadmap. |
-| 9 | Estados vazios | 🔶 Parcial | `AppEmptyState` já segue o padrão (ícone + mensagem + ação); ação "Ver um exemplo" cobre Clientes/Orçamentos. Não conferido contra as 3 perguntas da seção 18 em **todas** as telas com estado vazio (ex.: Lista de Preços). |
+| 8 | Microcopy | 🔶 Parcial (24/08/2026) | Telefone → "Com telefone, dá pra chamar o cliente no WhatsApp direto da ficha"; + as 4 mensagens de estado vazio reescritas (ver item 9). Ainda não houve revisão completa tela por tela contra a seção 16 do roadmap (rótulos de botão, validações, diálogos de confirmação). |
+| 9 | Estados vazios | ✅ Feito (24/08/2026) | As 4 telas com `AppEmptyState` (`clients_screen.dart`, `services_screen.dart`, `client_detail_screen.dart`, `budgets_list_screen.dart`) reescritas contra as 3 perguntas da seção 18 ("o que é / por que vazio / o que fazer"). De quebra, corrigido um bug de microcopy em `services_screen.dart`: mostrava a mesma mensagem pra "sem serviço nenhum" e "busca sem resultado" — agora distingue, igual `clients_screen.dart` já fazia. |
 | 10 | Feedback de ações | ✅ Feito | `AppSnackBar` em toda ação relevante (salvar, excluir, duplicar, etc.), ícone muda por tipo. |
 | 11 | Revisão de navegação | ⏸️ Pendente | Sem passe formal. |
 | 12 | Revisão de componentes | ⏸️ Pendente | Sem passe formal — mas nenhum componente novo foi criado fora do padrão `App*` do Design System nesta rodada. |
@@ -3578,12 +3569,12 @@ O roadmap pede uma varredura de contradições entre os `.md` sempre que uma mud
 ## Próximos passos sugeridos (ordem de retorno/esforço)
 
 1. ~~Follow-up manual~~ ✅ feito 24/08/2026.
-2. **Auditoria visual + microcopy + estados vazios** (Fase 1, itens 1/8/9) — sem código novo, é revisão; maior retorno em percepção de "produto acabado" por hora investida.
+2. ~~Auditoria visual (cor+espaçamento) + microcopy + estados vazios~~ ✅ feito 24/08/2026 — escopo restrito a espaçamento/cor (item 1) e às 4 telas com `AppEmptyState` (itens 8/9); navegação, componentes, tipografia e responsividade continuam pendentes.
 3. **Decidir o wizard** (Fase 1, item 6) — tensão real entre este roadmap (P0) e a decisão anterior de adiar; precisa de conversa com o fundador antes de começar, é a maior mudança estrutural pendente.
 4. **Importar contato** (Fase 1, item 15) — só quando houver disposição pra um release completo (não patch) — bom candidato a agrupar com outras mudanças nativas se/quando surgirem.
 5. **Categoria no catálogo** (Fase 2, item 9) — schema pequeno, complementa o reajuste em massa já feito.
-6. Varredura de consistência dos documentos (seção acima) — baixo risco de código, mas trabalhoso; fazer numa sessão dedicada só a isso.
-
+6. **Revisão de navegação/componentes/tipografia/responsividade** (Fase 1, itens 11/12/13/21) — o que sobrou da "auditoria visual" original; nenhum achado concreto ainda, precisa de passe formal tela por tela.
+7. Varredura de consistência dos documentos (seção acima) — baixo risco de código, mas trabalhoso; fazer numa sessão dedicada só a isso.
 
 ---
 
@@ -3601,6 +3592,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 - **Home virou painel** (`HomeScreen`, `BudgetsRepository.loadHomeSummary`): resumo financeiro (em orçamentos / aguardando resposta / aprovados / recebidos) + lista de pendências (orçamentos "Enviado", tocável, leva direto pro orçamento). Grade de atalhos do concorrente não entrou — decisão já registrada de que é redundante com a barra inferior.
 - **Duplicar orçamento voltou a funcionar** — `BudgetsRepository.duplicate()` já existia e era testado, mas ficou órfão (nenhuma tela chamava) desde que `budgets_screen.dart` foi removido na unificação do histórico do cliente. Menu ⋮ no orçamento agora tem "Duplicar orçamento".
 - `DOCUMENTACAO_COMPLETA.md` — todos os `.md` do projeto concatenados num arquivo só, pra leitura/repasse fácil (não é fonte de verdade, os originais continuam sendo).
+- **Auditoria de espaçamento**: as 75 ocorrências de `SizedBox(height/width:)`/`EdgeInsets.all()` com número solto em `budget_form_screen.dart`, `services_screen.dart`, `client_form_screen.dart` e `clients_screen.dart` trocadas pelos tokens `AppSpacing.*` — sem mudança visual, fecha uma violação do princípio 6 do `CLAUDE.md` (cor/espaçamento sempre por token). Confirmado por grep que não há cor hardcoded (`Colors.*`) em nenhuma tela.
+- **Estados vazios reescritos** contra a seção 18 do roadmap (o que é / por que está vazio / o que fazer agora) nas 4 telas com `AppEmptyState` — Clientes, Lista de Preços, ficha do cliente e Orçamentos. De quebra, corrigido bug de microcopy em `services_screen.dart`: mostrava a mesma mensagem pra "sem serviço nenhum" e "busca sem resultado".
 
 ### Fixed
 - **4 básicos que a análise de concorrência deixou passar**: Ligar/WhatsApp direto da ficha do cliente (fecha uma promessa que a microcopy já fazia sem nunca ter sido construída); CPF/CNPJ do cliente ligado ao PDF e ao recibo (dado já capturado desde a rodada anterior, nunca usado em lugar nenhum); e-mail do cliente (`clients.email`, schema v4→v5); "Válido até" visível direto na tela do orçamento, não só dentro do sheet de Detalhes.
@@ -3705,3 +3698,6 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 - Duplicar orçamento (cria novo orçamento a partir de um existente, status `draft`) e excluir (soft delete via `deletedAt`) na listagem.
 - Home útil (`lib/screens/home_screen.dart`): atalhos para Clientes, Medições, Lista de Preços e Orçamentos, com contadores e último orçamento aberto.
 - Integração Firebase (Fase 0, item "CrashReporting"): `firebase_core`, `firebase_crashlytics`, `firebase_analytics`; inicialização no `main()` e interceptação de erros não tratados do Flutter (`FlutterError.onError` + `PlatformDispatcher.onError`) indo para o Crashlytics. Plugins Gradle `com.google.gms.google-services` e `com.google.firebase.crashlytics` aplicados; `google-services.json` do projeto Firebase `obrion-orcamentos` commitado. Sem `firebase_options.dart` ainda — só Android por ora (será necessário quando entrar iOS/web, via `flutterfire configure`).
+
+---
+
