@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/database.dart';
+import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
+import '../repositories/example_data_seeder.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
@@ -78,6 +80,13 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                     onAction: _query.isEmpty
                         ? () => Navigator.of(context).push(
                               MaterialPageRoute(builder: (_) => const ClientFormScreen()),
+                            )
+                        : null,
+                    secondaryActionLabel: _query.isEmpty ? 'Ver um exemplo' : null,
+                    onSecondaryAction: _query.isEmpty
+                        ? () => ExampleDataSeeder.seed(
+                              clientsRepo: ref.read(clientsRepositoryProvider),
+                              budgetsRepo: ref.read(budgetsRepositoryProvider),
                             )
                         : null,
                   );

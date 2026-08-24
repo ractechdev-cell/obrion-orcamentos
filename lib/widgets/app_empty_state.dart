@@ -14,12 +14,19 @@ class AppEmptyState extends StatelessWidget {
     this.icon = Icons.inbox_outlined,
     this.actionLabel,
     this.onAction,
+    this.secondaryActionLabel,
+    this.onSecondaryAction,
   });
 
   final String message;
   final IconData icon;
   final String? actionLabel;
   final VoidCallback? onAction;
+
+  /// Ação secundária opcional (ex.: "Ver um exemplo") — menos ênfase que
+  /// [actionLabel], por isso `TextButton` em vez de `AppButton`.
+  final String? secondaryActionLabel;
+  final VoidCallback? onSecondaryAction;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +56,10 @@ class AppEmptyState extends StatelessWidget {
         if (actionLabel != null && onAction != null) ...[
           const SizedBox(height: AppSpacing.lg),
           AppButton(label: actionLabel!, onPressed: onAction),
+        ],
+        if (secondaryActionLabel != null && onSecondaryAction != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          TextButton(onPressed: onSecondaryAction, child: Text(secondaryActionLabel!)),
         ],
       ],
     );

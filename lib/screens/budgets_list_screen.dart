@@ -6,6 +6,7 @@ import '../database/enums.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
 import '../repositories/budgets_repository.dart';
+import '../repositories/example_data_seeder.dart';
 import '../theme/app_semantic_colors.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/app_card.dart';
@@ -110,6 +111,11 @@ class BudgetsListScreen extends ConsumerWidget {
               message: 'Nenhum orçamento ainda.',
               actionLabel: 'Criar orçamento',
               onAction: () => _createBudget(context, ref),
+              secondaryActionLabel: 'Ver um exemplo',
+              onSecondaryAction: () => ExampleDataSeeder.seed(
+                clientsRepo: ref.read(clientsRepositoryProvider),
+                budgetsRepo: ref.read(budgetsRepositoryProvider),
+              ),
             );
           }
 
