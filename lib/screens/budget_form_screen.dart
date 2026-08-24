@@ -403,39 +403,67 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     }
   }
 
-  Future<void> _editDiscount(int currentDiscountCents) async {
+  Future<void> _editDiscount(int currentDiscountCents, int subtotalCents) async {
+    // Só `discountCents` é persistido (regra "dinheiro é int em centavos" —
+    // ver CLAUDE.md); percentual é só o modo de entrada, convertido pra
+    // centavos no momento de salvar, mesmo arredondamento meio-pra-cima já
+    // usado em `budget_calculations.dart`.
+    var isPercent = false;
     int? newDiscount = currentDiscountCents;
+    final percentController = TextEditingController();
+
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 24,
-          right: 24,
-          top: 24,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Desconto', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
-            AppCurrencyInput(
-              label: 'Valor do desconto (R\$)',
-              initialValueCents: currentDiscountCents == 0 ? null : currentDiscountCents,
-              onChangedCents: (cents) => newDiscount = cents,
-            ),
-            const SizedBox(height: 24),
-            AppButton(
-              label: 'Salvar',
-              onPressed: () async {
-                final repo = ref.read(budgetsRepositoryProvider);
-                await repo.updateDiscount(_budgetId!, newDiscount ?? 0);
-                if (context.mounted) Navigator.of(context).pop();
-              },
-            ),
-          ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 24,
+            right: 24,
+            top: 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Desconto', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              SegmentedButton<bool>(
+                segments: const [
+                  ButtonSegment(value: false, label: Text('Valor fixo')),
+                  ButtonSegment(value: true, label: Text('Percentual')),
+                ],
+                selected: {isPercent},
+                onSelectionChanged: (selection) => setSheetState(() => isPercent = selection.first),
+              ),
+              const SizedBox(height: 16),
+              if (isPercent)
+                AppNumberInput(
+                  label: 'Desconto (%)',
+                  controller: percentController,
+                )
+              else
+                AppCurrencyInput(
+                  label: 'Valor do desconto (R\$)',
+                  initialValueCents: currentDiscountCents == 0 ? null : currentDiscountCents,
+                  onChangedCents: (cents) => newDiscount = cents,
+                ),
+              const SizedBox(height: 24),
+              AppButton(
+                label: 'Salvar',
+                onPressed: () async {
+                  if (isPercent) {
+                    final percent = double.tryParse(percentController.text.replaceAll(',', '.'));
+                    newDiscount = percent == null ? 0 : (subtotalCents * percent / 100).round();
+                  }
+                  final repo = ref.read(budgetsRepositoryProvider);
+                  await repo.updateDiscount(_budgetId!, newDiscount ?? 0);
+                  if (context.mounted) Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -709,7 +737,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         TextButton(
-                          onPressed: () => _editDiscount(budget.discountCents),
+                          onPressed: () => _editDiscount(budget.discountCents, totals.subtotalCents),
                           child: const Text('Desconto'),
                         ),
                         Text('- ${formatCents(totals.discountCents)}'),
