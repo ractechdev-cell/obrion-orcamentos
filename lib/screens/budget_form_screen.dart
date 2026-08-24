@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../analytics/analytics_service.dart';
+import '../budget/budget_calculations.dart';
 import '../database/database.dart';
 import '../review/review_service.dart';
 import '../database/enums.dart';
@@ -53,6 +54,13 @@ class BudgetFormScreen extends ConsumerStatefulWidget {
 }
 
 class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
+  /// Acima disso, confirma antes de adicionar o item — ver
+  /// docs/ANALISE_CONCORRENCIA_E_ESCOPO.md, Parte 5, item 17: evidência
+  /// real de um item de 619 m² aceito num concorrente sem nenhum aviso.
+  /// Sem histórico de preços suficiente pra uma baseline estatística por
+  /// serviço, um teto fixo é a versão simples e generalizável do "confere?".
+  static const _highValueThresholdCents = 1000000; // R$ 10.000,00
+
   String? _budgetId;
 
   @override
@@ -136,6 +144,20 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     }
   }
 
+  /// `true` se pode adicionar direto; se o total passar do teto, pede
+  /// confirmação antes — ver `_highValueThresholdCents`.
+  Future<bool> _confirmIfHighValue(BuildContext context, {required double quantity, required int unitPriceCents}) async {
+    final totalCents = BudgetItemCalculation.itemTotalCents(quantity: quantity, unitPriceCents: unitPriceCents);
+    if (totalCents <= _highValueThresholdCents) return true;
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: 'Confere?',
+      message: 'Esse item soma ${formatCurrencyBrl(totalCents)}. Confere a quantidade e o preço antes de adicionar?',
+      confirmLabel: 'Confere, adicionar',
+    );
+    return confirmed == true;
+  }
+
   Future<void> _showAddItemSheet(BuildContext context, Service service) async {
     final quantityController = TextEditingController();
     int? priceCents = service.defaultPriceCents;
@@ -182,6 +204,8 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     );
                     return;
                   }
+                  final ok = await _confirmIfHighValue(context, quantity: quantity, unitPriceCents: priceCents!);
+                  if (!ok) return;
                   final repo = ref.read(budgetsRepositoryProvider);
                   await repo.addItem(
                     _budgetId!,
@@ -267,6 +291,8 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     );
                     return;
                   }
+                  final ok = await _confirmIfHighValue(context, quantity: quantity, unitPriceCents: priceCents!);
+                  if (!ok) return;
                   final repo = ref.read(budgetsRepositoryProvider);
                   await repo.addItem(
                     _budgetId!,
