@@ -42,11 +42,21 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
-            // R8 desligado por ora (Fase 1.5, uso interno): minificação com o
-            // SDK do Firebase está lenta demais nesta máquina. Ligar de volta
-            // antes da Fase 4 (Play Store).
-            isMinifyEnabled = false
-            isShrinkResources = false
+            // Religado em 23/08/2026 — o motivo original de desligar (build
+            // local lento nesta máquina) não existe mais desde que os
+            // releases passaram a rodar na nuvem (GitHub Actions). Testar de
+            // verdade num aparelho depois de cada mudança aqui: o R8 pode
+            // cortar/renomear algo que só quebra em runtime, não no build.
+            // Se algo parar de funcionar depois disto, o primeiro passo pra
+            // diagnosticar é voltar isMinifyEnabled = false temporariamente
+            // pra confirmar se a causa é o R8, e então adicionar uma regra
+            // específica em proguard-rules.pro pro que quebrou.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }

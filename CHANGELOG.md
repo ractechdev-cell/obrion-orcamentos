@@ -4,6 +4,9 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 
 ## [Unreleased]
 
+### Changed
+- R8/minificação religada (`android/app/build.gradle.kts`, `isMinifyEnabled`/`isShrinkResources = true` + `proguard-rules.pro` novo, vazio de propósito) — motivo original de ter desligado (build local lento) não existe mais desde que os releases passaram a rodar na nuvem. Mudança nativa (Gradle): só entra em vigor num release completo, não num patch. Versão bumped pra `0.1.4+4`, primeira a usar o esquema `x.y.build+build`.
+
 ### Added
 - Controle básico de pagamentos por orçamento (`lib/repositories/payments_repository.dart`, `payments` — semente do "controle de pagamentos" do plano Pro, ver CLAUDE.md monetização): registra pagamentos parciais (valor + observação opcional) na tela do orçamento, mostra "Recebido"/"Pendente" calculado (nunca guardado, sempre `total - soma dos pagamentos`, nunca negativo). **Primeira migração de schema de verdade do app** (`schemaVersion` 1→2, `onUpgrade` cria a tabela nova sem apagar nada do que já existe — instalações antigas, como o celular do fundador, não perdem dado). `BudgetsRepository.watchById` agora combina três streams (`Rx.combineLatest3`: orçamento + itens + pagamentos), aplicando a correção do bug de item que não atualizava a tela também pra pagamentos.
 - Aba "Orçamentos" na barra de navegação (5ª aba): `BudgetsListScreen` mostra todos os orçamentos de todos os clientes numa lista só, numerados (posição estável na ordem de criação) com nome do cliente, data e status. Botão "+" pergunta pra qual cliente e abre um orçamento novo — mesmo padrão do "+" de Clientes. Fecha a lacuna deixada pela remoção do `budgets_screen.dart` (que só listava por cliente): agora dá pra ver o negócio inteiro, não só cliente por cliente.
