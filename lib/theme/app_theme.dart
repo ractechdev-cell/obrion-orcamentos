@@ -261,7 +261,7 @@ class AppTheme {
             return const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: AppColors.onPrimary,
+              color: AppColors.primary,
             );
           }
           return const TextStyle(
