@@ -361,9 +361,6 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
                   ),
                 ),
               ),
-              child: Row(
-                children: [
-                  Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -385,20 +382,23 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       if (data != null)
-                        Text(
-                          'Total: ${formatCents(data.totals.totalCents)}',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                        Expanded(
+                          child: Text(
+                            'Total: ${formatCents(data.totals.totalCents)}',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
                         ),
                       if (data != null && data.totals.subtotalCents > 0)
                         FilledButton.tonalIcon(
                           style: const ButtonStyle(
                             visualDensity: VisualDensity.compact,
-                            padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 12)),
+                            padding: WidgetStatePropertyAll(
+                              EdgeInsets.symmetric(horizontal: 12),
+                            ),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           icon: const Icon(Icons.percent_outlined, size: 18),
@@ -411,22 +411,27 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
                         ),
                     ],
                   ),
-                ],
-              ),
-                  ),
-                  IconButton(
-                    onPressed: () => _pickService(context),
-                    icon: const Icon(Icons.add),
-                    tooltip: 'Adicionar item',
-                    style: IconButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  FilledButton(
-                    onPressed: items.isNotEmpty ? widget.onNext : null,
-                    child: const Text('Próximo'),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => _pickService(context),
+                        icon: const Icon(Icons.add),
+                        tooltip: 'Adicionar item',
+                        style: IconButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                          minimumSize: const Size(48, 48),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: items.isNotEmpty ? widget.onNext : null,
+                          child: const Text('Próximo: condições'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -894,6 +899,56 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
 // Etapa 2: Condições
 // ---------------------------------------------------------------------------
 
+class _WizardActionBar extends StatelessWidget {
+  const _WizardActionBar({
+    required this.backLabel,
+    required this.nextLabel,
+    required this.onBack,
+    required this.onNext,
+  });
+
+  final String backLabel;
+  final String nextLabel;
+  final VoidCallback onBack;
+  final VoidCallback? onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: onBack,
+                child: Text(backLabel),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              flex: 2,
+              child: FilledButton(
+                onPressed: onNext,
+                child: Text(nextLabel),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ConditionsStep extends ConsumerStatefulWidget {
   const _ConditionsStep({
     required this.budgetId,
@@ -953,53 +1008,52 @@ class _ConditionsStepState extends ConsumerState<_ConditionsStep> {
       builder: (context, _) {
         if (!_loaded) return const Center(child: CircularProgressIndicator());
 
-        return ListView(
-          padding: const EdgeInsets.all(AppSpacing.md),
+        return Column(
           children: [
-            Text(
-              'Detalhes do orçamento',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Tudo opcional. Preencha só o que fizer sentido.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                children: [
+                  Text(
+                    'Detalhes do orçamento',
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    'Tudo opcional. Preencha só o que fizer sentido.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  AppTextField(
+                    label: 'Descrição da obra',
+                    hint: 'O que vai ser feito na obra, resumido — aparece no PDF enviado',
+                    controller: _jobDescriptionController,
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppTextField(
+                    label: 'Observações',
+                    hint: 'Ex: pagamento em 2x, prazo de 15 dias, garantia de 6 meses',
+                    controller: _notesController,
+                    maxLines: 4,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppDatePicker(
+                    label: 'Válido até',
+                    value: _validUntil,
+                    onChanged: (date) => setState(() => _validUntil = date),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
+              ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            AppTextField(
-              label: 'Descrição da obra',
-              hint: 'O que vai ser feito na obra, resumido — aparece no PDF enviado',
-              controller: _jobDescriptionController,
-              maxLines: 3,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            AppTextField(
-              label: 'Observações',
-              hint: 'Ex: pagamento em 2x, prazo de 15 dias, garantia de 6 meses',
-              controller: _notesController,
-              maxLines: 4,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            AppDatePicker(
-              label: 'Válido até',
-              value: _validUntil,
-              onChanged: (date) => setState(() => _validUntil = date),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            Row(
-              children: [
-                OutlinedButton(
-                  onPressed: widget.onBack,
-                  child: const Text('Voltar'),
-                ),
-                const Spacer(),
-                FilledButton(
-                  onPressed: _saveAndNext,
-                  child: const Text('Próximo'),
-                ),
-              ],
+            _WizardActionBar(
+              backLabel: 'Voltar',
+              nextLabel: 'Ir para revisão',
+              onBack: widget.onBack,
+              onNext: _saveAndNext,
             ),
           ],
         );
@@ -1153,29 +1207,11 @@ class _ReviewStep extends ConsumerWidget {
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerLow,
-                border: Border(
-                  top: BorderSide(
-                    color: Theme.of(context).colorScheme.outlineVariant,
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  OutlinedButton(
-                    onPressed: onBack,
-                    child: const Text('Voltar'),
-                  ),
-                  const Spacer(),
-                  FilledButton(
-                    onPressed: data.items.isNotEmpty ? onNext : null,
-                    child: const Text('Gerar orçamento'),
-                  ),
-                ],
-              ),
+            _WizardActionBar(
+              backLabel: 'Voltar',
+              nextLabel: 'Gerar orçamento',
+              onBack: onBack,
+              onNext: data.items.isNotEmpty ? onNext : null,
             ),
           ],
         );
