@@ -67,8 +67,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              'Seus dados continuam salvos neste aparelho. A conta serve pra identificar '
-              'seu perfil quando o backup em nuvem chegar.',
+              'Seus dados continuam salvos aqui. A conta é pra quando você quiser '
+              'sincronizar entre aparelhos.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: AppSpacing.lg),

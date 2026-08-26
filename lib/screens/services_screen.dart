@@ -55,7 +55,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
             Text('Reajustar preços', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Aplica o percentual a todos os serviços com preço já definido. Use negativo pra reduzir.',
+                'Muda o preço de todos os serviços que já têm valor. Use número negativo pra reduzir.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: AppSpacing.md),

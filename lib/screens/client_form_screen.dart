@@ -267,7 +267,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                     AppTextField(
                       controller: _addressController,
                       label: 'Complemento / referência da obra',
-                      hint: 'Ponto de referência, apartamento, etc.',
+                      hint: 'Ex: frente ao mercado, apto 302',
                       maxLines: 2,
                     ),
                     const SizedBox(height: AppSpacing.md),

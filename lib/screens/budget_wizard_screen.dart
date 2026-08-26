@@ -304,7 +304,7 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
                           ),
                           const SizedBox(height: AppSpacing.xs),
                           Text(
-                            'Toque em + para adicionar itens\ndo catálogo ou criar um item avulso',
+                            'Toque em + pra adicionar serviços do catálogo\nou criar um item avulso',
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: Theme.of(context)
@@ -962,7 +962,7 @@ class _ConditionsStepState extends ConsumerState<_ConditionsStep> {
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              'Todos opcionais — preencha o que fizer sentido pro seu orçamento.',
+              'Tudo opcional. Preencha só o que fizer sentido.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -970,14 +970,14 @@ class _ConditionsStepState extends ConsumerState<_ConditionsStep> {
             const SizedBox(height: AppSpacing.lg),
             AppTextField(
               label: 'Descrição da obra',
-              hint: 'O que vai ser feito, resumido — aparece no PDF',
+              hint: 'O que vai ser feito na obra, resumido — aparece no PDF enviado',
               controller: _jobDescriptionController,
               maxLines: 3,
             ),
             const SizedBox(height: AppSpacing.md),
             AppTextField(
               label: 'Observações',
-              hint: 'Condições de pagamento, prazo, garantia',
+              hint: 'Ex: pagamento em 2x, prazo de 15 dias, garantia de 6 meses',
               controller: _notesController,
               maxLines: 4,
             ),
@@ -1290,7 +1290,7 @@ class _SendStepState extends ConsumerState<_SendStep> {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Escolha como enviar para o cliente.',
+            'Escolha como mandar pro cliente.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -1337,7 +1337,7 @@ class _SendStepState extends ConsumerState<_SendStep> {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'O orçamento foi marcado como enviado.\nAcompanhe a resposta na aba Orçamentos.',
+            'Pronto! O orçamento foi enviado.\nAcompanhe se o cliente respondeu na aba Orçamentos.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,

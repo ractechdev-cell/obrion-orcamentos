@@ -5,13 +5,13 @@ library;
 
 /// Campo obrigatório: retorna erro se vazio/só espaços.
 String? Function(String?) requiredValidator(String label) {
-  return (value) => value == null || value.trim().isEmpty ? 'Informe $label' : null;
+  return (value) => value == null || value.trim().isEmpty ? 'Preencha $label' : null;
 }
 
 /// E-mail obrigatório com formato básico validado (não confere se o
 /// domínio existe — só a forma `algo@algo.algo`).
 String? emailValidator(String? value) {
-  if (value == null || value.trim().isEmpty) return 'Informe o e-mail';
+  if (value == null || value.trim().isEmpty) return 'Preencha o e-mail';
   final valid = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim());
   return valid ? null : 'E-mail inválido';
 }
@@ -30,7 +30,7 @@ String? optionalEmailValidator(String? value) {
 String? phoneValidator(String? value) {
   if (value == null || value.trim().isEmpty) return null;
   final digitsOnly = value.replaceAll(RegExp(r'[^0-9]'), '');
-  if (digitsOnly.length < 8) return 'Telefone inválido';
+  if (digitsOnly.length < 8) return 'Número de telefone inválido';
   return null;
 }
 
@@ -38,7 +38,7 @@ String? phoneValidator(String? value) {
 /// texto já digitado (com `,` ou `.`) e o nome do campo para a mensagem.
 String? Function(String?) positiveNumberValidator(String label) {
   return (value) {
-    if (value == null || value.trim().isEmpty) return 'Informe $label';
+    if (value == null || value.trim().isEmpty) return 'Preencha $label';
     final normalized = value.replaceAll(',', '.');
     final parsed = double.tryParse(normalized);
     if (parsed == null) return '$label inválido';

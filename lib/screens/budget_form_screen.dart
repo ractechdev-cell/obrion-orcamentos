@@ -583,8 +583,8 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
             const SizedBox(height: AppSpacing.md),
             AppTextField(
               controller: notesController,
-              label: 'Observação (opcional)',
-              hint: 'Ex.: entrada, parcela 2',
+                label: 'Observação',
+                hint: 'Ex: entrada, 2ª parcela',
             ),
             const SizedBox(height: AppSpacing.lg),
             AppButton(
@@ -736,8 +736,8 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
               ),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
-                label: 'Descrição da obra (opcional)',
-                hint: 'O que vai ser feito, resumido — aparece no PDF acima dos itens',
+                label: 'Descrição da obra',
+                hint: 'O que vai ser feito, resumido — aparece no PDF',
                 controller: jobDescriptionController,
                 maxLines: 3,
               ),

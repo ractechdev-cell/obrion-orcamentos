@@ -178,7 +178,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: AppSpacing.md),
                 AppTextField(
                   controller: _nameController,
-                  label: 'Nome ou nome da empresa',
+                    label: 'Seu nome ou da empresa',
                 ),
                 const SizedBox(height: AppSpacing.md),
                 AppTextField(
@@ -195,7 +195,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  'Ajusta as sugestões da sua lista de preços. Pode marcar mais de um.',
+                  'Escolha seus ofícios. As sugestões da Lista de Preços vão mudar de acordo.',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: AppSpacing.md),

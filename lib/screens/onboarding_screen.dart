@@ -24,13 +24,13 @@ const _infoPages = [
     icon: Icons.straighten_outlined,
     title: 'Meça e cote rápido',
     description:
-        'Meça o ambiente, monte o orçamento com sua lista de preços e mande pro cliente em poucos minutos.',
+          'Meça o cômodo, monte o orçamento com seus preços e mande pro cliente em poucos minutos.',
   ),
   _OnboardingPage(
     icon: Icons.wifi_off_outlined,
     title: 'Funciona sem internet',
     description:
-        'Tudo fica salvo no aparelho. Sem cadastro pra começar, sem depender de sinal na obra.',
+          'Tudo salvo no celular. Sem cadastro pra começar, sem precisar de internet.',
   ),
 ];
 
