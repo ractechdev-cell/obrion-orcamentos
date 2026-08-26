@@ -96,41 +96,49 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _saving = true);
-    final repo = ref.read(measurementsRepositoryProvider);
+    
+    try {
+      final repo = ref.read(measurementsRepositoryProvider);
 
-    final name = _nameController.text.trim();
-    final length = double.parse(_lengthController.text.replaceAll(',', '.'));
-    final width = double.parse(_widthController.text.replaceAll(',', '.'));
-    final height = double.parse(_heightController.text.replaceAll(',', '.'));
+      final name = _nameController.text.trim();
+      final length = double.parse(_lengthController.text.replaceAll(',', '.'));
+      final width = double.parse(_widthController.text.replaceAll(',', '.'));
+      final height = double.parse(_heightController.text.replaceAll(',', '.'));
 
-    final String measurementId;
-    if (_isEditing) {
-      measurementId = widget.measurementId!;
-      await repo.updateMeasurement(
-        id: measurementId,
-        name: Value(name),
-        lengthMeters: Value(length),
-        widthMeters: Value(width),
-        heightMeters: Value(height),
-      );
-    } else {
-      final measurement = await repo.createMeasurement(
-        projectId: widget.projectId,
-        name: name,
-        lengthMeters: length,
-        widthMeters: width,
-        heightMeters: height,
-      );
-      measurementId = measurement.id;
+      final String measurementId;
+      if (_isEditing) {
+        measurementId = widget.measurementId!;
+        await repo.updateMeasurement(
+          id: measurementId,
+          name: Value(name),
+          lengthMeters: Value(length),
+          widthMeters: Value(width),
+          heightMeters: Value(height),
+        );
+      } else {
+        final measurement = await repo.createMeasurement(
+          projectId: widget.projectId,
+          name: name,
+          lengthMeters: length,
+          widthMeters: width,
+          heightMeters: height,
+        );
+        measurementId = measurement.id;
+      }
+      await repo.replaceOpenings(measurementId: measurementId, openings: _openings);
+      if (!_isEditing) AnalyticsService.trackEvent('measurement_completed');
+
+      if (mounted) {
+        AppSnackBar.show(context, _isEditing ? 'Medição atualizada.' : 'Medição salva.');
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.show(context, 'Erro ao salvar medição. Tente novamente.');
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
-    await repo.replaceOpenings(measurementId: measurementId, openings: _openings);
-    if (!_isEditing) AnalyticsService.trackEvent('measurement_completed');
-
-    if (mounted) {
-      AppSnackBar.show(context, _isEditing ? 'Medição atualizada.' : 'Medição salva.');
-      Navigator.of(context).pop();
-    }
-    if (mounted) setState(() => _saving = false);
   }
 
   @override

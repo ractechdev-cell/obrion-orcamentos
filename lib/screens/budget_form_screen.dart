@@ -26,6 +26,8 @@ import '../widgets/app_card.dart';
 import '../widgets/app_currency_input.dart';
 import '../widgets/app_date_picker.dart';
 import '../widgets/app_dialog.dart';
+import '../widgets/app_error.dart';
+import '../widgets/app_loading.dart';
 import '../widgets/app_number_input.dart';
 import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
@@ -51,7 +53,13 @@ String formatCents(int cents) => formatCurrencyBrl(cents);
 /// 3 ("medição → item de orçamento com quantidade preenchida", a promessa
 /// central do app: medir no local e sair com o orçamento pronto, em vez
 /// de redigitar o número na mão).
-enum _MeasurementQuantity { wallArea, floorArea, ceilingArea, perimeter, effectivePerimeter }
+enum _MeasurementQuantity {
+  wallArea,
+  floorArea,
+  ceilingArea,
+  perimeter,
+  effectivePerimeter,
+}
 
 String _measurementQuantityLabel(_MeasurementQuantity q) {
   switch (q) {
@@ -68,7 +76,10 @@ String _measurementQuantityLabel(_MeasurementQuantity q) {
   }
 }
 
-double _measurementQuantityValue(_MeasurementQuantity q, RoomDerivedQuantities d) {
+double _measurementQuantityValue(
+  _MeasurementQuantity q,
+  RoomDerivedQuantities d,
+) {
   switch (q) {
     case _MeasurementQuantity.wallArea:
       return d.wallAreaSqM;
@@ -95,7 +106,10 @@ List<_MeasurementQuantity> _measurementOptionsForUnit(ServiceUnit unit) {
         _MeasurementQuantity.ceilingArea,
       ];
     case ServiceUnit.linearMeter:
-      return const [_MeasurementQuantity.perimeter, _MeasurementQuantity.effectivePerimeter];
+      return const [
+        _MeasurementQuantity.perimeter,
+        _MeasurementQuantity.effectivePerimeter,
+      ];
     case ServiceUnit.cubicMeter:
     case ServiceUnit.unit:
     case ServiceUnit.point:
@@ -163,13 +177,15 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
       isScrollControlled: true,
       builder: (context) => SafeArea(
         child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.6,
+          height: (MediaQuery.of(context).size.height * 0.6).clamp(400.0, 700.0),
           child: Column(
             children: [
               ListTile(
                 leading: const Icon(Icons.edit_note_outlined),
                 title: const Text('Item avulso'),
-                subtitle: const Text('Descrição livre, fora da lista de preços'),
+                subtitle: const Text(
+                  'Descrição livre, fora da lista de preços',
+                ),
                 onTap: () => Navigator.of(context).pop(customItemSentinel),
               ),
               const Divider(height: 1),
@@ -217,15 +233,22 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
   /// usuário cancelar em qualquer passo. Busca por `clientId`, não por
   /// `budget.projectId` — orçamentos hoje nunca guardam projeto (nenhuma
   /// tela passa esse valor), então a ligação real é sempre cliente → obra.
-  Future<double?> _pickMeasurementQuantity(BuildContext context, ServiceUnit unit) async {
+  Future<double?> _pickMeasurementQuantity(
+    BuildContext context,
+    ServiceUnit unit,
+  ) async {
     final options = _measurementOptionsForUnit(unit);
     if (options.isEmpty) return null;
 
     final measurementsRepo = ref.read(measurementsRepositoryProvider);
-    final projects = await measurementsRepo.watchProjectsByClient(widget.clientId).first;
+    final projects = await measurementsRepo
+        .watchProjectsByClient(widget.clientId)
+        .first;
     final allMeasurements = <MeasurementWithDetails>[];
     for (final project in projects) {
-      allMeasurements.addAll(await measurementsRepo.watchByProject(project.id).first);
+      allMeasurements.addAll(
+        await measurementsRepo.watchByProject(project.id).first,
+      );
     }
 
     if (!context.mounted) return null;
@@ -249,7 +272,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text('Qual medição?', style: Theme.of(context).textTheme.titleMedium),
+                child: Text(
+                  'Qual medição?',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
               const SizedBox(height: AppSpacing.sm),
               for (final m in allMeasurements)
@@ -282,14 +308,21 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text('Qual grandeza?', style: Theme.of(context).textTheme.titleMedium),
+              child: Text(
+                'Qual grandeza?',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
             const SizedBox(height: AppSpacing.sm),
             for (final option in options)
               ListTile(
                 title: Text(_measurementQuantityLabel(option)),
-                trailing: Text(_measurementQuantityValue(option, derived).toStringAsFixed(2)),
-                onTap: () => Navigator.of(context).pop(_measurementQuantityValue(option, derived)),
+                trailing: Text(
+                  _measurementQuantityValue(option, derived).toStringAsFixed(2),
+                ),
+                onTap: () =>
+                    Navigator.of(context)
+                        .pop(_measurementQuantityValue(option, derived)),
               ),
             const SizedBox(height: AppSpacing.md),
           ],
@@ -334,8 +367,13 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     icon: const Icon(Icons.straighten_outlined, size: 18),
                     label: const Text('Usar medição'),
                     onPressed: () async {
-                      final value = await _pickMeasurementQuantity(context, service.unit);
-                      if (value != null) quantityController.text = value.toStringAsFixed(2);
+                      final value = await _pickMeasurementQuantity(
+                        context,
+                        service.unit,
+                      );
+                      if (value != null) {
+                        quantityController.text = value.toStringAsFixed(2);
+                      }
                     },
                   ),
                 ),
@@ -350,7 +388,9 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
               AppButton(
                 label: 'Adicionar item',
                 onPressed: () async {
-                  final quantity = double.tryParse(quantityController.text.replaceAll(',', '.'));
+                  final quantity = double.tryParse(
+                    quantityController.text.replaceAll(',', '.'),
+                  );
                   if (quantity == null || quantity <= 0 || priceCents == null) {
                     AppSnackBar.show(
                       context,
@@ -403,7 +443,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Item avulso', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                'Item avulso',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
                 controller: descriptionController,
@@ -414,7 +457,12 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 initialValue: unit,
                 decoration: const InputDecoration(labelText: 'Unidade'),
                 items: ServiceUnit.values
-                    .map((u) => DropdownMenuItem(value: u, child: Text(serviceUnitLabel(u))))
+                    .map(
+                      (u) => DropdownMenuItem(
+                        value: u,
+                        child: Text(serviceUnitLabel(u)),
+                      ),
+                    )
                     .toList(),
                 onChanged: (val) {
                   if (val != null) setSheetState(() => unit = val);
@@ -434,8 +482,13 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     icon: const Icon(Icons.straighten_outlined, size: 18),
                     label: const Text('Usar medição'),
                     onPressed: () async {
-                      final value = await _pickMeasurementQuantity(context, unit);
-                      if (value != null) quantityController.text = value.toStringAsFixed(2);
+                      final value = await _pickMeasurementQuantity(
+                        context,
+                        unit,
+                      );
+                      if (value != null) {
+                        quantityController.text = value.toStringAsFixed(2);
+                      }
                     },
                   ),
                 ),
@@ -450,8 +503,13 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 label: 'Adicionar item',
                 onPressed: () async {
                   final description = descriptionController.text.trim();
-                  final quantity = double.tryParse(quantityController.text.replaceAll(',', '.'));
-                  if (description.isEmpty || quantity == null || quantity <= 0 || priceCents == null) {
+                  final quantity = double.tryParse(
+                    quantityController.text.replaceAll(',', '.'),
+                  );
+                  if (description.isEmpty ||
+                      quantity == null ||
+                      quantity <= 0 ||
+                      priceCents == null) {
                     AppSnackBar.show(
                       context,
                       'Informe descrição, quantidade e preço válidos.',
@@ -513,7 +571,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Registrar pagamento', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'Registrar pagamento',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: AppSpacing.md),
             AppCurrencyInput(
               label: 'Valor recebido (R\$)',
@@ -538,7 +599,9 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                   return;
                 }
                 final notes = notesController.text.trim();
-                await ref.read(paymentsRepositoryProvider).create(
+                await ref
+                    .read(paymentsRepositoryProvider)
+                    .create(
                       budgetId: _budgetId!,
                       amountCents: amountCents!,
                       notes: notes.isEmpty ? null : notes,
@@ -569,7 +632,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     }
   }
 
-  Future<void> _editDiscount(int currentDiscountCents, int subtotalCents) async {
+  Future<void> _editDiscount(
+    int currentDiscountCents,
+    int subtotalCents,
+  ) async {
     // Só `discountCents` é persistido (regra "dinheiro é int em centavos" —
     // ver CLAUDE.md); percentual é só o modo de entrada, convertido pra
     // centavos no momento de salvar, mesmo arredondamento meio-pra-cima já
@@ -601,7 +667,8 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                   ButtonSegment(value: true, label: Text('Percentual')),
                 ],
                 selected: {isPercent},
-                onSelectionChanged: (selection) => setSheetState(() => isPercent = selection.first),
+                onSelectionChanged: (selection) =>
+                    setSheetState(() => isPercent = selection.first),
               ),
               const SizedBox(height: AppSpacing.md),
               if (isPercent)
@@ -612,7 +679,9 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
               else
                 AppCurrencyInput(
                   label: 'Valor do desconto (R\$)',
-                  initialValueCents: currentDiscountCents == 0 ? null : currentDiscountCents,
+                  initialValueCents: currentDiscountCents == 0
+                      ? null
+                      : currentDiscountCents,
                   onChangedCents: (cents) => newDiscount = cents,
                 ),
               const SizedBox(height: AppSpacing.lg),
@@ -620,8 +689,12 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 label: 'Salvar',
                 onPressed: () async {
                   if (isPercent) {
-                    final percent = double.tryParse(percentController.text.replaceAll(',', '.'));
-                    newDiscount = percent == null ? 0 : (subtotalCents * percent / 100).round();
+                    final percent = double.tryParse(
+                      percentController.text.replaceAll(',', '.'),
+                    );
+                    newDiscount = percent == null
+                        ? 0
+                        : (subtotalCents * percent / 100).round();
                   }
                   final repo = ref.read(budgetsRepositoryProvider);
                   await repo.updateDiscount(_budgetId!, newDiscount ?? 0);
@@ -637,7 +710,9 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
 
   Future<void> _editDetails(Budget budget) async {
     final notesController = TextEditingController(text: budget.notes ?? '');
-    final jobDescriptionController = TextEditingController(text: budget.jobDescription ?? '');
+    final jobDescriptionController = TextEditingController(
+      text: budget.jobDescription ?? '',
+    );
     DateTime? validUntil = budget.validUntil;
 
     await showModalBottomSheet(
@@ -655,7 +730,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Detalhes do orçamento', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                'Detalhes do orçamento',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
                 label: 'Descrição da obra (opcional)',
@@ -687,7 +765,9 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     _budgetId!,
                     notes: notes.isEmpty ? null : notes,
                     validUntil: validUntil,
-                    jobDescription: jobDescription.isEmpty ? null : jobDescription,
+                    jobDescription: jobDescription.isEmpty
+                        ? null
+                        : jobDescription,
                   );
                   if (context.mounted) Navigator.of(context).pop();
                 },
@@ -749,7 +829,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     AppSnackBar.show(context, 'Orçamento duplicado como rascunho.');
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (_) => BudgetFormScreen(clientId: newBudget.clientId, budgetId: newBudget.id),
+        builder: (_) => BudgetFormScreen(
+          clientId: newBudget.clientId,
+          budgetId: newBudget.id,
+        ),
       ),
     );
   }
@@ -781,9 +864,17 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     final professional = await profileRepo.getProfile();
 
     if (format == BudgetShareFormat.pdf) {
-      await BudgetShareService.shareAsPdf(data: data, client: client, professional: professional);
+      await BudgetShareService.shareAsPdf(
+        data: data,
+        client: client,
+        professional: professional,
+      );
     } else {
-      await BudgetShareService.shareAsImage(data: data, client: client, professional: professional);
+      await BudgetShareService.shareAsImage(
+        data: data,
+        client: client,
+        professional: professional,
+      );
     }
     final formatParam = format == BudgetShareFormat.pdf ? 'pdf' : 'imagem';
     AnalyticsService.trackEvent('pdf_generated', {'format': formatParam});
@@ -804,7 +895,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
   @override
   Widget build(BuildContext context) {
     if (_budgetId == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: AppLoading());
     }
 
     final repo = ref.watch(budgetsRepositoryProvider);
@@ -812,10 +903,16 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     return StreamBuilder<BudgetWithItems?>(
       stream: repo.watchById(_budgetId!),
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Orçamento')),
+            body: const AppError(message: 'Falha ao carregar orçamento.'),
+          );
+        }
         if (!snapshot.hasData || snapshot.data == null) {
           return Scaffold(
             appBar: AppBar(title: const Text('Orçamento')),
-            body: const Center(child: CircularProgressIndicator()),
+            body: const AppLoading(),
           );
         }
         final data = snapshot.data!;
@@ -863,7 +960,9 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
             children: [
               Expanded(
                 child: data.items.isEmpty
-                    ? const Center(child: Text('Toque em + para adicionar itens.'))
+                    ? const Center(
+                        child: Text('Toque em + para adicionar itens.'),
+                      )
                     : ListView(
                         padding: const EdgeInsets.all(AppSpacing.md),
                         children: [
@@ -873,23 +972,31 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                                 children: [
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(item.description),
                                         Text(
                                           '${item.quantity} ${serviceUnitLabel(item.unit)} × ${formatCents(item.unitPriceCents)}',
-                                          style: Theme.of(context).textTheme.bodySmall,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall,
                                         ),
                                       ],
                                     ),
                                   ),
                                   Text(
                                     formatCents(item.totalCents),
-                                    style: Theme.of(context).textTheme.titleMedium,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium,
                                   ),
                                   IconButton(
                                     onPressed: () => _removeItem(item),
-                                    icon: const Icon(Icons.delete_outline, size: 20),
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      size: 20,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -898,7 +1005,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                           ],
                           if (data.payments.isNotEmpty) ...[
                             const SizedBox(height: AppSpacing.md),
-                            Text('Pagamentos recebidos', style: Theme.of(context).textTheme.titleMedium),
+                            Text(
+                              'Pagamentos recebidos',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
                             const SizedBox(height: AppSpacing.sm),
                             for (final payment in data.payments) ...[
                               AppCard(
@@ -906,16 +1016,26 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                                   children: [
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Text(formatCents(payment.amountCents)),
+                                          Text(
+                                            formatCents(payment.amountCents),
+                                          ),
                                           Text(
                                             [
                                               '${payment.createdAt.day}/${payment.createdAt.month}/${payment.createdAt.year}',
-                                              if (payment.notes != null && payment.notes!.isNotEmpty) payment.notes!,
+                                              if (payment.notes != null &&
+                                                  payment.notes!.isNotEmpty)
+                                                payment.notes!,
                                             ].join(' · '),
-                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
                                                 ),
                                           ),
                                         ],
@@ -923,7 +1043,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                                     ),
                                     IconButton(
                                       onPressed: () => _removePayment(payment),
-                                      icon: const Icon(Icons.delete_outline, size: 20),
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        size: 20,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -938,7 +1061,11 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surfaceContainerLow,
-                  border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
+                  border: Border(
+                    top: BorderSide(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -956,7 +1083,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                       children: [
                         FilledButton.tonalIcon(
                           style: _compactButtonStyle,
-                          onPressed: () => _editDiscount(budget.discountCents, totals.subtotalCents),
+                          onPressed: () => _editDiscount(
+                            budget.discountCents,
+                            totals.subtotalCents,
+                          ),
                           icon: const Icon(Icons.percent_outlined, size: 18),
                           label: const Text('Desconto'),
                         ),
@@ -967,12 +1097,14 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Total', style: Theme.of(context).textTheme.titleLarge),
+                        Text(
+                          'Total',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
                         Text(
                           formatCents(totals.totalCents),
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -981,10 +1113,14 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Recebido', style: Theme.of(context).textTheme.bodyMedium),
+                          Text(
+                            'Recebido',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
                           Text(
                             formatCents(data.totalPaidCents),
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
                                   color: context.semanticColors.success,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -1014,7 +1150,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                           child: OutlinedButton.icon(
                             style: _compactButtonStyle,
                             onPressed: () => _emitReceipt(context, data),
-                            icon: const Icon(Icons.receipt_long_outlined, size: 18),
+                            icon: const Icon(
+                              Icons.receipt_long_outlined,
+                              size: 18,
+                            ),
                             label: const Text('Emitir recibo'),
                           ),
                         ),
@@ -1030,8 +1169,8 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                         '${budget.validUntil!.month.toString().padLeft(2, '0')}/'
                         '${budget.validUntil!.year}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
                     ],
@@ -1043,9 +1182,12 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                             style: Theme.of(context).textTheme.labelLarge,
                           ),
                         ),
-                        if (budget.status == BudgetStatus.draft || budget.status == BudgetStatus.sent)
+                        if (budget.status == BudgetStatus.draft ||
+                            budget.status == BudgetStatus.sent)
                           AppButton(
-                            label: budget.status == BudgetStatus.draft ? 'Marcar como enviado' : 'Marcar como aceito',
+                            label: budget.status == BudgetStatus.draft
+                                ? 'Marcar como enviado'
+                                : 'Marcar como aceito',
                             onPressed: () => _advanceStatus(budget.status),
                             variant: AppButtonVariant.secondary,
                           ),

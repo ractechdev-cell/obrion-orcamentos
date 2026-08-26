@@ -15,6 +15,7 @@ import '../repositories/account_repository.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/app_button.dart';
+import '../widgets/app_loading.dart';
 import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
 import '../widgets/app_trade_selector.dart';
@@ -55,9 +56,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _openLogin() async {
-    final signedIn = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
+    final signedIn = await Navigator.of(context)
+        .push<bool>(MaterialPageRoute(builder: (_) => const LoginScreen()));
     if (signedIn ?? false) _loadAccount();
   }
 
@@ -95,7 +95,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       setState(() {
         _nameController.text = profile.name ?? '';
         _phoneController.text = profile.phone ?? '';
-        _logoPath = (profile.logoPath?.isNotEmpty ?? false) ? profile.logoPath : null;
+        _logoPath = (profile.logoPath?.isNotEmpty ?? false)
+            ? profile.logoPath
+            : null;
         _selectedTrades = profile.trades;
         _loading = false;
       });
@@ -156,7 +158,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Configurações')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoading()
           : ListView(
               padding: const EdgeInsets.all(AppSpacing.md),
               children: [
@@ -199,7 +201,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: AppSpacing.md),
                 AppTradeSelector(
                   selected: _selectedTrades,
-                  onChanged: (trades) => setState(() => _selectedTrades = trades),
+                  onChanged: (trades) =>
+                      setState(() => _selectedTrades = trades),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 AppButton(
@@ -267,14 +270,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Logo (opcional)', style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                'Logo (opcional)',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
               const SizedBox(height: AppSpacing.xs),
               Wrap(
                 spacing: AppSpacing.sm,
                 children: [
-                  TextButton(onPressed: _pickLogo, child: const Text('Escolher')),
+                  TextButton(
+                    onPressed: _pickLogo,
+                    child: const Text('Escolher'),
+                  ),
                   if (_logoPath != null)
-                    TextButton(onPressed: _removeLogo, child: const Text('Remover')),
+                    TextButton(
+                      onPressed: _removeLogo,
+                      child: const Text('Remover'),
+                    ),
                 ],
               ),
             ],

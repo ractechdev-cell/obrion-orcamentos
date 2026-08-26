@@ -55,7 +55,7 @@ class BudgetsListScreen extends ConsumerWidget {
       isScrollControlled: true,
       builder: (context) => SafeArea(
         child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.6,
+          height: (MediaQuery.of(context).size.height * 0.6).clamp(400.0, 700.0),
           child: Column(
             children: [
               Padding(

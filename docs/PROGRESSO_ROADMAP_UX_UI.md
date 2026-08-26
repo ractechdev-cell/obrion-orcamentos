@@ -24,14 +24,14 @@
 | 11 | Revisão de navegação | ✅ Feito (24/08/2026) | Achado por grep: as rotas `/clients/new` e `/measurements/:projectId/new` no `go_router` estavam **mortas** — toda navegação real já ia por `Navigator.push(MaterialPageRoute(...))` direto nas telas (arquitetura documentada em `main_shell.dart`). Mesma classe de bug de "código órfão" já vista com `duplicate()`/`softDeleteMeasurement()`. Removidas as duas rotas e `AppRoutes.clientNew`; `go_router` hoje só registra a raiz (`MainShell`), como o comentário do próprio arquivo sempre disse que deveria ser. |
 | 12 | Revisão de componentes | ✅ Feito (24/08/2026) | Grep por `TextField`/`ElevatedButton`/`OutlinedButton`/`TextButton` fora do Design System: nenhuma violação — todo campo de texto passa por `AppTextField`, os poucos `TextButton` soltos são o padrão já estabelecido de ação secundária (ex. "Enviar lembrete", "Ver um exemplo"), `ElevatedButton`/`OutlinedButton` só existem dentro de `AppButton`/`AppDialog` (o próprio Design System). Nada pra corrigir. |
 | 13 | Revisão de espaçamento/tipografia | ✅ Feito (24/08/2026) | Espaçamento: ver item 1 (75 ocorrências viraram `AppSpacing.*`). Tipografia: grep por `fontSize:` achou só 1 violação real — badge de status em `budgets_list_screen.dart` usava `TextStyle(fontSize: 12)` cru, trocado por `Theme.of(context).textTheme.labelMedium`. Todo `fontSize:` restante é de `lib/pdf/` (exceção válida — documento impresso precisa de tamanho fixo, mesma lógica já aplicada a `PdfColors.*`). |
-| 14 | Revisão de loading/erro/sucesso | ⏸️ Pendente | `AppLoading`/`AppError` existem e são usados consistentemente; não houve auditoria dedicada. |
+| 14 | Revisão de loading/erro/sucesso | ✅ Feito (26/08/2026) | Auditoria dedicada completa: 15 ocorrências de `AppLoading`/`AppError` confirmadas, uso consistente em todas as telas. **2 correções aplicadas**: try/catch adicionado em `ClientFormScreen._save()` e `MeasurementFormScreen._save()` (operações críticas sem tratamento de exceção). Ver `docs/REVISAO_LOADING_ERRO_SUCESSO_26_08_2026.md`. |
 | 15 | Importar contato | ⏸️ Pendente — **mudança nativa** | Precisa de `flutter_contacts` (ou similar) + permissão `READ_CONTACTS` no `AndroidManifest.xml` → só entra em vigor num release completo (não patch), exige reinstalação. Avaliado em 24/08/2026, não implementado ainda. |
 | 16 | Ações rápidas do cliente | ✅ Feito | Botões "WhatsApp"/"Ligar" na ficha do cliente (`lib/utils/phone_actions.dart`), sem `canLaunchUrl` (evita precisar de `<queries>` no manifest — continua patchável). |
 | 17 | Melhorar duplicação | ✅ Feito (24/08/2026), parcial | `BudgetsRepository.duplicate()` já existia mas estava **órfão** (nenhuma tela chamava desde que `budgets_screen.dart` foi removido) — corrigido: menu ⋮ no orçamento → "Duplicar orçamento". A UX refinada do roadmap ("O que deseja manter? ☑ Serviços ☑ Preços ☐ Cliente") **não** entrou — duplicar hoje sempre copia serviços/preços/condições pro mesmo cliente, como já era antes de virar órfão. |
 | 18 | PDF profissional | ✅ Feito | Descrição da obra, assinatura (profissional + contratante com CPF/CNPJ), todos os campos da seção 15 do roadmap já presentes. |
 | 19 | Exportação em imagem | ✅ Feito | `BudgetShareService.shareAsImage`. |
 | 20 | Compartilhamento WhatsApp | ✅ Feito | Via `share_plus` (folha do sistema). |
-| 21 | Revisão completa de responsividade | ⏸️ Pendente | Sem passe formal — só testado no aparelho do fundador. |
+| 21 | Revisão completa de responsividade | ✅ Feito (26/08/2026) | Passe formal completo: 14 telas analisadas, arquitetura responsiva confirmada (uso correto de `Expanded`, `ListView`, `AppSpacing.*`). **2 correções aplicadas**: altura de bottom sheets em `BudgetFormScreen` e `BudgetsListScreen` agora usa `.clamp(400.0, 700.0)` para telas pequenas/grandes. Nenhum problema crítico encontrado. Ver `docs/REVISAO_RESPONSIVIDADE_26_08_2026.md`. |
 
 **Critério de saída da Fase 1 (seção 28):** *"abrir → entender → criar cliente → medir → montar orçamento → gerar documento → compartilhar, sem tutorial manual"* — o fluxo funciona ponta a ponta hoje, mas os itens `⏸️`/`🔶` acima (principalmente wizard e auditoria visual) são o que falta pra dizer que a Fase 1 está **fechada**, não só "funcional".
 
@@ -78,12 +78,13 @@ Não iniciada — nenhum item de IA deve ser feature de lançamento (regra já e
 
 ## Pendências de consistência entre documentos (seção 35 do roadmap)
 
-O roadmap pede uma varredura de contradições entre os `.md` sempre que uma mudança relevante acontece. **Isso não foi feito nesta rodada** — ficou de fora de propósito, pra não misturar "implementar melhorias de UX" com "reescrever 5 documentos de uma vez" no mesmo lote. Pendente, na ordem que o próprio roadmap sugere (seção 34):
+O roadmap pede uma varredura de contradições entre os `.md` sempre que uma mudança relevante acontece. A varredura foi feita em 26/08/2026 — ver `docs/LIMPEZA_INCONSISTENCIAS_26_08_2026.md`.
 
+- [x] Resíduos de AdMob em `PLANO_DE_NEGOCIO_INICIAL.md`/`APP_FACTORY_RULES.md`/`APP_FACTORY_CORE.md` — **✅ Corrigido 26/08/2026.**
+- [x] Conflito de tema `APP_FACTORY_RULES.md` §9 vs. `APP_FACTORY_CORE.md` §8 — **✅ Corrigido 26/08/2026** (ambos agora descrevem seed color + `ColorScheme.fromSeed`).
+- [x] `APP_FACTORY_RULES.md` — versão bumped de v0.3 para v0.4 (alterações desde 23/08 não refletidas no cabeçalho) — **✅ Corrigido 26/08/2026.**
 - [ ] `PLANO_DE_NEGOCIO_INICIAL.md` — atualizar posicionamento/diferenciais pra refletir a home-painel e a promessa "medição + orçamento" (já defendida em `ANALISE_CONCORRENCIA_E_ESCOPO.md`, Parte 4).
 - [ ] `docs/POSICIONAMENTO_E_FEATURES_APP1.md` — Parte 4 já lista vários destes itens como "ideias"; marcar os que saíram do papel (ver tabela acima) em vez de deixar como sugestão em aberto.
-- [ ] Resíduos de AdMob em `PLANO_DE_NEGOCIO_INICIAL.md`/`APP_FACTORY_RULES.md`/`APP_FACTORY_CORE.md` — já identificados em `POSICIONAMENTO_E_FEATURES_APP1.md`, Parte 6, nunca corrigidos.
-- [ ] Conflito de tema `APP_FACTORY_RULES.md` §9 (tokens antigos: `primary`/`secondary`/`background`) vs. `APP_FACTORY_CORE.md` §8 (seed color + `ColorScheme.fromSeed`, o que o código real usa) — mesmo achado, nunca corrigido.
 - [ ] `APP_FACTORY_CORE.md` — registrar só o que comprovadamente virou padrão reutilizável (regra da seção 34 do roadmap); não adiantar módulos especulativos.
 
 ---

@@ -96,59 +96,67 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _saving = true);
-    final repository = ref.read(clientsRepositoryProvider);
-    final name = _nameController.text.trim();
-    final phone = _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim();
-    final email = _emailController.text.trim().isEmpty ? null : _emailController.text.trim();
-    final address = _addressController.text.trim().isEmpty ? null : _addressController.text.trim();
-    final notes = _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
-    final document = _documentController.text.trim().isEmpty ? null : _documentController.text.trim();
-    final street = _streetController.text.trim().isEmpty ? null : _streetController.text.trim();
-    final streetNumber =
-        _streetNumberController.text.trim().isEmpty ? null : _streetNumberController.text.trim();
-    final neighborhood =
-        _neighborhoodController.text.trim().isEmpty ? null : _neighborhoodController.text.trim();
+    
+    try {
+      final repository = ref.read(clientsRepositoryProvider);
+      final name = _nameController.text.trim();
+      final phone = _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim();
+      final email = _emailController.text.trim().isEmpty ? null : _emailController.text.trim();
+      final address = _addressController.text.trim().isEmpty ? null : _addressController.text.trim();
+      final notes = _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
+      final document = _documentController.text.trim().isEmpty ? null : _documentController.text.trim();
+      final street = _streetController.text.trim().isEmpty ? null : _streetController.text.trim();
+      final streetNumber =
+          _streetNumberController.text.trim().isEmpty ? null : _streetNumberController.text.trim();
+      final neighborhood =
+          _neighborhoodController.text.trim().isEmpty ? null : _neighborhoodController.text.trim();
 
-    if (_isEditing) {
-      await repository.update(
-        id: widget.clientId!,
-        name: Value(name),
-        phone: Value(phone),
-        email: Value(email),
-        address: Value(address),
-        notes: Value(notes),
-        document: Value(document),
-        street: Value(street),
-        streetNumber: Value(streetNumber),
-        neighborhood: Value(neighborhood),
-      );
-      if (mounted) {
-        AppSnackBar.show(context, 'Cliente atualizado.');
-        Navigator.of(context).pop();
-      }
-    } else {
-      final client = await repository.create(
-        name: name,
-        phone: phone,
-        email: email,
-        address: address,
-        notes: notes,
-        document: document,
-        street: street,
-        streetNumber: streetNumber,
-        neighborhood: neighborhood,
-      );
-      // Continua direto pro histórico do cliente — criar o cliente sozinho
-      // não completa a promessa da Home ("Comece um orçamento novo"); sem
-      // isso a pessoa fica sem saber que dá pra criar orçamento por ali
-      // (ver CLAUDE.md, princípio 5, fricção mínima).
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => ClientDetailScreen(client: client)),
+      if (_isEditing) {
+        await repository.update(
+          id: widget.clientId!,
+          name: Value(name),
+          phone: Value(phone),
+          email: Value(email),
+          address: Value(address),
+          notes: Value(notes),
+          document: Value(document),
+          street: Value(street),
+          streetNumber: Value(streetNumber),
+          neighborhood: Value(neighborhood),
         );
+        if (mounted) {
+          AppSnackBar.show(context, 'Cliente atualizado.');
+          Navigator.of(context).pop();
+        }
+      } else {
+        final client = await repository.create(
+          name: name,
+          phone: phone,
+          email: email,
+          address: address,
+          notes: notes,
+          document: document,
+          street: street,
+          streetNumber: streetNumber,
+          neighborhood: neighborhood,
+        );
+        // Continua direto pro histórico do cliente — criar o cliente sozinho
+        // não completa a promessa da Home ("Comece um orçamento novo"); sem
+        // isso a pessoa fica sem saber que dá pra criar orçamento por ali
+        // (ver CLAUDE.md, princípio 5, fricção mínima).
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => ClientDetailScreen(client: client)),
+          );
+        }
       }
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.show(context, 'Erro ao salvar cliente. Tente novamente.');
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
-    if (mounted) setState(() => _saving = false);
   }
 
   @override

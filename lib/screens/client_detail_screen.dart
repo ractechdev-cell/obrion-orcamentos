@@ -13,6 +13,7 @@ import '../widgets/app_bottom_sheet.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_dialog.dart';
 import '../widgets/app_empty_state.dart';
+import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/app_snackbar.dart';
 import 'budget_form_screen.dart';
@@ -61,6 +62,7 @@ class ClientDetailScreen extends ConsumerStatefulWidget {
 
 class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
   bool _loading = true;
+  String? _error;
   List<_TimelineEntry> _entries = [];
   String? _projectId;
 
@@ -72,44 +74,57 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
 
   Future<void> _load() async {
     if (mounted) setState(() => _loading = true);
-    final measurementsRepo = ref.read(measurementsRepositoryProvider);
-    final budgetsRepo = ref.read(budgetsRepositoryProvider);
+    try {
+      final measurementsRepo = ref.read(measurementsRepositoryProvider);
+      final budgetsRepo = ref.read(budgetsRepositoryProvider);
 
-    final projects = await measurementsRepo.watchProjectsByClient(widget.client.id).first;
-    final projectId = projects.isEmpty ? null : projects.first.id;
+      final projects = await measurementsRepo
+          .watchProjectsByClient(widget.client.id)
+          .first;
+      final projectId = projects.isEmpty ? null : projects.first.id;
 
-    final measurements = projectId == null
-        ? const <MeasurementWithDetails>[]
-        : await measurementsRepo.watchByProject(projectId).first;
-    final budgets = await budgetsRepo.watchByClient(widget.client.id).first;
+      final measurements = projectId == null
+          ? const <MeasurementWithDetails>[]
+          : await measurementsRepo.watchByProject(projectId).first;
+      final budgets = await budgetsRepo.watchByClient(widget.client.id).first;
 
-    final entries = <_TimelineEntry>[
-      for (final item in measurements)
-        _TimelineEntry(
-          kind: _TimelineKind.measurement,
-          date: item.measurement.createdAt,
-          title: item.measurement.name,
-          subtitle: '${_floorAreaLabel(item)} de piso',
-          onTap: () => _openMeasurement(projectId!, item.measurement.id),
-          onDelete: () => _deleteMeasurement(item.measurement.id, item.measurement.name),
-        ),
-      for (final budget in budgets)
-        _TimelineEntry(
-          kind: _TimelineKind.budget,
-          date: budget.createdAt,
-          title:
-              'Orçamento ${budget.createdAt.day}/${budget.createdAt.month}/${budget.createdAt.year}',
-          subtitle: statusLabel(budget.status),
-          onTap: () => _openBudget(budget.id),
-        ),
-    ]..sort((a, b) => b.date.compareTo(a.date));
+      final entries = <_TimelineEntry>[
+        for (final item in measurements)
+          _TimelineEntry(
+            kind: _TimelineKind.measurement,
+            date: item.measurement.createdAt,
+            title: item.measurement.name,
+            subtitle: '${_floorAreaLabel(item)} de piso',
+            onTap: () => _openMeasurement(projectId!, item.measurement.id),
+            onDelete: () =>
+                _deleteMeasurement(item.measurement.id, item.measurement.name),
+          ),
+        for (final budget in budgets)
+          _TimelineEntry(
+            kind: _TimelineKind.budget,
+            date: budget.createdAt,
+            title:
+                'Orçamento ${budget.createdAt.day}/${budget.createdAt.month}/${budget.createdAt.year}',
+            subtitle: statusLabel(budget.status),
+            onTap: () => _openBudget(budget.id),
+          ),
+      ]..sort((a, b) => b.date.compareTo(a.date));
 
-    if (mounted) {
-      setState(() {
-        _entries = entries;
-        _projectId = projectId;
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _entries = entries;
+          _projectId = projectId;
+          _error = null;
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = 'Falha ao carregar o histórico do cliente.';
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -126,7 +141,10 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
   Future<void> _openMeasurement(String projectId, String measurementId) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => MeasurementFormScreen(projectId: projectId, measurementId: measurementId),
+        builder: (_) => MeasurementFormScreen(
+          projectId: projectId,
+          measurementId: measurementId,
+        ),
       ),
     );
     _load();
@@ -144,9 +162,15 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       confirmLabel: 'Excluir',
     );
     if (confirmed == true) {
-      await ref.read(measurementsRepositoryProvider).softDeleteMeasurement(measurementId);
+      await ref
+          .read(measurementsRepositoryProvider)
+          .softDeleteMeasurement(measurementId);
       if (mounted) {
-        AppSnackBar.show(context, 'Medição excluída.', variant: AppSnackBarVariant.destructive);
+        AppSnackBar.show(
+          context,
+          'Medição excluída.',
+          variant: AppSnackBarVariant.destructive,
+        );
         _load();
       }
     }
@@ -155,7 +179,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
   Future<void> _openBudget(String budgetId) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => BudgetFormScreen(clientId: widget.client.id, budgetId: budgetId),
+        builder: (_) =>
+            BudgetFormScreen(clientId: widget.client.id, budgetId: budgetId),
       ),
     );
     _load();
@@ -163,7 +188,9 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
 
   Future<void> _addBudget() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => BudgetFormScreen(clientId: widget.client.id)),
+      MaterialPageRoute(
+        builder: (_) => BudgetFormScreen(clientId: widget.client.id),
+      ),
     );
     _load();
   }
@@ -172,12 +199,17 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     var projectId = _projectId;
     if (projectId == null) {
       final repo = ref.read(measurementsRepositoryProvider);
-      final project = await repo.createProject(clientId: widget.client.id, name: 'Obra Principal');
+      final project = await repo.createProject(
+        clientId: widget.client.id,
+        name: 'Obra Principal',
+      );
       projectId = project.id;
     }
     if (!mounted) return;
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => MeasurementFormScreen(projectId: projectId!)),
+      MaterialPageRoute(
+        builder: (_) => MeasurementFormScreen(projectId: projectId!),
+      ),
     );
     _load();
   }
@@ -186,8 +218,16 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     final action = await AppBottomSheet.showActions<String>(
       context,
       actions: const [
-        AppBottomSheetAction(label: 'Novo orçamento', value: 'budget', icon: Icons.request_quote_outlined),
-        AppBottomSheetAction(label: 'Nova medição', value: 'measurement', icon: Icons.straighten_outlined),
+        AppBottomSheetAction(
+          label: 'Novo orçamento',
+          value: 'budget',
+          icon: Icons.request_quote_outlined,
+        ),
+        AppBottomSheetAction(
+          label: 'Nova medição',
+          value: 'measurement',
+          icon: Icons.straighten_outlined,
+        ),
       ],
     );
     if (action == 'budget') {
@@ -201,12 +241,19 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
   /// excluir hoje (ver `_TimelineEntry.onDelete`). Ícone visível em vez de
   /// depender de long-press, pro mesmo público de baixa familiaridade
   /// digital que o resto do app já leva em conta.
-  Future<void> _openTimelineEntryMenu(BuildContext context, _TimelineEntry entry) async {
+  Future<void> _openTimelineEntryMenu(
+    BuildContext context,
+    _TimelineEntry entry,
+  ) async {
     final action = await AppBottomSheet.showActions<String>(
       context,
       title: entry.title,
       actions: const [
-        AppBottomSheetAction(label: 'Editar', value: 'edit', icon: Icons.edit_outlined),
+        AppBottomSheetAction(
+          label: 'Editar',
+          value: 'edit',
+          icon: Icons.edit_outlined,
+        ),
         AppBottomSheetAction(
           label: 'Excluir',
           value: 'delete',
@@ -227,7 +274,11 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       context,
       title: widget.client.name,
       actions: const [
-        AppBottomSheetAction(label: 'Editar cliente', value: 'edit', icon: Icons.edit_outlined),
+        AppBottomSheetAction(
+          label: 'Editar cliente',
+          value: 'edit',
+          icon: Icons.edit_outlined,
+        ),
         AppBottomSheetAction(
           label: 'Excluir cliente',
           value: 'delete',
@@ -240,7 +291,9 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
 
     if (action == 'edit') {
       await Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => ClientFormScreen(clientId: widget.client.id)),
+        MaterialPageRoute(
+          builder: (_) => ClientFormScreen(clientId: widget.client.id),
+        ),
       );
       if (mounted) setState(() {});
     } else if (action == 'delete') {
@@ -254,7 +307,11 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       if (confirmed == true) {
         await ref.read(clientsRepositoryProvider).softDelete(widget.client.id);
         if (context.mounted) {
-          AppSnackBar.show(context, 'Cliente excluído.', variant: AppSnackBarVariant.destructive);
+          AppSnackBar.show(
+            context,
+            'Cliente excluído.',
+            variant: AppSnackBarVariant.destructive,
+          );
           Navigator.of(context).pop();
         }
       }
@@ -280,69 +337,84 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       ),
       body: Column(
         children: [
-          if ((widget.client.phone ?? '').isNotEmpty) _buildContactActions(context),
+          if ((widget.client.phone ?? '').isNotEmpty)
+            _buildContactActions(context),
           Expanded(
             child: _loading
                 ? const AppLoading()
+                : _error != null
+                ? AppError(message: _error!, onRetry: _load)
                 : _entries.isEmpty
-                    ? AppEmptyState(
-                        message: 'Este cliente ainda não tem medição nem orçamento.\n\n'
-                            'Crie o primeiro orçamento para começar o histórico dele.',
-                        actionLabel: 'Criar orçamento',
-                        onAction: _addBudget,
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _load,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    itemCount: _entries.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
-                    itemBuilder: (context, index) {
-                      final entry = _entries[index];
-                      final colorScheme = Theme.of(context).colorScheme;
-                      return AppCard(
-                        onTap: entry.onTap,
-                        child: Row(
-                          children: [
-                            Icon(
-                              entry.kind == _TimelineKind.measurement
-                                  ? Icons.straighten_outlined
-                                  : Icons.request_quote_outlined,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(entry.title, style: Theme.of(context).textTheme.titleMedium),
-                                  Text(
-                                    entry.subtitle,
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
-                                  ),
-                                ],
+                ? AppEmptyState(
+                    message:
+                        'Este cliente ainda não tem medição nem orçamento.\n\n'
+                        'Crie o primeiro orçamento para começar o histórico dele.',
+                    actionLabel: 'Criar orçamento',
+                    onAction: _addBudget,
+                  )
+                : RefreshIndicator(
+                    onRefresh: _load,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      itemCount: _entries.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: AppSpacing.sm),
+                      itemBuilder: (context, index) {
+                        final entry = _entries[index];
+                        final colorScheme = Theme.of(context).colorScheme;
+                        return AppCard(
+                          onTap: entry.onTap,
+                          child: Row(
+                            children: [
+                              Icon(
+                                entry.kind == _TimelineKind.measurement
+                                    ? Icons.straighten_outlined
+                                    : Icons.request_quote_outlined,
+                                color: colorScheme.primary,
                               ),
-                            ),
-                            Text(
-                              '${entry.date.day}/${entry.date.month}',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                            if (entry.onDelete != null)
-                              IconButton(
-                                icon: const Icon(Icons.more_vert, size: 20),
-                                tooltip: 'Mais opções',
-                                onPressed: () => _openTimelineEntryMenu(context, entry),
+                              const SizedBox(width: AppSpacing.md),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      entry.title,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium,
+                                    ),
+                                    Text(
+                                      entry.subtitle,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                          ],
-                        ),
-                      );
-                    },
+                              Text(
+                                '${entry.date.day}/${entry.date.month}',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                              if (entry.onDelete != null)
+                                IconButton(
+                                  icon: const Icon(Icons.more_vert, size: 20),
+                                  tooltip: 'Mais opções',
+                                  onPressed: () =>
+                                      _openTimelineEntryMenu(context, entry),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
           ),
         ],
       ),
@@ -354,7 +426,12 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
   Widget _buildContactActions(BuildContext context) {
     final phone = widget.client.phone!;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        0,
+      ),
       child: Row(
         children: [
           Expanded(
