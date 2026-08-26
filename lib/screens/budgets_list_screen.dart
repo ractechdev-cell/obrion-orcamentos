@@ -17,6 +17,7 @@ import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/app_snackbar.dart';
 import 'budget_form_screen.dart';
+import 'budget_wizard_screen.dart';
 
 Color _statusColor(BuildContext context, BudgetStatus status) {
   final colorScheme = Theme.of(context).colorScheme;
@@ -83,7 +84,7 @@ class BudgetsListScreen extends ConsumerWidget {
 
     if (selected != null && context.mounted) {
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => BudgetFormScreen(clientId: selected.id)),
+        MaterialPageRoute(builder: (_) => BudgetWizardScreen(clientId: selected.id)),
       );
     }
   }

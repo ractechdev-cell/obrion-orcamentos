@@ -17,6 +17,7 @@ import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/app_snackbar.dart';
 import 'budget_form_screen.dart';
+import 'budget_wizard_screen.dart';
 import 'client_form_screen.dart';
 import 'measurement_form_screen.dart';
 
@@ -189,7 +190,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
   Future<void> _addBudget() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => BudgetFormScreen(clientId: widget.client.id),
+        builder: (_) => BudgetWizardScreen(clientId: widget.client.id),
       ),
     );
     _load();
