@@ -8,14 +8,14 @@
 class AppRadius {
   const AppRadius._();
 
-  /// Cantos sutis — cards, inputs, badges pequenos
+  /// Cantos sutis — inputs e badges pequenos
   static const double xs = 4;
 
   /// Padrão — botões, bottom sheets, diálogos
   static const double sm = 8;
 
-  /// Cards grandes, containers de seção
-  static const double md = 16;
+  /// Cards e containers de seção
+  static const double md = 12;
 
   /// Destaque — modais, drawers
   static const double lg = 24;
