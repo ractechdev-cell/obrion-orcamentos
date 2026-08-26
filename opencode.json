@@ -1,0 +1,24 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "anthropic/claude-sonnet-4-5",
+  "instructions": [
+    "CLAUDE.md",
+    "docs/APP_FACTORY_CORE.md",
+    "docs/APP_FACTORY_RULES.md",
+    "docs/PLANO_DE_NEGOCIO_INICIAL.md",
+    "docs/ANALISE_E_MELHORIAS.md",
+    "docs/POSICIONAMENTO_E_FEATURES_APP1.md",
+    "docs/ANALISE_CONCORRENCIA_E_ESCOPO.md",
+    "docs/ROADMAP_UX_UI_E_FEATURES_APP1.md",
+    "docs/PROGRESSO_ROADMAP_UX_UI.md"
+  ],
+  "formatter": {
+    "dart": {
+      "command": ["dart", "format"]
+    }
+  },
+  "lsp": true,
+  "snapshot": true,
+  "autoupdate": "notify",
+  "share": "manual"
+}
