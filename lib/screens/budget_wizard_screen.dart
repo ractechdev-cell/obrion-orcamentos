@@ -364,23 +364,55 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${items.length} ${items.length == 1 ? 'item' : 'itens'}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      if (data != null && data.totals.discountCents > 0)
                         Text(
-                          '${items.length} ${items.length == 1 ? 'item' : 'itens'}',
-                          style: Theme.of(context).textTheme.bodySmall,
+                          'Desconto: -${formatCents(data.totals.discountCents)}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
                         ),
-                        if (data != null)
-                          Text(
-                            'Total: ${formatCents(data.totals.totalCents)}',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (data != null)
+                        Text(
+                          'Total: ${formatCents(data.totals.totalCents)}',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      if (data != null && data.totals.subtotalCents > 0)
+                        FilledButton.tonalIcon(
+                          style: const ButtonStyle(
+                            visualDensity: VisualDensity.compact,
+                            padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 12)),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                      ],
-                    ),
+                          icon: const Icon(Icons.percent_outlined, size: 18),
+                          label: const Text('Desconto'),
+                          onPressed: () => _editDiscount(
+                            context,
+                            data.budget.discountCents,
+                            data.totals.subtotalCents,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
                   ),
                   IconButton(
                     onPressed: () => _pickService(context),
@@ -764,6 +796,79 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
                 },
               ),
               const SizedBox(height: AppSpacing.md),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _editDiscount(
+    BuildContext context,
+    int currentDiscountCents,
+    int subtotalCents,
+  ) async {
+    var isPercent = false;
+    int? newDiscount = currentDiscountCents;
+    final percentController = TextEditingController();
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 24,
+            right: 24,
+            top: 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Desconto', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: AppSpacing.md),
+              SegmentedButton<bool>(
+                segments: const [
+                  ButtonSegment(value: false, label: Text('Valor fixo')),
+                  ButtonSegment(value: true, label: Text('Percentual')),
+                ],
+                selected: {isPercent},
+                onSelectionChanged: (selection) =>
+                    setSheetState(() => isPercent = selection.first),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              if (isPercent)
+                AppNumberInput(
+                  label: 'Desconto (%)',
+                  controller: percentController,
+                )
+              else
+                AppCurrencyInput(
+                  label: 'Valor do desconto (R\$)',
+                  initialValueCents: currentDiscountCents == 0
+                      ? null
+                      : currentDiscountCents,
+                  onChangedCents: (cents) => newDiscount = cents,
+                ),
+              const SizedBox(height: AppSpacing.lg),
+              AppButton(
+                label: 'Salvar',
+                onPressed: () async {
+                  if (isPercent) {
+                    final percent = double.tryParse(
+                      percentController.text.replaceAll(',', '.'),
+                    );
+                    newDiscount = percent == null
+                        ? 0
+                        : (subtotalCents * percent / 100).round();
+                  }
+                  final repo = ref.read(budgetsRepositoryProvider);
+                  await repo.updateDiscount(widget.budgetId, newDiscount ?? 0);
+                  if (context.mounted) Navigator.of(context).pop();
+                },
+              ),
             ],
           ),
         ),
