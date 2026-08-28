@@ -20,6 +20,16 @@ const Color obrionSeed = Color(0xFFC2680A);
 class AppColors {
   const AppColors._();
 
+  /// Âmbar de segurança — a cor da marca, mais clara e saturada que
+  /// [primary]. O design system trata as duas como papéis distintos, e
+  /// misturá-las foi o que deixava o app mais "marrom" que os modelos:
+  ///
+  /// - `safetyAmber` (#C2680A) — marca, ação principal (CTA/FAB) e
+  ///   valores em dinheiro. É o que o olho procura na tela.
+  /// - `primary` (#8F4A00) — tom mais escuro, para ícones e texto sobre
+  ///   fundo claro, onde #C2680A não teria contraste suficiente.
+  static const safetyAmber = Color(0xFFC2680A);
+
   // ── Primary ──────────────────────────────────────────────
   static const primary = Color(0xFF8F4A00);
   static const onPrimary = Color(0xFFFFFFFF);
@@ -57,6 +67,16 @@ class AppColors {
   // ── Outline ──────────────────────────────────────────────
   static const outline = Color(0xFF887365);
   static const outlineVariant = Color(0xFFDBC2B1);
+
+  /// Cinza neutro de contorno — **a borda padrão do design system**, usada
+  /// em card, input, divisor e barra de navegação (118 ocorrências nos
+  /// modelos, contra 1 de [outlineVariant]).
+  ///
+  /// Importa não confundir com [outlineVariant], que é um bege quente: o
+  /// design constrói hierarquia por contorno em vez de sombra (ver
+  /// "Elevation & Depth" no DESIGN.md — sombra some ao sol), então a cor
+  /// da borda é estrutural aqui, não decorativa.
+  static const surfaceOutline = Color(0xFFC4C7C5);
 
   // ── Error ────────────────────────────────────────────────
   static const error = Color(0xFFBA1A1A);
@@ -98,4 +118,20 @@ class AppSemanticPalette {
   static const onWarning = Color(0xFFFFFFFF);
   static const warningContainer = Color(0xFFFFE0B2);
   static const onWarningContainer = Color(0xFF4A2800);
+
+  /// Azul informativo — nos modelos é o estado "Enviado" do orçamento:
+  /// já saiu das mãos do profissional, mas ainda não teve resposta. Não
+  /// é sucesso nem alerta, por isso não reaproveita nenhum dos dois.
+  static const info = Color(0xFF1565C0);
+  static const onInfo = Color(0xFFFFFFFF);
+  static const infoContainer = Color(0xFFE3F2FD);
+  static const onInfoContainer = Color(0xFF1565C0);
+
+  /// `error-red` do design (#D32F2F) — tom de alerta usado em *badge* e
+  /// texto sobre fundo claro. Distinto de [AppColors.error] (#BA1A1A),
+  /// que é o vermelho do `ColorScheme` para estados de erro de campo.
+  static const danger = Color(0xFFD32F2F);
+  static const onDanger = Color(0xFFFFFFFF);
+  static const dangerContainer = Color(0xFFFFDAD6);
+  static const onDangerContainer = Color(0xFFD32F2F);
 }
