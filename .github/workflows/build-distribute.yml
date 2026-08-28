@@ -1,65 +1,75 @@
-name: Build & Distribute APK
+name: Distribuir APK do Shorebird (Firebase App Distribution)
 
-# Desativado o disparo automático a cada push em 24/08/2026 — este
-# workflow é o fluxo antigo de distribuição (Firebase App Distribution),
-# substituído pelo Shorebird OTA (ver CLAUDE.md, decisão 6). Ficou ativo
-# em paralelo sem ninguém perceber, mandando um APK novo (com R8 ligado,
-# nunca testado num aparelho) a cada commit — inclusive commits só de
-# doc — e é o motivo mais provável do app instalado ter travado em tela
-# branca: o fundador recebeu a notificação e instalou por engano, achando
-# que era a mesma coisa que o Shorebird. Disparo manual só quando
-# realmente precisar de um APK fora do fluxo Shorebird (ex.: debug de algo
-# que só reproduz fora do sandbox do Shorebird).
+# Distribui aos testadores o APK **gerado pelo `shorebird-release.yml`**,
+# baixando o artefato daquele run em vez de compilar de novo.
+#
+# Antes este workflow rodava `flutter build apk --release` por conta
+# própria. O APK que saía dali é um build puro do Flutter, **sem o motor
+# do Shorebird embutido** — quem instalasse parava de receber patch OTA,
+# e é a causa provável do incidente de 24/08/2026 (ver CLAUDE.md: o
+# fundador instalou por engano um build fora do fluxo Shorebird e o app
+# travou em tela branca). Compilar duas vezes também abria espaço para o
+# APK distribuído divergir do release publicado.
+#
+# Agora há um build só: `shorebird release android --artifact=apk` sobe o
+# APK como artefato, e este workflow apenas o repassa ao Firebase.
 on:
   workflow_dispatch:
+    inputs:
+      release_run_id:
+        description: >-
+          ID do run do "Shorebird Release (Android)" que gerou o APK
+          (ex.: 33173195739 — está na URL do run)
+        required: true
+        type: string
+      release_notes:
+        description: "Notas da versão para os testadores"
+        required: false
+        type: string
+        default: "Nova versão do Obrion Orçamentos"
 
 jobs:
-  build-and-distribute:
+  distribute:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
+      # Necessária para baixar artefato de **outro** run.
+      actions: read
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - name: Baixar APK do release do Shorebird
+        uses: actions/download-artifact@v4
         with:
-          channel: stable
-          cache: true
+          name: app-release-apk
+          run-id: ${{ inputs.release_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: apk
 
-      - name: Get dependencies
-        run: flutter pub get
+      # Falha cedo e com mensagem clara se o artefato vier vazio ou com
+      # mais de um APK — melhor que o Firebase recusar um caminho inválido
+      # depois de já ter autenticado.
+      - name: Conferir o APK baixado
+        run: |
+          ls -la apk/
+          count=$(find apk -name '*.apk' | wc -l)
+          if [ "$count" -ne 1 ]; then
+            echo "Esperava exatamente 1 APK no artefato, encontrei $count."
+            exit 1
+          fi
+          echo "APK_PATH=$(find apk -name '*.apk')" >> "$GITHUB_ENV"
 
-      - name: Analyze
-        run: flutter analyze
-
-      - name: Run tests
-        run: flutter test
-
-      # --release (não --debug): builds de debug do Flutter rodam com JIT +
-      # asserções de debug, o que deixa qualquer animação (inclusive o
-      # teclado abrindo) visivelmente mais lenta que num aparelho de
-      # verdade — não é bug do app, é como o modo debug funciona. O tipo
-      # de build "release" já está assinado com a chave de debug em
-      # android/app/build.gradle.kts (Fase 1.5, sem infra de assinatura
-      # de produção ainda), então funciona sem segredo novo.
-      - name: Build release APK
-        run: flutter build apk --release
-
-      - name: Authenticate to Google Cloud
+      - name: Autenticar no Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
-      - name: Install Firebase CLI
+      - name: Instalar Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Upload to Firebase App Distribution
+      - name: Enviar ao Firebase App Distribution
         run: |
-          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
+          firebase appdistribution:distribute "$APK_PATH" \
             --app "${{ secrets.FIREBASE_APP_ID }}" \
             --groups "teste-1" \
-            --release-notes "Build automático do Obrion Orçamentos"
+            --release-notes "${{ inputs.release_notes }}"
