@@ -7,6 +7,7 @@ import '../database/enums.dart';
 class _Keys {
   static const professionalName = 'professional_name';
   static const professionalPhone = 'professional_phone';
+  static const professionalDocument = 'professional_document';
   static const professionalLogoPath = 'professional_logo_path';
   static const trades = 'professional_trades';
 }
@@ -18,10 +19,19 @@ class _Keys {
 /// docs/POSICIONAMENTO_E_FEATURES_APP1.md, "camada de ofício") — vazio
 /// significa "não informado", nunca filtra nada.
 class ProfessionalProfile {
-  const ProfessionalProfile({this.name, this.phone, this.logoPath, this.trades = const {}});
+  const ProfessionalProfile({
+    this.name,
+    this.phone,
+    this.document,
+    this.logoPath,
+    this.trades = const {},
+  });
 
   final String? name;
   final String? phone;
+
+  /// CPF ou CNPJ do profissional/empresa — aparece no cabeçalho do PDF.
+  final String? document;
   final String? logoPath;
   final Set<Trade> trades;
 }
@@ -39,6 +49,7 @@ class ProfileRepository {
     return ProfessionalProfile(
       name: map[_Keys.professionalName],
       phone: map[_Keys.professionalPhone],
+      document: map[_Keys.professionalDocument],
       logoPath: map[_Keys.professionalLogoPath],
       trades: _decodeTrades(map[_Keys.trades]),
     );
@@ -47,6 +58,7 @@ class ProfileRepository {
   Future<void> saveProfile({
     String? name,
     String? phone,
+    String? document,
     String? logoPath,
     Set<Trade>? trades,
   }) async {
@@ -54,6 +66,7 @@ class ProfileRepository {
       batch.insertAllOnConflictUpdate(_db.appSettings, [
         AppSettingsCompanion.insert(key: _Keys.professionalName, value: name ?? ''),
         AppSettingsCompanion.insert(key: _Keys.professionalPhone, value: phone ?? ''),
+        AppSettingsCompanion.insert(key: _Keys.professionalDocument, value: document ?? ''),
         AppSettingsCompanion.insert(key: _Keys.professionalLogoPath, value: logoPath ?? ''),
         if (trades != null)
           AppSettingsCompanion.insert(key: _Keys.trades, value: _encodeTrades(trades)),

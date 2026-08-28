@@ -34,6 +34,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _documentController = TextEditingController();
   String? _logoPath;
   Set<Trade> _selectedTrades = {};
   bool _loading = true;
@@ -95,6 +96,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       setState(() {
         _nameController.text = profile.name ?? '';
         _phoneController.text = profile.phone ?? '';
+        _documentController.text = profile.document ?? '';
         _logoPath = (profile.logoPath?.isNotEmpty ?? false)
             ? profile.logoPath
             : null;
@@ -137,6 +139,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await repo.saveProfile(
       name: _nameController.text.trim(),
       phone: _phoneController.text.trim(),
+      document: _documentController.text.trim(),
       logoPath: _logoPath,
       trades: _selectedTrades,
     );
@@ -150,6 +153,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _documentController.dispose();
     super.dispose();
   }
 
@@ -185,6 +189,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   controller: _phoneController,
                   label: 'Telefone',
                   keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppTextField(
+                  controller: _documentController,
+                  label: 'CPF ou CNPJ (opcional)',
+                  hint: 'Ex: 00.000.000/0001-00',
+                  keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 _buildLogoPicker(context),

@@ -36,6 +36,7 @@ class BudgetPdfContent {
   const BudgetPdfContent({
     required this.professionalName,
     required this.professionalPhone,
+    required this.professionalDocument,
     required this.clientName,
     required this.clientPhone,
     required this.clientAddress,
@@ -58,6 +59,7 @@ class BudgetPdfContent {
     return BudgetPdfContent(
       professionalName: (professional.name?.isNotEmpty ?? false) ? professional.name! : 'Orçamento',
       professionalPhone: professional.phone?.isNotEmpty ?? false ? professional.phone : null,
+      professionalDocument: professional.document?.isNotEmpty ?? false ? professional.document : null,
       clientName: client.name,
       clientPhone: client.phone?.isNotEmpty ?? false ? client.phone : null,
       clientAddress: client.address?.isNotEmpty ?? false ? client.address : null,
@@ -83,6 +85,7 @@ class BudgetPdfContent {
 
   final String professionalName;
   final String? professionalPhone;
+  final String? professionalDocument;
   final String clientName;
   final String? clientPhone;
   final String? clientAddress;

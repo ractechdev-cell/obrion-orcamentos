@@ -101,6 +101,8 @@ class BudgetPdfGenerator {
         ),
         if (content.professionalPhone != null)
           pw.Text(content.professionalPhone!, style: const pw.TextStyle(fontSize: 11)),
+        if (content.professionalDocument != null)
+          pw.Text(content.professionalDocument!, style: const pw.TextStyle(fontSize: 11)),
         pw.Divider(),
       ],
     );
