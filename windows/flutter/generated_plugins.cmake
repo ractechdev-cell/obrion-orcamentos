@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   firebase_core
   printing
+  restart_app
   share_plus
   url_launcher_windows
 )

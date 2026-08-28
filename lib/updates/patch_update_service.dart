@@ -1,21 +1,31 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+import 'package:restart_app/restart_app.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 /// Serviço de atualização OTA via Shorebird — checa patches disponíveis,
-/// baixa e reinicia o app programaticamente quando pronto.
+/// baixa e reinicia o app automaticamente quando pronto.
 ///
 /// Por padrão, o Shorebird baixa patches em background no startup mas
 /// só aplica no próximo launch. Este serviço contorna isso chamando
-/// `update()` (que baixa + instala) e depois reiniciando via
-/// `SystemNavigator.pop()` — no Android, o sistema reabre o app.
+/// `update()` (que baixa + instala) e depois reiniciando de verdade via
+/// `Restart.restartApp()` (pacote `restart_app`) — mata o processo e o
+/// Android relança a Activity sozinho, sem o usuário tocar em nada.
+///
+/// `SystemNavigator.pop()` **não resolve isso**: só encerra/manda a
+/// activity pra segundo plano, não mata o processo, então o Flutter
+/// engine nunca recarrega o `libapp.so` com o patch novo — o usuário
+/// ainda precisava reabrir manualmente. Achado em teste real no
+/// aparelho (28/08/2026).
 ///
 /// **Quando patchear vs release completo:**
 /// - Patch: mudança só em código Dart (Widgets, lógica, UI)
 /// - Release: mudança em `android/`, `ios/`, plugin nativo, assets,
 ///   ou upgrade do Flutter engine — ver CLAUDE.md, decisão 6.
+/// `restart_app` tem código nativo Android/Kotlin — adicioná-lo pela
+/// primeira vez é, ele mesmo, uma mudança nativa (exige release
+/// completo uma única vez; depois disso volta a ser tudo patch OTA).
 class PatchUpdateService {
   const PatchUpdateService._();
 
@@ -80,14 +90,19 @@ class PatchUpdateService {
     }
   }
 
-  /// Reinicia o app — no Android, `SystemNavigator.pop()` encerra a
-  /// activity e o sistema reabre automaticamente (o app aparece na
-  /// lista de apps recentes). No iOS, pode ser necessário o toque
-  /// no ícone.
+  /// Reinicia o processo de verdade (mata e relança a Activity no
+  /// Android) — é o que faz o Flutter engine recarregar o patch já
+  /// baixado. Nunca lança: se o restart falhar por algum motivo (ex.:
+  /// build sandboxed), o app continua rodando com o código antigo em
+  /// vez de travar.
   static Future<void> _restartApp() async {
-    // Pequeno delay pra garantir que o debugPrint foi flushado
-    await Future<void>.delayed(const Duration(milliseconds: 200));
-    await SystemNavigator.pop();
+    try {
+      await Restart.restartApp();
+    } catch (error, stack) {
+      if (kDebugMode) {
+        debugPrint('[PatchUpdate] Restart falhou: $error\n$stack');
+      }
+    }
   }
 
   /// Lê o número do patch atual (para exibir na UI).
