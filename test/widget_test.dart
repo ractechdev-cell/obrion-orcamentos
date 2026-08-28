@@ -36,7 +36,9 @@ void main() {
     await tester.tap(find.text('Pular'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Obrion Orçamentos'), findsOneWidget);
+    // A Home mostra a marca em caixa alta (design system Safety
+    // Industrial); as outras abas mostram o nome da seção.
+    expect(find.text('OBRION'), findsOneWidget);
     expect(find.text('Novo Cliente'), findsOneWidget);
     // Barra de navegação inferior com as 5 abas de primeiro nível.
     expect(find.text('Início'), findsOneWidget);

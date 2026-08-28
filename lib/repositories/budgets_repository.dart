@@ -59,10 +59,18 @@ class BudgetItemInput {
 /// de orçamentos (`BudgetsListScreen`), que cruza dados de dois
 /// repositórios diferentes.
 class BudgetWithClientName {
-  const BudgetWithClientName({required this.budget, required this.clientName});
+  const BudgetWithClientName({
+    required this.budget,
+    required this.clientName,
+    required this.totalCents,
+  });
 
   final Budget budget;
   final String clientName;
+
+  /// Total já com desconto — a lista mostra o valor em cada card, então
+  /// vem calculado junto em vez de exigir uma consulta por linha na tela.
+  final int totalCents;
 }
 
 /// Orçamento parado em "Enviado" — item da lista de pendências do resumo
@@ -136,13 +144,39 @@ class BudgetsRepository {
           ..orderBy([(b) => OrderingTerm.asc(b.createdAt)]))
         .watch()
         .asyncMap((budgets) async {
-      final result = <BudgetWithClientName>[];
-      for (final budget in budgets) {
-        final client =
-            await (_db.select(_db.clients)..where((c) => c.id.equals(budget.clientId))).getSingleOrNull();
-        result.add(BudgetWithClientName(budget: budget, clientName: client?.name ?? 'Cliente removido'));
+      if (budgets.isEmpty) return const <BudgetWithClientName>[];
+
+      // Duas consultas no total, agregadas em memória — antes era uma
+      // consulta de cliente *por orçamento* (N+1), que ficava mais lenta
+      // a cada orçamento novo. Mesma estratégia de `loadHomeSummary`, com
+      // a mesma ressalva: vale pro volume de um profissional solo.
+      final clients = await _db.select(_db.clients).get();
+      final clientNameById = {for (final c in clients) c.id: c.name};
+
+      final items = await (_db.select(_db.budgetItems)
+            ..where((i) => i.deletedAt.isNull()))
+          .get();
+      final itemsByBudget = <String, List<BudgetItem>>{};
+      for (final item in items) {
+        itemsByBudget.putIfAbsent(item.budgetId, () => []).add(item);
       }
-      return result;
+
+      return [
+        for (final budget in budgets)
+          BudgetWithClientName(
+            budget: budget,
+            clientName: clientNameById[budget.clientId] ?? 'Cliente removido',
+            totalCents: BudgetTotals.fromItems(
+              items: (itemsByBudget[budget.id] ?? const [])
+                  .map((i) => BudgetLineItem(
+                        quantity: i.quantity,
+                        unitPriceCents: i.unitPriceCents,
+                      ))
+                  .toList(),
+              discountCents: budget.discountCents,
+            ).totalCents,
+          ),
+      ];
     });
   }
 

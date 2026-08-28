@@ -7,45 +7,43 @@ import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
 import '../repositories/budgets_repository.dart';
 import '../repositories/example_data_seeder.dart';
-import '../theme/app_semantic_colors.dart';
 import '../theme/app_spacing.dart';
+import '../utils/currency_format.dart';
 import '../utils/follow_up_message.dart';
 import '../utils/phone_actions.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
+import '../widgets/app_filter_chips.dart';
 import '../widgets/app_loading.dart';
+import '../widgets/app_search_field.dart';
 import '../widgets/app_snackbar.dart';
+import '../widgets/app_status_chip.dart';
 import 'budget_form_screen.dart';
-import 'budget_wizard_screen.dart';
-
-Color _statusColor(BuildContext context, BudgetStatus status) {
-  final colorScheme = Theme.of(context).colorScheme;
-  switch (status) {
-    case BudgetStatus.draft:
-      return colorScheme.outline;
-    case BudgetStatus.sent:
-      return colorScheme.primary;
-    case BudgetStatus.accepted:
-      return context.semanticColors.success;
-    case BudgetStatus.declined:
-      return colorScheme.error;
-  }
-}
 
 /// Todos os orçamentos, de todos os clientes, numerados — visão geral que
 /// o histórico por cliente (`ClientDetailScreen`) não substitui: aqui dá
 /// pra ver o negócio inteiro de uma vez, não cliente por cliente.
-class BudgetsListScreen extends ConsumerWidget {
+class BudgetsListScreen extends ConsumerStatefulWidget {
   const BudgetsListScreen({super.key});
+
+  @override
+  ConsumerState<BudgetsListScreen> createState() => _BudgetsListScreenState();
+}
+
+class _BudgetsListScreenState extends ConsumerState<BudgetsListScreen> {
+  String _query = '';
+  BudgetStatus? _statusFilter;
 
   Future<void> _createBudget(BuildContext context, WidgetRef ref) async {
     final clients = await ref.read(clientsRepositoryProvider).watchAll().first;
     if (!context.mounted) return;
 
     if (clients.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cadastre um cliente primeiro, na aba Clientes.')),
+      AppSnackBar.show(
+        context,
+        'Cadastre um cliente primeiro, na aba Clientes.',
+        variant: AppSnackBarVariant.warning,
       );
       return;
     }
@@ -56,12 +54,17 @@ class BudgetsListScreen extends ConsumerWidget {
       isScrollControlled: true,
       builder: (context) => SafeArea(
         child: SizedBox(
-          height: (MediaQuery.of(context).size.height * 0.6).clamp(400.0, 700.0),
+          height: MediaQuery.of(context).size.height * 0.6,
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                child: Text('Orçamento para qual cliente?', style: Theme.of(context).textTheme.titleMedium),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                ),
+                child: Text(
+                  'Orçamento para qual cliente?',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
               const SizedBox(height: AppSpacing.sm),
               Expanded(
@@ -84,7 +87,9 @@ class BudgetsListScreen extends ConsumerWidget {
 
     if (selected != null && context.mounted) {
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => BudgetWizardScreen(clientId: selected.id)),
+        MaterialPageRoute(
+          builder: (_) => BudgetFormScreen(clientId: selected.id),
+        ),
       );
     }
   }
@@ -92,19 +97,32 @@ class BudgetsListScreen extends ConsumerWidget {
   /// Busca o telefone do cliente só na hora de mandar o lembrete (evita
   /// carregar isso pra lista inteira via `BudgetWithClientName`, que hoje
   /// não guarda telefone — ver `PhoneActions.openWhatsApp`).
-  Future<void> _sendFollowUp(BuildContext context, WidgetRef ref, String clientId, String clientName) async {
+  Future<void> _sendFollowUp(
+    BuildContext context,
+    WidgetRef ref,
+    String clientId,
+    String clientName,
+  ) async {
     final client = await ref.read(clientsRepositoryProvider).getById(clientId);
     final phone = client?.phone;
     if (!context.mounted) return;
     if (phone == null || phone.isEmpty) {
-      AppSnackBar.show(context, 'Esse cliente não tem telefone salvo.', variant: AppSnackBarVariant.warning);
+      AppSnackBar.show(
+        context,
+        'Esse cliente não tem telefone salvo.',
+        variant: AppSnackBarVariant.warning,
+      );
       return;
     }
-    await PhoneActions.openWhatsApp(context, phone, message: followUpMessage(clientName));
+    await PhoneActions.openWhatsApp(
+      context,
+      phone,
+      message: followUpMessage(clientName),
+    );
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final repo = ref.watch(budgetsRepositoryProvider);
 
     return Scaffold(
@@ -123,8 +141,9 @@ class BudgetsListScreen extends ConsumerWidget {
           if (!snapshot.hasData) {
             return const AppLoading();
           }
-          final items = snapshot.data!;
-          if (items.isEmpty) {
+          final all = snapshot.data!;
+
+          if (all.isEmpty) {
             return AppEmptyState(
               message: 'Você ainda não criou nenhum orçamento.\n\n'
                   'Crie o primeiro para começar a enviar propostas pelo WhatsApp.',
@@ -138,101 +157,205 @@ class BudgetsListScreen extends ConsumerWidget {
             );
           }
 
-          // items vem do mais antigo pro mais novo — número = posição
+          // `all` vem do mais antigo pro mais novo — número = posição
           // nessa ordem (estável), lista exibida do mais novo pro mais
-          // antigo (convenção do resto do app).
-          final displayItems = [
-            for (var i = items.length - 1; i >= 0; i--) (number: i + 1, entry: items[i]),
+          // antigo (convenção do resto do app). A numeração é atribuída
+          // antes de filtrar, pra que o "nº 3" continue sendo o mesmo
+          // orçamento independentemente do filtro ativo.
+          final numbered = [
+            for (var i = all.length - 1; i >= 0; i--)
+              (number: i + 1, entry: all[i]),
           ];
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            itemCount: displayItems.length,
-            separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
-            itemBuilder: (context, index) {
-              final (:number, :entry) = displayItems[index];
-              final budget = entry.budget;
-              final color = _statusColor(context, budget.status);
+          final query = _query.trim().toLowerCase();
+          final visible = numbered.where((row) {
+            final matchesStatus =
+                _statusFilter == null || row.entry.budget.status == _statusFilter;
+            final matchesQuery = query.isEmpty ||
+                row.entry.clientName.toLowerCase().contains(query);
+            return matchesStatus && matchesQuery;
+          }).toList();
 
-              return AppCard(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => BudgetFormScreen(clientId: budget.clientId, budgetId: budget.id),
-                  ),
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.sm,
                 ),
+                child: AppSearchField(
+                  hint: 'Buscar por cliente...',
+                  onChanged: (value) => setState(() => _query = value),
+                ),
+              ),
+              AppFilterChips<BudgetStatus>(
+                selected: _statusFilter,
+                onSelected: (value) => setState(() => _statusFilter = value),
+                options: const [
+                  AppFilterOption(value: null, label: 'Todos'),
+                  AppFilterOption(
+                    value: BudgetStatus.draft,
+                    label: 'Rascunho',
+                  ),
+                  AppFilterOption(value: BudgetStatus.sent, label: 'Enviado'),
+                  AppFilterOption(
+                    value: BudgetStatus.accepted,
+                    label: 'Aceito',
+                  ),
+                  AppFilterOption(
+                    value: BudgetStatus.declined,
+                    label: 'Recusado',
+                  ),
+                ],
+              ),
+              Expanded(
+                child: visible.isEmpty
+                    ? AppEmptyState(
+                        message: query.isNotEmpty
+                            ? 'Nenhum orçamento encontrado para "$_query".'
+                            : 'Nenhum orçamento com esse status.',
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.md,
+                          AppSpacing.sm,
+                          AppSpacing.md,
+                          // Espaço extra no fim pra que o último card não
+                          // fique atrás do botão flutuante.
+                          AppSpacing.xxl + AppSpacing.lg,
+                        ),
+                        itemCount: visible.length,
+                        separatorBuilder: (_, _) =>
+                            const SizedBox(height: AppSpacing.sm),
+                        itemBuilder: (context, index) {
+                          final (:number, :entry) = visible[index];
+                          return _BudgetCard(
+                            number: number,
+                            entry: entry,
+                            onFollowUp: () => _sendFollowUp(
+                              context,
+                              ref,
+                              entry.budget.clientId,
+                              entry.clientName,
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Card de orçamento no formato dos modelos: título e data à esquerda,
+/// selo de estado à direita, e uma faixa inferior separada por filete com
+/// o valor e a ação principal.
+class _BudgetCard extends StatelessWidget {
+  const _BudgetCard({
+    required this.number,
+    required this.entry,
+    required this.onFollowUp,
+  });
+
+  final int number;
+  final BudgetWithClientName entry;
+  final VoidCallback onFollowUp;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final budget = entry.budget;
+    final isDraft = budget.status == BudgetStatus.draft;
+
+    void open() => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => BudgetFormScreen(
+              clientId: budget.clientId,
+              budgetId: budget.id,
+            ),
+          ),
+        );
+
+    final date = budget.createdAt;
+    final dateLabel = '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/${date.year}';
+
+    return AppCard(
+      onTap: open,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Text(
-                            '$number',
-                            style: TextStyle(color: color, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(entry.clientName, style: Theme.of(context).textTheme.titleMedium),
-                              Text(
-                                '${budget.createdAt.day}/${budget.createdAt.month}/${budget.createdAt.year}',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            switch (budget.status) {
-                              BudgetStatus.draft => 'Rascunho',
-                              BudgetStatus.sent => 'Enviado',
-                              BudgetStatus.accepted => 'Aceito',
-                              BudgetStatus.declined => 'Recusado',
-                            },
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelMedium
-                                ?.copyWith(color: color, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
+                    Text(
+                      'Orçamento nº $number — ${entry.clientName}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium,
                     ),
-                    if (budget.status == BudgetStatus.sent) ...[
-                      const SizedBox(height: AppSpacing.xs),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          style: const ButtonStyle(visualDensity: VisualDensity.compact),
-                          onPressed: () =>
-                              _sendFollowUp(context, ref, budget.clientId, entry.clientName),
-                          icon: const Icon(Icons.chat_outlined, size: 16),
-                          label: const Text('Enviar lembrete'),
-                        ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Criado em $dateLabel',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
-                    ],
+                    ),
                   ],
                 ),
-              );
-            },
-          );
-        },
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              AppStatusChip.budget(budget.status),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          const Divider(),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  // Rascunho sem item ainda não tem valor a mostrar — o
+                  // traço evita anunciar "R$ 0,00" como se fosse decisão
+                  // do profissional.
+                  isDraft && entry.totalCents == 0
+                      ? '—'
+                      : formatCurrencyBrl(entry.totalCents),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleLarge,
+                ),
+              ),
+              TextButton(
+                onPressed: open,
+                child: Text(isDraft ? 'Continuar' : 'Ver detalhes'),
+              ),
+            ],
+          ),
+          if (budget.status == BudgetStatus.sent) ...[
+            const SizedBox(height: AppSpacing.xs),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: onFollowUp,
+                icon: const Icon(
+                  Icons.notifications_active_outlined,
+                  size: 18,
+                ),
+                label: const Text('Enviar lembrete'),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
