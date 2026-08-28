@@ -10,7 +10,9 @@ import 'package:upgrader/upgrader.dart';
 import 'analytics/analytics_service.dart';
 import 'notifications/notification_service.dart';
 import 'routing/app_router.dart';
+import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
+import 'updates/patch_update_service.dart';
 
 /// Liga a checagem de atualização (ver decisão do plano de 23/08/2026,
 /// módulo AppUpdate). Desligada nos widget tests — `UpgradeAlert` faz uma
@@ -47,16 +49,56 @@ class ObrionOrcamentosApp extends ConsumerStatefulWidget {
 }
 
 class _ObrionOrcamentosAppState extends ConsumerState<ObrionOrcamentosApp> {
+  bool _checkingPatch = true;
+
   @override
   void initState() {
     super.initState();
     AnalyticsService.trackEvent('app_open');
     NotificationService.initialize();
+    _checkForPatch();
+  }
+
+  /// Checa por patches OTA do Shorebird. Se houver, baixa e reinicia.
+  Future<void> _checkForPatch() async {
+    final applied = await PatchUpdateService.checkAndUpdate();
+    if (mounted && !applied) {
+      setState(() => _checkingPatch = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final showUpgradeAlert = ref.watch(showUpgradeAlertProvider);
+
+    // Overlay de loading enquanto checa patch — só aparece no primeiro
+    // boot (antes do setState). Se um patch for aplicado, o app reinicia
+    // e esta tela não chega a mostrar.
+    if (_checkingPatch) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light(),
+        home: const Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: AppColors.primary),
+                SizedBox(height: 24),
+                Text(
+                  'Verificando atualizações...',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return MaterialApp.router(
       title: 'Obrion Orçamentos',
       debugShowCheckedModeBanner: false,
