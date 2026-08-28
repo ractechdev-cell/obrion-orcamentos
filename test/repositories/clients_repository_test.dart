@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:orcamentos/database/database.dart';
+import 'package:orcamentos/repositories/budgets_repository.dart';
 import 'package:orcamentos/repositories/clients_repository.dart';
 
 void main() {
@@ -72,5 +73,38 @@ void main() {
     await repository.update(id: client.id, email: const Value('ana.pintora@example.com'));
     final updated = await repository.getById(client.id);
     expect(updated!.email, 'ana.pintora@example.com');
+  });
+
+  group('watchAllWithBudgetCount', () {
+    test('conta orçamentos por cliente e devolve zero pra quem não tem',
+        () async {
+      final budgetsRepo = BudgetsRepository(database);
+      final comOrcamento = await repository.create(name: 'Ana Pintora');
+      final semOrcamento = await repository.create(name: 'Bruno Pedreiro');
+
+      await budgetsRepo.create(clientId: comOrcamento.id);
+      await budgetsRepo.create(clientId: comOrcamento.id);
+
+      final rows = await repository.watchAllWithBudgetCount().first;
+
+      // Ordenado por nome: Ana antes de Bruno.
+      expect(rows.map((r) => r.client.id), [comOrcamento.id, semOrcamento.id]);
+      expect(rows.first.budgetCount, 2);
+      // O join é externo — sem o filtro no COUNT, cliente sem orçamento
+      // viria com 1 (a linha nula do join) em vez de 0.
+      expect(rows.last.budgetCount, 0);
+    });
+
+    test('não conta orçamento excluído', () async {
+      final budgetsRepo = BudgetsRepository(database);
+      final client = await repository.create(name: 'Carla Gesseira');
+      final budget = await budgetsRepo.create(clientId: client.id);
+      await budgetsRepo.create(clientId: client.id);
+
+      await budgetsRepo.softDelete(budget.id);
+
+      final rows = await repository.watchAllWithBudgetCount().first;
+      expect(rows.single.budgetCount, 1);
+    });
   });
 }

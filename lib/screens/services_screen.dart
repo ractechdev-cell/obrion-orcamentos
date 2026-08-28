@@ -7,6 +7,7 @@ import '../database/database.dart';
 import '../database/enums.dart';
 import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
+import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../utils/currency_format.dart';
 import '../utils/service_filter.dart';
@@ -17,7 +18,9 @@ import '../widgets/app_currency_input.dart';
 import '../widgets/app_dialog.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
+import '../widgets/app_filter_chips.dart';
 import '../widgets/app_loading.dart';
+import '../widgets/app_search_field.dart';
 import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
 import 'service_unit_label.dart';
@@ -147,11 +150,9 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
-            child: AppTextField(
-              label: 'Buscar serviço',
+            child: AppSearchField(
               hint: 'Ex: Reboco, pintura...',
               onChanged: (val) => setState(() => _query = val),
-              prefixIcon: const Icon(Icons.search),
             ),
           ),
           Expanded(
@@ -172,30 +173,15 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                 return Column(
                   children: [
                     if (categories.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: SizedBox(
-                          height: 36,
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                            children: [
-                              ChoiceChip(
-                                label: const Text('Todas'),
-                                selected: _selectedCategory == null,
-                                onSelected: (_) => setState(() => _selectedCategory = null),
-                              ),
-                              for (final category in categories) ...[
-                                const SizedBox(width: AppSpacing.xs),
-                                ChoiceChip(
-                                  label: Text(category),
-                                  selected: _selectedCategory == category,
-                                  onSelected: (_) => setState(() => _selectedCategory = category),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
+                      AppFilterChips<String>(
+                        selected: _selectedCategory,
+                        onSelected: (value) =>
+                            setState(() => _selectedCategory = value),
+                        options: [
+                          const AppFilterOption(value: null, label: 'Todas'),
+                          for (final category in categories)
+                            AppFilterOption(value: category, label: category),
+                        ],
                       ),
                     Expanded(child: _buildList(context, services)),
                   ],
@@ -228,34 +214,86 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
       );
     }
     return ListView.separated(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        // Espaço extra pra que o último card não fique atrás do botão
+        // flutuante.
+        AppSpacing.xxl + AppSpacing.lg,
+      ),
       itemCount: services.length,
-      separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
+      separatorBuilder: (context, index) =>
+          const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, index) {
         final s = services[index];
-        final priceText =
-            s.defaultPriceCents != null ? formatCurrencyBrl(s.defaultPriceCents!) : 'Preço não definido';
-        final subtitle = [
-          if (s.category != null && s.category!.trim().isNotEmpty) s.category!.trim(),
-          'Unidade: ${serviceUnitLabel(s.unit)}',
-          priceText,
-        ].join(' • ');
+        final theme = Theme.of(context);
+        final hasPrice = s.defaultPriceCents != null;
+        final category = s.category?.trim() ?? '';
 
         return AppCard(
           onTap: () => _showForm(context, service: s),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(s.name, style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      s.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      category.isEmpty ? 'Sem categoria' : 'Categoria: $category',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right),
+              const SizedBox(width: AppSpacing.sm),
+              // Preço à direita, com a unidade abaixo. `ConstrainedBox`
+              // impede que um preço longo empurre o nome do serviço até
+              // sumir numa tela estreita.
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 130),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        hasPrice
+                            ? formatCurrencyBrl(s.defaultPriceCents!)
+                            : 'A definir',
+                        maxLines: 1,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: hasPrice
+                              ? AppColors.safetyAmber
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      'por ${serviceUnitLabel(s.unit)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.right,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         );
