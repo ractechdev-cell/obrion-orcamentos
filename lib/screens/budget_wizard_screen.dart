@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +12,7 @@ import '../pdf/budget_share_service.dart';
 import '../providers/budget_templates_repository_provider.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
+import '../providers/measurements_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
 import '../repositories/budgets_repository.dart';
@@ -1021,6 +1023,8 @@ class _ConditionsStepState extends ConsumerState<_ConditionsStep> {
   final _jobDescriptionController = TextEditingController();
   DateTime? _validUntil;
   bool _loaded = false;
+  String? _selectedProjectId;
+  String? _clientId;
 
   @override
   void dispose() {
@@ -1037,6 +1041,8 @@ class _ConditionsStepState extends ConsumerState<_ConditionsStep> {
     _notesController.text = data.budget.notes ?? '';
     _jobDescriptionController.text = data.budget.jobDescription ?? '';
     _validUntil = data.budget.validUntil;
+    _selectedProjectId = data.budget.projectId;
+    _clientId = data.budget.clientId;
     setState(() => _loaded = true);
   }
 
@@ -1049,6 +1055,7 @@ class _ConditionsStepState extends ConsumerState<_ConditionsStep> {
       notes: notes.isEmpty ? null : notes,
       validUntil: _validUntil,
       jobDescription: jobDescription.isEmpty ? null : jobDescription,
+      projectId: drift.Value(_selectedProjectId),
     );
     widget.onNext();
   }
@@ -1085,6 +1092,8 @@ class _ConditionsStepState extends ConsumerState<_ConditionsStep> {
                     maxLines: 3,
                   ),
                   const SizedBox(height: AppSpacing.md),
+                  _buildProjectSelector(context),
+                  const SizedBox(height: AppSpacing.md),
                   AppTextField(
                     label: 'Observações',
                     hint: 'Ex: pagamento em 2x, prazo de 15 dias, garantia de 6 meses',
@@ -1112,6 +1121,127 @@ class _ConditionsStepState extends ConsumerState<_ConditionsStep> {
       },
     );
   }
+
+  Widget _buildProjectSelector(BuildContext context) {
+    if (_clientId == null) return const SizedBox.shrink();
+
+    final measurementsRepo = ref.watch(measurementsRepositoryProvider);
+    
+    return StreamBuilder<List<Project>>(
+      stream: measurementsRepo.watchProjectsByClient(_clientId!),
+      builder: (context, snapshot) {
+        final projects = snapshot.data ?? [];
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Obra (opcional)',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () => _createNewProject(context),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Nova obra'),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            if (projects.isEmpty)
+              Text(
+                'Nenhuma obra cadastrada para este cliente',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              )
+            else
+              Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  ChoiceChip(
+                    label: const Text('Nenhuma'),
+                    selected: _selectedProjectId == null,
+                    onSelected: (_) => setState(() => _selectedProjectId = null),
+                  ),
+                  for (final project in projects)
+                    ChoiceChip(
+                      label: Text(project.name),
+                      selected: _selectedProjectId == project.id,
+                      onSelected: (_) => setState(() => _selectedProjectId = project.id),
+                    ),
+                ],
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _createNewProject(BuildContext context) async {
+    final nameController = TextEditingController();
+    final addressController = TextEditingController();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Nova obra'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppTextField(
+              controller: nameController,
+              label: 'Nome da obra',
+              hint: 'Ex: Reforma Apartamento',
+            ),
+            const SizedBox(height: AppSpacing.md),
+            AppTextField(
+              controller: addressController,
+              label: 'Endereço (opcional)',
+              hint: 'Ex: Rua das Flores, 123',
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Criar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && _clientId != null && mounted) {
+      final name = nameController.text.trim();
+      if (name.isEmpty) {
+        AppSnackBar.show(context, 'O nome da obra é obrigatório');
+        return;
+      }
+      
+      final measurementsRepo = ref.read(measurementsRepositoryProvider);
+      final project = await measurementsRepo.createProject(
+        clientId: _clientId!,
+        name: name,
+        address: addressController.text.trim().isEmpty ? null : addressController.text.trim(),
+      );
+      
+      if (mounted) {
+        setState(() => _selectedProjectId = project.id);
+        AppSnackBar.show(context, 'Obra criada');
+      }
+    }
+
+    nameController.dispose();
+    addressController.dispose();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1135,6 +1265,7 @@ class _ReviewStep extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final repo = ref.watch(budgetsRepositoryProvider);
     final clientsRepo = ref.read(clientsRepositoryProvider);
+    final measurementsRepo = ref.read(measurementsRepositoryProvider);
 
     return StreamBuilder<BudgetWithItems?>(
       stream: repo.watchById(budgetId),
@@ -1160,6 +1291,45 @@ class _ReviewStep extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.md),
                   _buildClientSection(context, clientsRepo),
                   const SizedBox(height: AppSpacing.md),
+                  if (budget.projectId != null)
+                    FutureBuilder<List<Project>>(
+                      future: measurementsRepo.watchProjectsByClient(budget.clientId).first,
+                      builder: (context, projectSnapshot) {
+                        final projects = projectSnapshot.data ?? [];
+                        final project = projects.where((p) => p.id == budget.projectId).firstOrNull;
+                        if (project == null) return const SizedBox.shrink();
+                        return Column(
+                          children: [
+                            AppCard(
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.location_city_outlined),
+                                  const SizedBox(width: AppSpacing.sm),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Obra',
+                                          style: Theme.of(context).textTheme.labelLarge,
+                                        ),
+                                        Text(project.name),
+                                        if (project.address != null && project.address!.isNotEmpty)
+                                          Text(
+                                            project.address!,
+                                            style: Theme.of(context).textTheme.bodySmall,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                          ],
+                        );
+                      },
+                    ),
                   if (budget.jobDescription != null &&
                       budget.jobDescription!.isNotEmpty) ...[
                     AppCard(
@@ -1445,6 +1615,7 @@ class _SendStepState extends ConsumerState<_SendStep> {
     final repo = ref.read(budgetsRepositoryProvider);
     final clientsRepo = ref.read(clientsRepositoryProvider);
     final profileRepo = ref.read(profileRepositoryProvider);
+    final measurementsRepo = ref.read(measurementsRepositoryProvider);
 
     final data = await repo.watchById(widget.budgetId).first;
     final client = await clientsRepo.getById(widget.clientId);
@@ -1452,6 +1623,12 @@ class _SendStepState extends ConsumerState<_SendStep> {
 
     final professional = await profileRepo.getProfile();
     final budgetNumber = await repo.getBudgetNumber(widget.budgetId);
+    
+    Project? project;
+    if (data.budget.projectId != null) {
+      final projects = await measurementsRepo.watchProjectsByClient(widget.clientId).first;
+      project = projects.where((p) => p.id == data.budget.projectId).firstOrNull;
+    }
 
     if (format == BudgetShareFormat.pdf) {
       await BudgetShareService.shareAsPdf(
@@ -1459,6 +1636,7 @@ class _SendStepState extends ConsumerState<_SendStep> {
         client: client,
         professional: professional,
         budgetNumber: budgetNumber,
+        project: project,
       );
     } else {
       await BudgetShareService.shareAsImage(
@@ -1466,6 +1644,7 @@ class _SendStepState extends ConsumerState<_SendStep> {
         client: client,
         professional: professional,
         budgetNumber: budgetNumber,
+        project: project,
       );
     }
 

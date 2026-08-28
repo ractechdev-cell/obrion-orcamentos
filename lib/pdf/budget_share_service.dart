@@ -26,12 +26,14 @@ class BudgetShareService {
     required Client client,
     required ProfessionalProfile professional,
     int? budgetNumber,
+    Project? project,
   }) async {
     final bytes = await _generateBytes(
       data: data,
       client: client,
       professional: professional,
       budgetNumber: budgetNumber,
+      project: project,
     );
 
     await SharePlus.instance.share(
@@ -52,12 +54,14 @@ class BudgetShareService {
     required Client client,
     required ProfessionalProfile professional,
     int? budgetNumber,
+    Project? project,
   }) async {
     final bytes = await _generateBytes(
       data: data,
       client: client,
       professional: professional,
       budgetNumber: budgetNumber,
+      project: project,
     );
 
     final pages = Printing.raster(bytes, pages: [0], dpi: 150);
@@ -110,12 +114,14 @@ class BudgetShareService {
     required Client client,
     required ProfessionalProfile professional,
     int? budgetNumber,
+    Project? project,
   }) async {
     final doc = await BudgetPdfGenerator.generate(
       data: data,
       client: client,
       professional: professional,
       budgetNumber: budgetNumber,
+      project: project,
     );
     return doc.save();
   }

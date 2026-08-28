@@ -22,6 +22,7 @@ class BudgetPdfGenerator {
     required Client client,
     required ProfessionalProfile professional,
     int? budgetNumber,
+    Project? project,
   }) async {
     final doc = pw.Document();
     final content = BudgetPdfContent.fromData(
@@ -29,17 +30,12 @@ class BudgetPdfGenerator {
       client: client,
       professional: professional,
       budgetNumber: budgetNumber,
+      project: project,
     );
     final logo = await _loadLogo(professional.logoPath);
-
+    final footerText = content.professionalPdfFooterText ?? 'Feito com Obrion — obrion.app';
     doc.addPage(
       pw.MultiPage(
-        // Pinta o fundo da página de branco explicitamente — sem isso a
-        // página fica transparente, e o PNG gerado por "compartilhar como
-        // imagem" (Printing.raster) herda essa transparência. No WhatsApp
-        // com tema escuro isso vira um fundo preto atrás de texto preto:
-        // o cabeçalho da tabela ainda aparecia (tem fundo cinza próprio),
-        // mas as linhas de item ficavam invisíveis.
         pageTheme: pw.PageTheme(
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.all(32),
@@ -49,13 +45,48 @@ class BudgetPdfGenerator {
           ),
         ),
         header: (context) => _buildHeader(content, logo),
-        footer: (context) => _buildFooter(context),
+        footer: (context) {
+          return pw.Column(
+            children: [
+              pw.Divider(),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Expanded(
+                    child: pw.Text(
+                      footerText,
+                      style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+                      maxLines: 2,
+                      overflow: pw.TextOverflow.clip,
+                    ),
+                  ),
+                  pw.SizedBox(width: 8),
+                  pw.Text(
+                    'Página ${context.pageNumber} de ${context.pagesCount}',
+                    style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+
         build: (context) => [
           pw.SizedBox(height: 16),
           _buildClientInfo(content),
+          if (content.projectName != null) ...[
+            pw.SizedBox(height: 16),
+            pw.Text('Obra', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 4),
+            pw.Text(content.projectName!),
+            if (content.projectAddress != null) ...[
+              pw.SizedBox(height: 2),
+              pw.Text(content.projectAddress!, style: const pw.TextStyle(fontSize: 10)),
+            ],
+          ],
           if (content.jobDescription != null) ...[
             pw.SizedBox(height: 16),
-            pw.Text('Projeto / Obra', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            pw.Text('Descrição / Escopo', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 4),
             pw.Text(content.jobDescription!),
           ],
@@ -68,6 +99,18 @@ class BudgetPdfGenerator {
             pw.Text('Observações', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 4),
             pw.Text(content.notes!),
+          ],
+          if (content.professionalPdfTermsAndConditions != null) ...[
+            pw.SizedBox(height: 24),
+            pw.Text('Termos e Condições', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 4),
+            pw.Text(content.professionalPdfTermsAndConditions!),
+          ],
+          if (content.professionalPixKey != null) ...[
+            pw.SizedBox(height: 24),
+            pw.Text('Pagamento via PIX', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 4),
+            pw.Text('Chave: ${content.professionalPixKey}'),
           ],
           pw.SizedBox(height: 40),
           _buildSignatures(content),
@@ -138,26 +181,7 @@ class BudgetPdfGenerator {
     );
   }
 
-  static pw.Widget _buildFooter(pw.Context context) {
-    return pw.Column(
-      children: [
-        pw.Divider(),
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          children: [
-            pw.Text(
-              'Feito com Obrion — obrion.app',
-              style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
-            ),
-            pw.Text(
-              'Página ${context.pageNumber} de ${context.pagesCount}',
-              style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+
 
   static pw.Widget _buildClientInfo(BudgetPdfContent content) {
     return pw.Row(

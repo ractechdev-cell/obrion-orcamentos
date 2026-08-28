@@ -39,6 +39,9 @@ class BudgetPdfContent {
     required this.professionalEmail,
     required this.professionalDocument,
     required this.professionalAddress,
+    required this.professionalPixKey,
+    required this.professionalPdfFooterText,
+    required this.professionalPdfTermsAndConditions,
     required this.budgetNumber,
     required this.clientName,
     required this.clientPhone,
@@ -51,6 +54,8 @@ class BudgetPdfContent {
     required this.totalFormatted,
     required this.notes,
     required this.jobDescription,
+    required this.projectName,
+    required this.projectAddress,
   });
 
   factory BudgetPdfContent.fromData({
@@ -58,6 +63,7 @@ class BudgetPdfContent {
     required Client client,
     required ProfessionalProfile professional,
     int? budgetNumber,
+    Project? project,
   }) {
     final totals = data.totals;
     return BudgetPdfContent(
@@ -66,6 +72,9 @@ class BudgetPdfContent {
       professionalEmail: professional.email?.isNotEmpty ?? false ? professional.email : null,
       professionalDocument: professional.document?.isNotEmpty ?? false ? professional.document : null,
       professionalAddress: professional.address?.isNotEmpty ?? false ? professional.address : null,
+      professionalPixKey: professional.pixKey?.isNotEmpty ?? false ? professional.pixKey : null,
+      professionalPdfFooterText: professional.pdfFooterText?.isNotEmpty ?? false ? professional.pdfFooterText : null,
+      professionalPdfTermsAndConditions: professional.pdfTermsAndConditions?.isNotEmpty ?? false ? professional.pdfTermsAndConditions : null,
       budgetNumber: budgetNumber,
       clientName: client.name,
       clientPhone: client.phone?.isNotEmpty ?? false ? client.phone : null,
@@ -87,6 +96,8 @@ class BudgetPdfContent {
       notes: (data.budget.notes?.isNotEmpty ?? false) ? data.budget.notes : null,
       jobDescription:
           (data.budget.jobDescription?.isNotEmpty ?? false) ? data.budget.jobDescription : null,
+      projectName: project?.name,
+      projectAddress: project?.address,
     );
   }
 
@@ -95,6 +106,9 @@ class BudgetPdfContent {
   final String? professionalEmail;
   final String? professionalDocument;
   final String? professionalAddress;
+  final String? professionalPixKey;
+  final String? professionalPdfFooterText;
+  final String? professionalPdfTermsAndConditions;
   final int? budgetNumber;
   final String clientName;
   final String? clientPhone;
@@ -107,4 +121,6 @@ class BudgetPdfContent {
   final String totalFormatted;
   final String? notes;
   final String? jobDescription;
+  final String? projectName;
+  final String? projectAddress;
 }

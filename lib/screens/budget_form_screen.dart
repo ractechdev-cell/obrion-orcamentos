@@ -12,6 +12,7 @@ import '../pdf/budget_share_service.dart';
 import '../providers/budget_templates_repository_provider.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
+import '../providers/measurements_repository_provider.dart';
 import '../providers/payments_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
@@ -950,11 +951,18 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     final clientsRepo = ref.read(clientsRepositoryProvider);
     final profileRepo = ref.read(profileRepositoryProvider);
     final budgetsRepo = ref.read(budgetsRepositoryProvider);
+    final measurementsRepo = ref.read(measurementsRepositoryProvider);
 
     final client = await clientsRepo.getById(data.budget.clientId);
     if (client == null) return;
     final professional = await profileRepo.getProfile();
     final budgetNumber = await budgetsRepo.getBudgetNumber(data.budget.id);
+    
+    Project? project;
+    if (data.budget.projectId != null) {
+      final projects = await measurementsRepo.watchProjectsByClient(data.budget.clientId).first;
+      project = projects.where((p) => p.id == data.budget.projectId).firstOrNull;
+    }
 
     if (format == BudgetShareFormat.pdf) {
       await BudgetShareService.shareAsPdf(
@@ -962,6 +970,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
         client: client,
         professional: professional,
         budgetNumber: budgetNumber,
+        project: project,
       );
     } else {
       await BudgetShareService.shareAsImage(
@@ -969,6 +978,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
         client: client,
         professional: professional,
         budgetNumber: budgetNumber,
+        project: project,
       );
     }
     final formatParam = format == BudgetShareFormat.pdf ? 'pdf' : 'imagem';

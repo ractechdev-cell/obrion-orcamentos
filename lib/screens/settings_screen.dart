@@ -14,6 +14,7 @@ import '../providers/profile_repository_provider.dart';
 import '../repositories/account_repository.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
+import '../utils/input_formatters.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/app_snackbar.dart';
@@ -37,12 +38,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _emailController = TextEditingController();
   final _documentController = TextEditingController();
   final _addressController = TextEditingController();
+  final _pixKeyController = TextEditingController();
+  final _pdfFooterTextController = TextEditingController();
+  final _pdfTermsAndConditionsController = TextEditingController();
   String? _logoPath;
   Set<Trade> _selectedTrades = {};
   bool _loading = true;
   bool _saving = false;
   String? _versionLabel;
   LocalAccount _account = const LocalAccount(signedIn: false);
+  bool _isDocumentCpf = true;
+  bool _pdfConfigExpanded = false;
 
   @override
   void initState() {
@@ -101,10 +107,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         _emailController.text = profile.email ?? '';
         _documentController.text = profile.document ?? '';
         _addressController.text = profile.address ?? '';
+        _pixKeyController.text = profile.pixKey ?? '';
+        _pdfFooterTextController.text = profile.pdfFooterText ?? '';
+        _pdfTermsAndConditionsController.text = profile.pdfTermsAndConditions ?? '';
         _logoPath = (profile.logoPath?.isNotEmpty ?? false)
             ? profile.logoPath
             : null;
         _selectedTrades = profile.trades;
+        final digits = (profile.document ?? '').replaceAll(RegExp(r'\D'), '');
+        _isDocumentCpf = digits.length <= 11;
+        _pdfConfigExpanded = [
+          _pixKeyController,
+          _pdfFooterTextController,
+          _pdfTermsAndConditionsController,
+        ].any((c) => c.text.isNotEmpty);
         _loading = false;
       });
     }
@@ -148,6 +164,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       address: _addressController.text.trim(),
       logoPath: _logoPath,
       trades: _selectedTrades,
+      pixKey: _pixKeyController.text.trim(),
+      pdfFooterText: _pdfFooterTextController.text.trim(),
+      pdfTermsAndConditions: _pdfTermsAndConditionsController.text.trim(),
     );
     if (mounted) {
       setState(() => _saving = false);
@@ -162,6 +181,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _emailController.dispose();
     _documentController.dispose();
     _addressController.dispose();
+    _pixKeyController.dispose();
+    _pdfFooterTextController.dispose();
+    _pdfTermsAndConditionsController.dispose();
     super.dispose();
   }
 
@@ -197,6 +219,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   controller: _phoneController,
                   label: 'Telefone',
                   keyboardType: TextInputType.phone,
+                  inputFormatters: [phoneFormatter],
                 ),
                 const SizedBox(height: AppSpacing.md),
                 AppTextField(
@@ -204,6 +227,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   label: 'CPF ou CNPJ (opcional)',
                   hint: 'Ex: 00.000.000/0001-00',
                   keyboardType: TextInputType.number,
+                  inputFormatters: [_isDocumentCpf ? cpfFormatter : cnpjFormatter],
+                  onChanged: (value) {
+                    final digits = value.replaceAll(RegExp(r'\D'), '');
+                    final shouldBeCpf = digits.length <= 11;
+                    if (shouldBeCpf != _isDocumentCpf) {
+                      setState(() => _isDocumentCpf = shouldBeCpf);
+                    }
+                  },
                 ),
                 const SizedBox(height: AppSpacing.md),
                 AppTextField(
@@ -220,6 +251,61 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 _buildLogoPicker(context),
+                const SizedBox(height: AppSpacing.lg),
+                InkWell(
+                  onTap: () => setState(() => _pdfConfigExpanded = !_pdfConfigExpanded),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Configurações do PDF',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              Text(
+                                'Chave PIX, rodapé customizado, termos e condições',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        AnimatedRotation(
+                          turns: _pdfConfigExpanded ? 0.5 : 0,
+                          duration: const Duration(milliseconds: 200),
+                          child: const Icon(Icons.keyboard_arrow_down),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (_pdfConfigExpanded) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  AppTextField(
+                    controller: _pixKeyController,
+                    label: 'Chave PIX (opcional)',
+                    hint: 'Aparece no final do PDF',
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppTextField(
+                    controller: _pdfFooterTextController,
+                    label: 'Texto do rodapé (opcional)',
+                    hint: 'Ex: Obrigado pela confiança!',
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppTextField(
+                    controller: _pdfTermsAndConditionsController,
+                    label: 'Termos e condições (opcional)',
+                    hint: 'Ex: Pagamento em 3x sem juros',
+                    maxLines: 4,
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.lg),
                 Text(
                   'Seus ofícios',
@@ -261,11 +347,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Row(
       children: [
         CircleAvatar(
+          radius: 24,
           backgroundColor: colorScheme.primaryContainer,
-          child: Icon(
-            _account.signedIn ? Icons.person : Icons.person_outline,
-            color: colorScheme.onPrimaryContainer,
-          ),
+          backgroundImage: _logoPath != null ? FileImage(File(_logoPath!)) : null,
+          child: _logoPath == null
+              ? Icon(
+                  _account.signedIn ? Icons.person : Icons.person_outline,
+                  color: colorScheme.onPrimaryContainer,
+                )
+              : null,
         ),
         const SizedBox(width: AppSpacing.md),
         Expanded(

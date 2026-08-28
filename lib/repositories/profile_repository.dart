@@ -12,6 +12,9 @@ class _Keys {
   static const professionalAddress = 'professional_address';
   static const professionalLogoPath = 'professional_logo_path';
   static const trades = 'professional_trades';
+  static const pixKey = 'professional_pix_key';
+  static const pdfFooterText = 'pdf_footer_text';
+  static const pdfTermsAndConditions = 'pdf_terms_and_conditions';
 }
 
 /// Nome e telefone do profissional, usados no cabeçalho do PDF de
@@ -29,6 +32,9 @@ class ProfessionalProfile {
     this.address,
     this.logoPath,
     this.trades = const {},
+    this.pixKey,
+    this.pdfFooterText,
+    this.pdfTermsAndConditions,
   });
 
   final String? name;
@@ -42,6 +48,9 @@ class ProfessionalProfile {
   final String? address;
   final String? logoPath;
   final Set<Trade> trades;
+  final String? pixKey;
+  final String? pdfFooterText;
+  final String? pdfTermsAndConditions;
 }
 
 /// Repositório mínimo de perfil — persistência local em `app_settings`
@@ -62,6 +71,9 @@ class ProfileRepository {
       address: map[_Keys.professionalAddress],
       logoPath: map[_Keys.professionalLogoPath],
       trades: _decodeTrades(map[_Keys.trades]),
+      pixKey: map[_Keys.pixKey],
+      pdfFooterText: map[_Keys.pdfFooterText],
+      pdfTermsAndConditions: map[_Keys.pdfTermsAndConditions],
     );
   }
 
@@ -73,6 +85,9 @@ class ProfileRepository {
     String? address,
     String? logoPath,
     Set<Trade>? trades,
+    String? pixKey,
+    String? pdfFooterText,
+    String? pdfTermsAndConditions,
   }) async {
     await _db.batch((batch) {
       batch.insertAllOnConflictUpdate(_db.appSettings, [
@@ -82,6 +97,9 @@ class ProfileRepository {
         AppSettingsCompanion.insert(key: _Keys.professionalDocument, value: document ?? ''),
         AppSettingsCompanion.insert(key: _Keys.professionalAddress, value: address ?? ''),
         AppSettingsCompanion.insert(key: _Keys.professionalLogoPath, value: logoPath ?? ''),
+        AppSettingsCompanion.insert(key: _Keys.pixKey, value: pixKey ?? ''),
+        AppSettingsCompanion.insert(key: _Keys.pdfFooterText, value: pdfFooterText ?? ''),
+        AppSettingsCompanion.insert(key: _Keys.pdfTermsAndConditions, value: pdfTermsAndConditions ?? ''),
         if (trades != null)
           AppSettingsCompanion.insert(key: _Keys.trades, value: _encodeTrades(trades)),
       ]);

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:restart_app/restart_app.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 /// Serviço de atualização OTA via Shorebird — checa patches disponíveis,
@@ -31,6 +32,7 @@ class PatchUpdateService {
 
   static final _updater = ShorebirdUpdater();
   static bool _checking = false;
+  static const _keyPatchApplying = 'patch_applying';
 
   /// Checa se há patch disponível e, se houver, baixa e reinicia.
   /// Chamado no boot do app. Nunca lança exceção — falha silenciosa.
@@ -40,6 +42,18 @@ class PatchUpdateService {
   static Future<bool> checkAndUpdate() async {
     if (_checking) return false;
     if (!_updater.isAvailable) return false;
+
+    // Se acabou de aplicar um patch (flag persistida), limpa a flag e
+    // pula a checagem nesta abertura — evita loop infinito onde o app
+    // detecta patch → baixa → reinicia → detecta de novo → loop.
+    final prefs = await SharedPreferences.getInstance();
+    final wasApplying = prefs.getBool(_keyPatchApplying) ?? false;
+    if (wasApplying) {
+      debugPrint('[PatchUpdate] Patch acabou de ser aplicado. Pulando checagem.');
+      await prefs.remove(_keyPatchApplying);
+      return false;
+    }
+
     _checking = true;
 
     try {
@@ -67,12 +81,16 @@ class PatchUpdateService {
           debugPrint('[PatchUpdate] Baixando patch...');
           await _updater.update();
           debugPrint('[PatchUpdate] Patch baixado. Reiniciando...');
+          // Marca flag antes de reiniciar — na próxima abertura,
+          // pula a checagem pra evitar loop.
+          await prefs.setBool(_keyPatchApplying, true);
           await _restartApp();
           return true;
 
         case UpdateStatus.restartRequired:
           // Patch já baixado, só precisa reiniciar
           debugPrint('[PatchUpdate] Patch já baixado. Reiniciando...');
+          await prefs.setBool(_keyPatchApplying, true);
           await _restartApp();
           return true;
 

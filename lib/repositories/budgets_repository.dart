@@ -368,12 +368,14 @@ class BudgetsRepository {
     String? notes,
     DateTime? validUntil,
     String? jobDescription,
+    Value<String?> projectId = const Value.absent(),
   }) async {
     final count = await (_db.update(_db.budgets)..where((b) => b.id.equals(budgetId))).write(
       BudgetsCompanion(
         notes: Value(notes),
         validUntil: Value(validUntil),
         jobDescription: Value(jobDescription),
+        projectId: projectId,
         updatedAt: Value(DateTime.now()),
       ),
     );

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/clients_repository_provider.dart';
 import '../theme/app_spacing.dart';
+import '../utils/input_formatters.dart';
 import '../utils/validators.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_loading.dart';
@@ -36,6 +37,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   bool _saving = false;
   bool _loading = true;
   bool _detailsExpanded = false;
+  bool _isDocumentCpf = true;
 
   bool get _isEditing => widget.clientId != null;
 
@@ -63,11 +65,11 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
       _streetController.text = client.street ?? '';
       _streetNumberController.text = client.streetNumber ?? '';
       _neighborhoodController.text = client.neighborhood ?? '';
+      final digits = (client.document ?? '').replaceAll(RegExp(r'\D'), '');
+      _isDocumentCpf = digits.length <= 11;
     }
     setState(() {
       _loading = false;
-      // Já vem aberto se estiver editando um cliente que já tem algum
-      // desses dados — senão a pessoa acha que perdeu o que preencheu.
       _detailsExpanded = [
         _addressController,
         _notesController,
@@ -181,6 +183,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                     label: 'Telefone',
                     keyboardType: TextInputType.phone,
                     validator: phoneValidator,
+                    inputFormatters: [phoneFormatter],
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
@@ -235,6 +238,15 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                     AppTextField(
                       controller: _documentController,
                       label: 'CPF/CNPJ (opcional)',
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [_isDocumentCpf ? cpfFormatter : cnpjFormatter],
+                      onChanged: (value) {
+                        final digits = value.replaceAll(RegExp(r'\D'), '');
+                        final shouldBeCpf = digits.length <= 11;
+                        if (shouldBeCpf != _isDocumentCpf) {
+                          setState(() => _isDocumentCpf = shouldBeCpf);
+                        }
+                      },
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Row(
