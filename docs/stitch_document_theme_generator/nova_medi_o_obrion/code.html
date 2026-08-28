@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Obrion - Medições</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#dbc2b1",
+                        "on-error-container": "#93000a",
+                        "surface": "#faf9f7",
+                        "surface-outline": "#C4C7C5",
+                        "on-background": "#1a1c1b",
+                        "outline": "#887365",
+                        "on-surface-variant": "#554337",
+                        "tertiary-fixed-dim": "#c6c6c9",
+                        "background": "#faf9f7",
+                        "secondary-container": "#a0f399",
+                        "inverse-surface": "#2f3130",
+                        "secondary": "#1b6d24",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#fcfcff",
+                        "primary-fixed-dim": "#ffb780",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#5a5c5e",
+                        "on-secondary-container": "#217128",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#b35e00",
+                        "secondary-fixed-dim": "#88d982",
+                        "inverse-primary": "#ffb780",
+                        "on-primary-container": "#fffbff",
+                        "on-tertiary-fixed": "#1a1c1e",
+                        "on-tertiary-fixed-variant": "#454749",
+                        "on-surface": "#1a1c1b",
+                        "inverse-on-surface": "#f1f1ef",
+                        "on-secondary": "#ffffff",
+                        "primary": "#8f4a00",
+                        "error-red": "#D32F2F",
+                        "secondary-fixed": "#a3f69c",
+                        "surface-bright": "#faf9f7",
+                        "primary-fixed": "#ffdcc4",
+                        "surface-container-low": "#f4f3f1",
+                        "surface-container-highest": "#e3e2e0",
+                        "surface-dim": "#dadad8",
+                        "surface-tint": "#924c00",
+                        "surface-container": "#efeeec",
+                        "tertiary-fixed": "#e2e2e5",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#2f1400",
+                        "on-secondary-fixed-variant": "#005312",
+                        "surface-variant": "#e3e2e0",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#002204",
+                        "on-primary-fixed-variant": "#6f3800",
+                        "safety-amber": "#C2680A",
+                        "success-green": "#2E7D32",
+                        "surface-container-high": "#e9e8e6",
+                        "tertiary-container": "#737577",
+                        "warning-orange": "#ED6C02"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "touch-target": "48px",
+                        "md": "16px",
+                        "xs": "4px",
+                        "safe": "80px"
+                    },
+                    "fontFamily": {
+                        "headline-md-mobile": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "title-md": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-sm": ["Hanken Grotesk"],
+                        "label-lg": ["Hanken Grotesk"],
+                        "title-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-md-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased pb-safe">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface-dim docked full-width top-0 border-b border-surface-outline flat no shadows hover:bg-surface-container-high active:opacity-80 transition-opacity flex justify-between items-center h-touch-target px-md w-full sticky z-40">
+<button class="w-touch-target h-touch-target flex items-center justify-start text-on-surface-variant focus:outline-none">
+<span class="material-symbols-outlined text-[24px]">close</span>
+</button>
+<div class="font-headline-md-mobile text-headline-md-mobile text-safety-amber dark:text-primary-fixed-dim font-bold">Obrion</div>
+<button class="w-touch-target h-touch-target flex items-center justify-end text-on-surface-variant focus:outline-none">
+<span class="material-symbols-outlined text-[24px]">account_circle</span>
+</button>
+</header>
+<main class="max-w-3xl mx-auto px-md py-lg space-y-lg pb-[120px]">
+<!-- Header Section -->
+<div>
+<h1 class="font-headline-sm text-headline-sm text-on-surface mb-sm">Nova Medição</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Insira as dimensões do ambiente para calcular as áreas de serviço automaticamente.</p>
+</div>
+<!-- Cômodo Input -->
+<div class="space-y-sm">
+<label class="block font-label-lg text-label-lg text-on-surface" for="comodo">Nome do Cômodo</label>
+<input class="w-full h-[56px] px-md bg-surface-container-low text-on-surface font-body-lg text-body-lg rounded-DEFAULT border-b-2 border-transparent focus:border-safety-amber focus:outline-none transition-colors" id="comodo" placeholder="Ex: Sala de Estar" type="text"/>
+</div>
+<!-- Dimensões Card -->
+<div class="bg-surface-container-lowest border border-surface-outline rounded-lg p-md space-y-md">
+<h2 class="font-title-md text-title-md text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined">straighten</span>
+                Dimensões Principais (m)
+            </h2>
+<div class="grid grid-cols-3 gap-sm">
+<div class="space-y-xs">
+<label class="block font-label-md text-label-md text-on-surface-variant text-center">Comp.</label>
+<input class="w-full h-touch-target px-sm text-center bg-surface-container-low text-on-surface font-body-lg text-body-lg rounded-DEFAULT border-b-2 border-transparent focus:border-safety-amber focus:outline-none" placeholder="0,00" step="0.01" type="number"/>
+</div>
+<div class="space-y-xs">
+<label class="block font-label-md text-label-md text-on-surface-variant text-center">Larg.</label>
+<input class="w-full h-touch-target px-sm text-center bg-surface-container-low text-on-surface font-body-lg text-body-lg rounded-DEFAULT border-b-2 border-transparent focus:border-safety-amber focus:outline-none" placeholder="0,00" step="0.01" type="number"/>
+</div>
+<div class="space-y-xs">
+<label class="block font-label-md text-label-md text-on-surface-variant text-center">Altura</label>
+<input class="w-full h-touch-target px-sm text-center bg-surface-container-low text-on-surface font-body-lg text-body-lg rounded-DEFAULT border-b-2 border-transparent focus:border-safety-amber focus:outline-none" placeholder="0,00" step="0.01" type="number"/>
+</div>
+</div>
+</div>
+<!-- Vãos Section -->
+<div class="bg-surface-container-lowest border border-surface-outline rounded-lg p-md">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-title-md text-title-md text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined">meeting_room</span>
+                    Descontar Vãos
+                </h2>
+<button class="h-touch-target px-md flex items-center justify-center gap-xs text-safety-amber font-label-lg text-label-lg border border-surface-outline rounded-full hover:bg-surface-container-low transition-colors focus:outline-none">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                    Adicionar
+                </button>
+</div>
+<!-- Empty State -->
+<div class="flex flex-col items-center justify-center py-lg bg-surface-container-low rounded-DEFAULT border border-dashed border-surface-outline">
+<span class="material-symbols-outlined text-[32px] text-on-surface-variant mb-sm">sensor_window</span>
+<p class="font-body-md text-body-md text-on-surface-variant text-center">Nenhum vão adicionado.<br/>Adicione portas e janelas para descontar da área de parede.</p>
+</div>
+</div>
+<!-- Grandezas Derivadas Section -->
+<div class="bg-surface-container-lowest border border-surface-outline rounded-lg p-md space-y-md">
+<h2 class="font-title-md text-title-md text-on-surface flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined">calculate</span>
+                Grandezas Derivadas
+            </h2>
+<div class="space-y-sm">
+<!-- Área de Piso -->
+<div class="flex justify-between items-center p-sm bg-surface-container-low rounded-DEFAULT">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant">grid_on</span>
+<span class="font-body-lg text-body-lg text-on-surface">Área de Piso</span>
+</div>
+<span class="font-title-lg text-title-lg text-on-surface">0.00 <span class="font-body-md text-body-md text-on-surface-variant">m²</span></span>
+</div>
+<!-- Área de Teto -->
+<div class="flex justify-between items-center p-sm bg-surface-container-low rounded-DEFAULT">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant">roofing</span>
+<span class="font-body-lg text-body-lg text-on-surface">Área de Teto</span>
+</div>
+<span class="font-title-lg text-title-lg text-on-surface">0.00 <span class="font-body-md text-body-md text-on-surface-variant">m²</span></span>
+</div>
+<!-- Área de Parede -->
+<div class="flex justify-between items-center p-sm bg-surface-container-low rounded-DEFAULT">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant">foundation</span>
+<div class="flex flex-col">
+<span class="font-body-lg text-body-lg text-on-surface">Área de Parede</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">(Já descontando vãos)</span>
+</div>
+</div>
+<span class="font-title-lg text-title-lg text-on-surface">0.00 <span class="font-body-md text-body-md text-on-surface-variant">m²</span></span>
+</div>
+</div>
+</div>
+<!-- Sticky Action Button Container (if needed outside bottom nav) -->
+<div class="fixed bottom-[96px] left-0 w-full px-md z-40 md:relative md:bottom-auto md:w-auto md:px-0">
+<button class="w-full h-touch-target bg-safety-amber text-on-primary font-title-md text-title-md rounded-full shadow-sm flex items-center justify-center gap-sm hover:bg-surface-tint focus:outline-none transition-colors">
+<span class="material-symbols-outlined">save</span>
+                Salvar medição
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-surface dark:bg-surface-dim pb-safe border-t border-surface-outline h-[80px] rounded-t-xl md:hidden">
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-md py-xs hover:bg-surface-container-highest active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-md text-label-md mt-xs">Início</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-xl px-md py-xs hover:bg-surface-container-highest active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined filled">request_quote</span>
+<span class="font-label-md text-label-md mt-xs">Orçamentos</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-md py-xs hover:bg-surface-container-highest active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined">engineering</span>
+<span class="font-label-md text-label-md mt-xs">Clientes</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-md py-xs hover:bg-surface-container-highest active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md text-label-md mt-xs">Preços</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-md py-xs hover:bg-surface-container-highest active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md mt-xs">Ajustes</span>
+</button>
+</nav>
+<script>
+        // Simple calculation script for visual feedback
+        const inputs = document.querySelectorAll('input[type="number"]');
+        const results = document.querySelectorAll('.font-title-lg');
+        
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                const comp = parseFloat(inputs[0].value) || 0;
+                const larg = parseFloat(inputs[1].value) || 0;
+                const alt = parseFloat(inputs[2].value) || 0;
+
+                const areaPiso = comp * larg;
+                const areaTeto = areaPiso; // Simplified assumption
+                const areaParede = (2 * comp * alt) + (2 * larg * alt);
+
+                if(results.length >= 3) {
+                    results[0].innerHTML = `${areaPiso.toFixed(2)} <span class="font-body-md text-body-md text-on-surface-variant">m²</span>`;
+                    results[1].innerHTML = `${areaTeto.toFixed(2)} <span class="font-body-md text-body-md text-on-surface-variant">m²</span>`;
+                    results[2].innerHTML = `${areaParede.toFixed(2)} <span class="font-body-md text-body-md text-on-surface-variant">m²</span>`;
+                }
+            });
+        });
+    </script>
+</body></html>

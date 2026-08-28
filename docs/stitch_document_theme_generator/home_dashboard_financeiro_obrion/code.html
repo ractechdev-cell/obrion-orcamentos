@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Obrion - Painel do Negócio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff",
+                        "primary-fixed": "#ffdcc4",
+                        "tertiary-container": "#737577",
+                        "on-tertiary-fixed": "#1a1c1e",
+                        "on-secondary-fixed-variant": "#005312",
+                        "on-error-container": "#93000a",
+                        "success-green": "#2E7D32",
+                        "outline": "#887365",
+                        "surface-container": "#efeeec",
+                        "secondary-fixed-dim": "#88d982",
+                        "surface-container-high": "#e9e8e6",
+                        "surface-bright": "#faf9f7",
+                        "surface-container-highest": "#e3e2e0",
+                        "secondary-container": "#a0f399",
+                        "on-primary-fixed": "#2f1400",
+                        "on-secondary-fixed": "#002204",
+                        "surface-outline": "#C4C7C5",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed-dim": "#ffb780",
+                        "secondary-fixed": "#a3f69c",
+                        "surface-dim": "#dadad8",
+                        "safety-amber": "#C2680A",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#fffbff",
+                        "outline-variant": "#dbc2b1",
+                        "surface-tint": "#924c00",
+                        "surface": "#faf9f7",
+                        "on-secondary-container": "#217128",
+                        "primary-container": "#b35e00",
+                        "on-surface-variant": "#554337",
+                        "tertiary-fixed": "#e2e2e5",
+                        "on-surface": "#1a1c1b",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#ffb780",
+                        "on-primary-fixed-variant": "#6f3800",
+                        "surface-container-low": "#f4f3f1",
+                        "error-red": "#D32F2F",
+                        "on-tertiary-fixed-variant": "#454749",
+                        "surface-variant": "#e3e2e0",
+                        "primary": "#8f4a00",
+                        "error": "#ba1a1a",
+                        "secondary": "#1b6d24",
+                        "background": "#faf9f7",
+                        "inverse-surface": "#2f3130",
+                        "tertiary": "#5a5c5e",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#f1f1ef",
+                        "warning-orange": "#ED6C02",
+                        "on-tertiary-container": "#fcfcff",
+                        "on-background": "#1a1c1b",
+                        "tertiary-fixed-dim": "#c6c6c9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "touch-target": "48px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "title-lg": ["Hanken Grotesk"],
+                        "headline-sm": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "title-md": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-md-mobile": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "label-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface-container-low min-h-screen text-on-surface font-body-md pb-[100px]">
+<!-- TopAppBar -->
+<header class="bg-surface flex justify-between items-center h-touch-target px-md w-full border-b border-surface-outline sticky top-0 z-40">
+<button class="text-primary hover:bg-surface-container-high active:opacity-80 transition-opacity p-xs rounded h-[40px] w-[40px] flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="construction">construction</span>
+</button>
+<h1 class="font-headline-md-mobile text-headline-md-mobile text-safety-amber font-bold uppercase tracking-tight">Obrion</h1>
+<button class="text-primary hover:bg-surface-container-high active:opacity-80 transition-opacity p-xs rounded h-[40px] w-[40px] flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</header>
+<main class="p-md flex flex-col gap-lg">
+<!-- Greeting -->
+<section class="mt-sm">
+<h2 class="font-title-lg text-title-lg text-on-surface">Bom dia, João 👋</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Resumo das suas atividades de hoje.</p>
+</section>
+<!-- Metrics Grid (2x2) -->
+<section class="grid grid-cols-2 gap-sm"><!-- Primary Metric: Received -->
+<div class="col-span-2 bg-surface-container-lowest border-2 border-safety-amber rounded-xl p-md flex flex-col gap-xs shadow-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">payments</span>
+<span class="font-label-lg text-label-lg font-bold uppercase tracking-wide">Recebidos este mês</span>
+</div>
+<span class="text-success-green font-bold text-label-md bg-secondary-container px-2 py-1 rounded-full">+12% vs mês ant.</span>
+</div>
+<div class="font-headline-md-mobile text-headline-md-mobile text-safety-amber mt-xs">R$ 8.000,00</div>
+</div>
+<!-- Secondary Metrics -->
+<div class="bg-surface-container-lowest border border-surface-outline rounded-lg p-md flex flex-col gap-xs">
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">request_quote</span>
+<span class="font-label-md text-label-md">Orçamentos</span>
+</div>
+<div class="font-title-md text-title-md text-on-surface">R$ 5.800</div>
+</div>
+<div class="bg-surface-container-lowest border border-surface-outline rounded-lg p-md flex flex-col gap-xs">
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">thumb_up</span>
+<span class="font-label-md text-label-md">Aprovados</span>
+</div>
+<div class="font-title-md text-title-md text-success-green">R$ 12.400</div>
+</div></section><section class="bg-surface-container-lowest border border-surface-outline rounded-lg p-md flex flex-col gap-sm">
+<div class="flex justify-between items-center">
+<h4 class="font-label-lg text-label-lg text-on-surface-variant uppercase">Saúde do Negócio</h4>
+<span class="font-label-md text-label-md text-on-surface-variant">79% Aprovado</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden flex">
+<div class="bg-success-green h-full" style="width: 79%"></div>
+<div class="bg-warning-orange h-full" style="width: 21%"></div>
+</div>
+<div class="flex gap-md">
+<div class="flex items-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-success-green"></div>
+<span class="text-body-sm text-body-sm text-on-surface-variant">Aprovados</span>
+</div>
+<div class="flex items-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-warning-orange"></div>
+<span class="text-body-sm text-body-sm text-on-surface-variant">Aguardando</span>
+</div>
+</div>
+</section>
+<!-- Main CTA -->
+<section>
+<button class="w-full h-touch-target bg-safety-amber text-on-primary font-title-md text-title-md rounded flex items-center justify-center gap-sm hover:bg-primary transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined">add</span>
+                Novo Cliente
+            </button>
+</section>
+<!-- Pendências List -->
+<section class="flex flex-col gap-md">
+<h3 class="font-title-md text-title-md text-on-surface uppercase tracking-wide border-b border-surface-outline pb-xs">Pendências</h3>
+<div class="flex flex-col gap-sm"><!-- List Item 1: Updated Badge -->
+<div class="bg-surface-container-lowest border border-surface-outline rounded p-md flex flex-col md:flex-row gap-md justify-between items-start md:items-center">
+<div class="flex gap-md items-center w-full md:w-auto">
+<div class="h-10 w-10 bg-surface-container flex items-center justify-center rounded-full text-on-surface-variant">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div class="flex-1">
+<div class="font-title-md text-title-md text-on-surface">João Silva</div>
+<div class="flex items-center gap-sm mt-xs">
+<span class="font-body-md text-body-md text-safety-amber font-semibold">R$ 5.800</span>
+<span class="font-label-md text-label-md text-on-surface-variant bg-surface-container px-2 py-1 rounded flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                    Enviado há 2h
+                </span>
+</div>
+</div>
+</div>
+<button class="w-full md:w-auto h-touch-target px-md border border-safety-amber text-safety-amber font-label-lg text-label-lg rounded flex items-center justify-center gap-xs hover:bg-surface-container-lowest transition-colors">
+<span class="material-symbols-outlined text-[18px]">notifications_active</span>
+        Enviar lembrete
+    </button>
+</div>
+<!-- List Item 2: Updated Badge -->
+<div class="bg-surface-container-lowest border border-surface-outline rounded p-md flex flex-col md:flex-row gap-md justify-between items-start md:items-center">
+<div class="flex gap-md items-center w-full md:w-auto">
+<div class="h-10 w-10 bg-surface-container flex items-center justify-center rounded-full text-on-surface-variant">
+<span class="material-symbols-outlined">business</span>
+</div>
+<div class="flex-1">
+<div class="font-title-md text-title-md text-on-surface">Construtora Alfa</div>
+<div class="flex items-center gap-sm mt-xs">
+<span class="font-body-md text-body-md text-safety-amber font-semibold">R$ 12.000</span>
+<span class="font-label-md text-label-md text-error-red bg-error-container px-2 py-1 rounded flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">event_busy</span>
+                    Vence amanhã
+                </span>
+</div>
+</div>
+</div>
+<button class="w-full md:w-auto h-touch-target px-md border border-safety-amber text-safety-amber font-label-lg text-label-lg rounded flex items-center justify-center gap-xs hover:bg-surface-container-lowest transition-colors">
+<span class="material-symbols-outlined text-[18px]">notifications_active</span>
+        Enviar lembrete
+    </button>
+</div></div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-surface border-t border-surface-outline h-[80px] rounded-t-xl pb-safe">
+<!-- Active Tab: Início -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-md py-xs active:scale-95 transition-transform duration-150 h-[64px] min-w-[64px]" href="#">
+<span class="material-symbols-outlined" data-icon="home" data-weight="fill" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-md text-label-md mt-1">Início</span>
+</a>
+<!-- Inactive Tabs -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest rounded-xl px-md py-xs active:scale-95 transition-transform duration-150 h-[64px] min-w-[64px]" href="#">
+<span class="material-symbols-outlined" data-icon="request_quote">request_quote</span>
+<span class="font-label-md text-label-md mt-1">Orçamentos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest rounded-xl px-md py-xs active:scale-95 transition-transform duration-150 h-[64px] min-w-[64px]" href="#">
+<span class="material-symbols-outlined" data-icon="engineering">engineering</span>
+<span class="font-label-md text-label-md mt-1">Clientes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest rounded-xl px-md py-xs active:scale-95 transition-transform duration-150 h-[64px] min-w-[64px]" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-md text-label-md mt-1">Preços</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest rounded-xl px-md py-xs active:scale-95 transition-transform duration-150 h-[64px] min-w-[64px]" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md mt-1">Ajustes</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ajustes - Obrion Orçamentos</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-on-surface": "#f1f1ef",
+                        "on-secondary": "#ffffff",
+                        "surface-container-low": "#f4f3f1",
+                        "inverse-primary": "#ffb780",
+                        "primary-fixed-dim": "#ffb780",
+                        "surface-container": "#efeeec",
+                        "inverse-surface": "#2f3130",
+                        "error-container": "#ffdad6",
+                        "on-surface": "#1a1c1b",
+                        "surface-bright": "#faf9f7",
+                        "on-secondary-fixed": "#002204",
+                        "surface-container-high": "#e9e8e6",
+                        "background": "#faf9f7",
+                        "on-error-container": "#93000a",
+                        "surface-container-highest": "#e3e2e0",
+                        "secondary-fixed-dim": "#88d982",
+                        "surface-outline": "#C4C7C5",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#e3e2e0",
+                        "outline-variant": "#dbc2b1",
+                        "on-background": "#1a1c1b",
+                        "outline": "#887365",
+                        "on-secondary-container": "#217128",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#737577",
+                        "surface-tint": "#924c00",
+                        "on-primary-fixed-variant": "#6f3800",
+                        "primary": "#8f4a00",
+                        "primary-container": "#b35e00",
+                        "on-primary-container": "#fffbff",
+                        "tertiary-fixed-dim": "#c6c6c9",
+                        "on-primary-fixed": "#2f1400",
+                        "tertiary": "#5a5c5e",
+                        "on-primary": "#ffffff",
+                        "warning-orange": "#ED6C02",
+                        "surface-dim": "#dadad8",
+                        "primary-fixed": "#ffdcc4",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#a0f399",
+                        "on-tertiary-container": "#fcfcff",
+                        "secondary": "#1b6d24",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#e2e2e5",
+                        "on-tertiary-fixed": "#1a1c1e",
+                        "surface": "#faf9f7",
+                        "success-green": "#2E7D32",
+                        "secondary-fixed": "#a3f69c",
+                        "on-secondary-fixed-variant": "#005312",
+                        "error-red": "#D32F2F",
+                        "on-surface-variant": "#554337",
+                        "safety-amber": "#C2680A",
+                        "on-tertiary-fixed-variant": "#454749"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "md": "16px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "touch-target": "48px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-sm": ["Hanken Grotesk"],
+                        "label-lg": ["Hanken Grotesk"],
+                        "title-md": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "title-lg": ["Hanken Grotesk"],
+                        "headline-md-mobile": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-md-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface antialiased pb-safe min-h-screen pb-[100px]">
+<!-- TopAppBar -->
+<header class="bg-surface border-b border-surface-outline docked full-width top-0 sticky z-40">
+<div class="flex justify-between items-center h-touch-target px-md w-full">
+<button aria-label="Voltar" class="text-on-surface-variant hover:bg-surface-container-high active:opacity-80 transition-opacity p-xs rounded-full flex items-center justify-center w-touch-target h-touch-target">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+</button>
+<h1 class="font-headline-md-mobile text-headline-md-mobile text-primary font-bold">Ajustes</h1>
+<div class="w-touch-target h-touch-target flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_circle</span>
+</div>
+</div>
+</header>
+<main class="max-w-3xl mx-auto px-md py-lg space-y-lg">
+<!-- Profile Card -->
+<section class="border border-surface-outline bg-surface rounded-lg p-md">
+<div class="flex items-center gap-md mb-md">
+<div class="w-16 h-16 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">person</span>
+</div>
+<div class="flex-1">
+<h2 class="font-title-lg text-title-lg text-on-surface">João Silva</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Engenheiro Responsável</p>
+</div>
+</div>
+<button class="w-full h-touch-target bg-surface-container-low border border-primary text-primary font-label-lg text-label-lg rounded flex items-center justify-center gap-sm active:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">login</span>
+                Entrar
+            </button>
+</section>
+<!-- Professional Profile Section -->
+<section class="bg-surface-container-low p-md rounded-lg border border-surface-outline">
+<h3 class="font-title-md text-title-md text-on-surface mb-md flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 0;">badge</span>
+                Perfil Profissional
+            </h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md">Estas informações aparecerão no cabeçalho do seu orçamento em PDF.</p>
+<div class="space-y-md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Nome / Empresa</label>
+<input class="w-full h-14 bg-surface px-md border-b-2 border-transparent focus:border-primary focus:ring-0 transition-colors font-body-lg text-body-lg text-on-surface outline-none" placeholder="Digite o nome ou empresa" type="text" value="João Silva Engenharia"/>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Telefone (WhatsApp)</label>
+<input class="w-full h-14 bg-surface px-md border-b-2 border-transparent focus:border-primary focus:ring-0 transition-colors font-body-lg text-body-lg text-on-surface outline-none" placeholder="(00) 00000-0000" type="tel" value="(11) 98765-4321"/>
+</div>
+</div>
+</section>
+<!-- Trades Section -->
+<section class="bg-surface-container-low p-md rounded-lg border border-surface-outline">
+<h3 class="font-title-md text-title-md text-on-surface mb-md flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 0;">handyman</span>
+                Meus Ofícios
+            </h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md">Selecione suas áreas de atuação para personalizar os modelos de orçamento.</p>
+<div class="flex flex-wrap gap-sm">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="h-touch-target px-md flex items-center justify-center font-label-lg text-label-lg rounded-full border border-surface-outline text-on-surface peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary-container transition-colors">
+                        Pedreiro
+                    </div>
+</label>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="peer sr-only" type="checkbox"/>
+<div class="h-touch-target px-md flex items-center justify-center font-label-lg text-label-lg rounded-full border border-surface-outline text-on-surface peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary-container transition-colors">
+                        Pintor
+                    </div>
+</label>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="h-touch-target px-md flex items-center justify-center font-label-lg text-label-lg rounded-full border border-surface-outline text-on-surface peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary-container transition-colors">
+                        Eletricista
+                    </div>
+</label>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="peer sr-only" type="checkbox"/>
+<div class="h-touch-target px-md flex items-center justify-center font-label-lg text-label-lg rounded-full border border-surface-outline text-on-surface peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary-container transition-colors">
+                        Gesseiro
+                    </div>
+</label>
+</div>
+</section>
+<!-- Identity Section -->
+<section class="bg-surface-container-low p-md rounded-lg border border-surface-outline">
+<h3 class="font-title-md text-title-md text-on-surface mb-md flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 0;">image</span>
+                Identidade
+            </h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md">Adicione sua logomarca aos orçamentos. (Opcional)</p>
+<div class="flex items-center gap-md">
+<div class="w-24 h-24 border-2 border-dashed border-surface-outline bg-surface rounded-lg flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined mb-xs" style="font-variation-settings: 'FILL' 0;">add_photo_alternate</span>
+<span class="font-label-md text-label-md text-center">Nenhuma<br/>logo</span>
+</div>
+<div class="flex flex-col gap-sm">
+<button class="h-touch-target px-md border border-primary text-primary font-label-lg text-label-lg rounded bg-surface flex items-center justify-center gap-xs active:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">upload</span>
+                        Escolher Logo
+                    </button>
+<button class="h-touch-target px-md text-error-red font-label-lg text-label-lg rounded hover:bg-error-container/20 flex items-center justify-center gap-xs transition-colors" disabled="">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">delete</span>
+                        Remover
+                    </button>
+</div>
+</div>
+</section>
+<!-- Footer Actions -->
+<div class="pt-lg pb-md">
+<button class="w-full h-touch-target bg-safety-amber text-on-secondary font-headline-sm text-headline-sm rounded-lg flex items-center justify-center gap-sm shadow-sm active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">save</span>
+                Salvar Configurações
+            </button>
+<p class="text-center font-body-sm text-body-sm text-on-surface-variant mt-md">Versão 0.1.7 (build 7)</p>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-surface pb-safe h-[80px] rounded-t-xl border-t border-surface-outline md:hidden">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest px-md py-xs rounded-xl active:scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">home</span>
+<span class="font-label-md text-label-md mt-xs">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest px-md py-xs rounded-xl active:scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">request_quote</span>
+<span class="font-label-md text-label-md mt-xs">Orçamentos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest px-md py-xs rounded-xl active:scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">engineering</span>
+<span class="font-label-md text-label-md mt-xs">Clientes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest px-md py-xs rounded-xl active:scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">payments</span>
+<span class="font-label-md text-label-md mt-xs">Preços</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-md py-xs active:scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="font-label-md text-label-md mt-xs">Ajustes</span>
+</a>
+</nav>
+</body></html>

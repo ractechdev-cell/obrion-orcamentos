@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Adicionar Cliente - Obrion Orçamentos</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#dbc2b1",
+                        "on-error-container": "#93000a",
+                        "surface": "#faf9f7",
+                        "surface-outline": "#C4C7C5",
+                        "on-background": "#1a1c1b",
+                        "outline": "#887365",
+                        "on-surface-variant": "#554337",
+                        "tertiary-fixed-dim": "#c6c6c9",
+                        "background": "#faf9f7",
+                        "secondary-container": "#a0f399",
+                        "inverse-surface": "#2f3130",
+                        "secondary": "#1b6d24",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#fcfcff",
+                        "primary-fixed-dim": "#ffb780",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#5a5c5e",
+                        "on-secondary-container": "#217128",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#b35e00",
+                        "secondary-fixed-dim": "#88d982",
+                        "inverse-primary": "#ffb780",
+                        "on-primary-container": "#fffbff",
+                        "on-tertiary-fixed": "#1a1c1e",
+                        "on-tertiary-fixed-variant": "#454749",
+                        "on-surface": "#1a1c1b",
+                        "inverse-on-surface": "#f1f1ef",
+                        "on-secondary": "#ffffff",
+                        "primary": "#8f4a00",
+                        "error-red": "#D32F2F",
+                        "secondary-fixed": "#a3f69c",
+                        "surface-bright": "#faf9f7",
+                        "primary-fixed": "#ffdcc4",
+                        "surface-container-low": "#f4f3f1",
+                        "surface-container-highest": "#e3e2e0",
+                        "surface-dim": "#dadad8",
+                        "surface-tint": "#924c00",
+                        "surface-container": "#efeeec",
+                        "tertiary-fixed": "#e2e2e5",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#2f1400",
+                        "on-secondary-fixed-variant": "#005312",
+                        "surface-variant": "#e3e2e0",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#002204",
+                        "on-primary-fixed-variant": "#6f3800",
+                        "safety-amber": "#C2680A",
+                        "success-green": "#2E7D32",
+                        "surface-container-high": "#e9e8e6",
+                        "tertiary-container": "#737577",
+                        "warning-orange": "#ED6C02"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "touch-target": "48px",
+                        "md": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md-mobile": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "title-md": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-sm": ["Hanken Grotesk"],
+                        "label-lg": ["Hanken Grotesk"],
+                        "title-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-md-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Floating label styles */
+        .input-wrapper {
+            position: relative;
+            background-color: theme('colors.surface-container-lowest');
+            border: 1px solid theme('colors.surface-outline');
+            border-radius: theme('borderRadius.DEFAULT');
+            padding: 8px 16px;
+            transition: all 0.2s ease;
+        }
+        
+        .input-wrapper:focus-within {
+            border-color: theme('colors.safety-amber');
+            border-bottom: 2px solid theme('colors.safety-amber');
+            padding-bottom: 7px; /* Compensate for thicker border */
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            padding-top: 16px;
+            padding-bottom: 4px;
+            color: theme('colors.on-surface');
+            font-family: 'Hanken Grotesk', sans-serif;
+            font-size: 16px;
+            line-height: 24px;
+        }
+
+        .input-wrapper label {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            font-family: 'Hanken Grotesk', sans-serif;
+            font-size: 16px;
+            color: theme('colors.on-surface-variant');
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+
+        .input-wrapper input:focus + label,
+        .input-wrapper input:not(:placeholder-shown) + label {
+            top: 6px;
+            font-size: 12px;
+            color: theme('colors.safety-amber');
+        }
+        
+        .input-wrapper input:not(:placeholder-shown):not(:focus) + label {
+            color: theme('colors.on-surface-variant');
+        }
+
+        /* Expansion Tile Animation */
+        #address-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        #address-content.expanded {
+            max-height: 800px; /* Arbitrary large height */
+        }
+
+        #address-icon {
+            transition: transform 0.3s ease;
+        }
+
+        #address-icon.expanded {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-lg">
+<!-- Top App Bar (Modified for secondary screen with back button) -->
+<header class="bg-surface border-b border-surface-outline flex items-center h-[64px] px-md w-full sticky top-0 z-10">
+<button aria-label="Voltar" class="w-[48px] h-[48px] flex items-center justify-center text-on-surface hover:bg-surface-container-high rounded-full active:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-title-lg text-title-lg text-on-surface ml-sm flex-grow">Novo Cliente</h1>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow p-md lg:p-lg max-w-3xl mx-auto w-full pb-[100px]">
+<form class="space-y-lg" id="client-form">
+<!-- Basic Info Section -->
+<section class="bg-surface border border-surface-outline rounded-lg p-md space-y-md">
+<h2 class="font-title-md text-title-md text-on-surface mb-sm">Informações Básicas</h2>
+<div class="input-wrapper">
+<input aria-required="true" id="nome" name="nome" placeholder=" " required="" type="text"/>
+<label for="nome">Nome Completo *</label>
+</div>
+<div class="input-wrapper">
+<input id="telefone" name="telefone" placeholder=" " type="tel"/>
+<label for="telefone">Telefone / WhatsApp</label>
+</div>
+<div class="input-wrapper">
+<input id="email" name="email" placeholder=" " type="email"/>
+<label for="email">E-mail</label>
+</div>
+</section>
+<!-- Address Expansion Tile -->
+<section class="bg-surface border border-surface-outline rounded-lg overflow-hidden">
+<button class="w-full flex items-center justify-between p-md text-left hover:bg-surface-container-low active:bg-surface-container-high transition-colors min-h-[56px]" id="address-toggle" type="button">
+<div class="flex items-center gap-sm text-on-surface">
+<span class="material-symbols-outlined text-outline">location_on</span>
+<span class="font-title-md text-title-md">Adicionar Endereço</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" id="address-icon">expand_more</span>
+</button>
+<div class="bg-surface-container-lowest border-t border-surface-outline" id="address-content">
+<div class="p-md space-y-md">
+<div class="input-wrapper">
+<input id="cep" name="cep" placeholder=" " type="text"/>
+<label for="cep">CEP</label>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<div class="input-wrapper md:col-span-2">
+<input id="rua" name="rua" placeholder=" " type="text"/>
+<label for="rua">Rua / Avenida</label>
+</div>
+<div class="input-wrapper">
+<input id="numero" name="numero" placeholder=" " type="text"/>
+<label for="numero">Número</label>
+</div>
+</div>
+<div class="input-wrapper">
+<input id="complemento" name="complemento" placeholder=" " type="text"/>
+<label for="complemento">Complemento (Opcional)</label>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="input-wrapper">
+<input id="bairro" name="bairro" placeholder=" " type="text"/>
+<label for="bairro">Bairro</label>
+</div>
+<div class="input-wrapper">
+<input id="cidade" name="cidade" placeholder=" " type="text"/>
+<label for="cidade">Cidade</label>
+</div>
+</div>
+</div>
+</div>
+</section>
+</form>
+</main>
+<!-- Bottom Action Bar -->
+<div class="fixed bottom-0 left-0 w-full bg-surface border-t border-surface-outline p-md z-20 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+<div class="max-w-3xl mx-auto flex gap-md">
+<button class="flex-1 h-touch-target font-label-lg text-label-lg border border-primary text-primary rounded bg-surface hover:bg-surface-container-low active:bg-surface-container-high transition-colors flex items-center justify-center" type="button">
+                Cancelar
+            </button>
+<button class="flex-[2] h-touch-target font-label-lg text-label-lg bg-safety-amber text-on-primary rounded hover:bg-primary active:opacity-90 transition-colors flex items-center justify-center gap-sm" form="client-form" type="submit">
+<span class="material-symbols-outlined text-[20px]">save</span>
+                Salvar Cliente
+            </button>
+</div>
+</div>
+<script>
+        // Expansion Tile Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.getElementById('address-toggle');
+            const content = document.getElementById('address-content');
+            const icon = document.getElementById('address-icon');
+
+            toggleBtn.addEventListener('click', () => {
+                content.classList.toggle('expanded');
+                icon.classList.toggle('expanded');
+                
+                const isExpanded = content.classList.contains('expanded');
+                toggleBtn.setAttribute('aria-expanded', isExpanded);
+            });
+            
+            // Simple form validation handler
+            const form = document.getElementById('client-form');
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                // Simulation of saving
+                const saveBtn = form.querySelector('button[type="submit"]');
+                const originalText = saveBtn.innerHTML;
+                
+                saveBtn.innerHTML = '<span class="material-symbols-outlined text-[20px] animate-spin">sync</span> Salvando...';
+                saveBtn.disabled = true;
+                
+                setTimeout(() => {
+                    saveBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">check</span> Salvo!';
+                    saveBtn.classList.remove('bg-safety-amber');
+                    saveBtn.classList.add('bg-success-green');
+                    
+                    setTimeout(() => {
+                        window.history.back(); // Or redirect to list
+                    }, 1000);
+                }, 1500);
+            });
+        });
+    </script>
+</body></html>

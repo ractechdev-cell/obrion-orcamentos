@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Obrion - Orçamentos</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#dbc2b1",
+                        "on-error-container": "#93000a",
+                        "surface": "#faf9f7",
+                        "surface-outline": "#C4C7C5",
+                        "on-background": "#1a1c1b",
+                        "outline": "#887365",
+                        "on-surface-variant": "#554337",
+                        "tertiary-fixed-dim": "#c6c6c9",
+                        "background": "#faf9f7",
+                        "secondary-container": "#a0f399",
+                        "inverse-surface": "#2f3130",
+                        "secondary": "#1b6d24",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#fcfcff",
+                        "primary-fixed-dim": "#ffb780",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#5a5c5e",
+                        "on-secondary-container": "#217128",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#b35e00",
+                        "secondary-fixed-dim": "#88d982",
+                        "inverse-primary": "#ffb780",
+                        "on-primary-container": "#fffbff",
+                        "on-tertiary-fixed": "#1a1c1e",
+                        "on-tertiary-fixed-variant": "#454749",
+                        "on-surface": "#1a1c1b",
+                        "inverse-on-surface": "#f1f1ef",
+                        "on-secondary": "#ffffff",
+                        "primary": "#8f4a00",
+                        "error-red": "#D32F2F",
+                        "secondary-fixed": "#a3f69c",
+                        "surface-bright": "#faf9f7",
+                        "primary-fixed": "#ffdcc4",
+                        "surface-container-low": "#f4f3f1",
+                        "surface-container-highest": "#e3e2e0",
+                        "surface-dim": "#dadad8",
+                        "surface-tint": "#924c00",
+                        "surface-container": "#efeeec",
+                        "tertiary-fixed": "#e2e2e5",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#2f1400",
+                        "on-secondary-fixed-variant": "#005312",
+                        "surface-variant": "#e3e2e0",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#002204",
+                        "on-primary-fixed-variant": "#6f3800",
+                        "safety-amber": "#C2680A",
+                        "success-green": "#2E7D32",
+                        "surface-container-high": "#e9e8e6",
+                        "tertiary-container": "#737577",
+                        "warning-orange": "#ED6C02"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "touch-target": "48px",
+                        "md": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md-mobile": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "title-md": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-sm": ["Hanken Grotesk"],
+                        "label-lg": ["Hanken Grotesk"],
+                        "title-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-md-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Hanken Grotesk', sans-serif; }
+        .h-touch-target { height: 48px; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center h-touch-target px-md w-full bg-surface dark:bg-surface-dim border-b border-surface-outline sticky top-0 z-40">
+<button aria-label="Menu" class="text-primary dark:text-primary-fixed-dim hover:bg-surface-container-high active:opacity-80 transition-opacity h-touch-target w-[48px] flex items-center justify-center rounded-full">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">construction</span>
+</button>
+<h1 class="font-headline-md-mobile text-headline-md-mobile text-safety-amber dark:text-primary-fixed-dim font-bold">Obrion</h1>
+<button aria-label="Perfil" class="text-primary dark:text-primary-fixed-dim hover:bg-surface-container-high active:opacity-80 transition-opacity h-touch-target w-[48px] flex items-center justify-center rounded-full">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_circle</span>
+</button>
+</header>
+<main class="px-md py-lg max-w-3xl mx-auto space-y-lg">
+<!-- Header & Search -->
+<div class="space-y-md">
+<h2 class="font-title-lg text-title-lg text-on-surface">Orçamentos</h2>
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-[48px] pr-md h-[56px] bg-surface-container-low border-b-2 border-transparent focus:border-safety-amber focus:ring-0 rounded-t-DEFAULT transition-colors font-body-lg text-body-lg text-on-surface placeholder:text-on-surface-variant" placeholder="Buscar orçamentos..." type="text"/>
+</div>
+</div>
+<!-- Filter Chips -->
+<div class="flex overflow-x-auto hide-scrollbar gap-sm py-xs">
+<button class="shrink-0 h-[40px] px-lg rounded-full bg-safety-amber text-on-primary font-label-lg text-label-lg border border-transparent flex items-center justify-center transition-colors">
+                Todos
+            </button>
+<button class="shrink-0 h-[40px] px-lg rounded-full bg-surface text-on-surface-variant font-label-lg text-label-lg border border-surface-outline hover:bg-surface-container-low flex items-center justify-center transition-colors">
+                Rascunho
+            </button>
+<button class="shrink-0 h-[40px] px-lg rounded-full bg-surface text-on-surface-variant font-label-lg text-label-lg border border-surface-outline hover:bg-surface-container-low flex items-center justify-center transition-colors">
+                Enviado
+            </button>
+<button class="shrink-0 h-[40px] px-lg rounded-full bg-surface text-on-surface-variant font-label-lg text-label-lg border border-surface-outline hover:bg-surface-container-low flex items-center justify-center transition-colors">
+                Aceito
+            </button>
+<button class="shrink-0 h-[40px] px-lg rounded-full bg-surface text-on-surface-variant font-label-lg text-label-lg border border-surface-outline hover:bg-surface-container-low flex items-center justify-center transition-colors">
+                Recusado
+            </button>
+</div>
+<!-- Quote List -->
+<div class="space-y-md">
+<!-- Card 1: Enviado -->
+<article class="bg-surface-container-lowest border border-surface-outline rounded-lg p-md flex flex-col gap-md relative">
+<div class="flex justify-between items-start gap-md">
+<div>
+<h3 class="font-title-md text-title-md text-on-surface line-clamp-1">Reforma Cozinha - João Silva</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Criado em 10/10/2023</p>
+</div>
+<span class="inline-flex items-center px-sm py-[2px] rounded-sm bg-[#E3F2FD] text-[#1565C0] font-label-md text-label-md shrink-0">
+                        Enviado
+                    </span>
+</div>
+<div class="flex justify-between items-end border-t border-surface-variant pt-md mt-sm">
+<p class="font-title-lg text-title-lg text-on-surface font-semibold">R$ 4.500,00</p>
+<button class="h-touch-target px-md flex items-center justify-center text-safety-amber font-label-lg text-label-lg rounded hover:bg-surface-container-low transition-colors">
+                        Ver detalhes
+                    </button>
+</div>
+</article>
+<!-- Card 2: Rascunho -->
+<article class="bg-surface-container-lowest border border-surface-outline rounded-lg p-md flex flex-col gap-md relative">
+<div class="flex justify-between items-start gap-md">
+<div>
+<h3 class="font-title-md text-title-md text-on-surface line-clamp-1">Instalação Elétrica - Condomínio</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Criado em 12/10/2023</p>
+</div>
+<span class="inline-flex items-center px-sm py-[2px] rounded-sm bg-surface-container-high text-on-surface-variant font-label-md text-label-md shrink-0">
+                        Rascunho
+                    </span>
+</div>
+<div class="flex justify-between items-end border-t border-surface-variant pt-md mt-sm">
+<p class="font-title-lg text-title-lg text-on-surface font-semibold">--</p>
+<button class="h-touch-target px-md flex items-center justify-center text-safety-amber font-label-lg text-label-lg rounded hover:bg-surface-container-low transition-colors">
+                        Continuar
+                    </button>
+</div>
+</article>
+<!-- Card 3: Aceito -->
+<article class="bg-surface-container-lowest border border-surface-outline rounded-lg p-md flex flex-col gap-md relative">
+<div class="flex justify-between items-start gap-md">
+<div>
+<h3 class="font-title-md text-title-md text-on-surface line-clamp-1">Pintura Fachada - Loja Centro</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Aceito em 08/10/2023</p>
+</div>
+<span class="inline-flex items-center px-sm py-[2px] rounded-sm bg-[#E8F5E9] text-success-green font-label-md text-label-md shrink-0">
+                        Aceito
+                    </span>
+</div>
+<div class="flex justify-between items-end border-t border-surface-variant pt-md mt-sm">
+<p class="font-title-lg text-title-lg text-on-surface font-semibold">R$ 8.200,00</p>
+<button class="h-touch-target px-md flex items-center justify-center text-safety-amber font-label-lg text-label-lg rounded hover:bg-surface-container-low transition-colors">
+                        Ver detalhes
+                    </button>
+</div>
+</article>
+<!-- Card 4: Recusado -->
+<article class="bg-surface-container-lowest border border-surface-outline rounded-lg p-md flex flex-col gap-md relative">
+<div class="flex justify-between items-start gap-md">
+<div>
+<h3 class="font-title-md text-title-md text-on-surface line-clamp-1">Manutenção Telhado - Maria</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Recusado em 05/10/2023</p>
+</div>
+<span class="inline-flex items-center px-sm py-[2px] rounded-sm bg-error-container text-error-red font-label-md text-label-md shrink-0">
+                        Recusado
+                    </span>
+</div>
+<div class="flex justify-between items-end border-t border-surface-variant pt-md mt-sm">
+<p class="font-title-lg text-title-lg text-on-surface font-semibold">R$ 1.500,00</p>
+<button class="h-touch-target px-md flex items-center justify-center text-safety-amber font-label-lg text-label-lg rounded hover:bg-surface-container-low transition-colors">
+                        Ver detalhes
+                    </button>
+</div>
+</article>
+</div>
+</main>
+<!-- FAB -->
+<button aria-label="Novo orçamento" class="fixed right-md bottom-[100px] w-14 h-14 bg-safety-amber text-on-primary rounded-xl flex items-center justify-center shadow-md hover:bg-primary-container active:scale-95 transition-all z-40 md:hidden">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+</button>
+<!-- Desktop FAB replacement (visible only on md screens and up) -->
+<div class="hidden md:flex fixed right-xl bottom-xl z-40">
+<button class="h-touch-target px-lg bg-safety-amber text-on-primary font-label-lg text-label-lg rounded flex items-center justify-center shadow-md hover:bg-primary-container active:scale-95 transition-all gap-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+            Novo Orçamento
+        </button>
+</div>
+<!-- BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-surface dark:bg-surface-dim pb-safe border-t border-surface-outline h-[80px] rounded-t-xl">
+<a aria-label="Início" class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-md py-xs hover:bg-surface-container-highest active:scale-95 transition-transform duration-150 rounded-xl" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">home</span>
+<span class="font-label-md text-label-md">Início</span>
+</a>
+<a aria-current="page" aria-label="Orçamentos" class="flex flex-col items-center justify-center bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-xl px-md py-xs hover:bg-surface-container-highest active:scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">request_quote</span>
+<span class="font-label-md text-label-md font-medium">Orçamentos</span>
+</a>
+<a aria-label="Clientes" class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-md py-xs hover:bg-surface-container-highest active:scale-95 transition-transform duration-150 rounded-xl" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">engineering</span>
+<span class="font-label-md text-label-md">Clientes</span>
+</a>
+<a aria-label="Preços" class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-md py-xs hover:bg-surface-container-highest active:scale-95 transition-transform duration-150 rounded-xl" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">payments</span>
+<span class="font-label-md text-label-md">Preços</span>
+</a>
+<a aria-label="Ajustes" class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-md py-xs hover:bg-surface-container-highest active:scale-95 transition-transform duration-150 rounded-xl" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">settings</span>
+<span class="font-label-md text-label-md">Ajustes</span>
+</a>
+</nav>
+<script>
+        // Simple filter logic for demonstration
+        document.querySelectorAll('.overflow-x-auto button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Reset all
+                document.querySelectorAll('.overflow-x-auto button').forEach(btn => {
+                    btn.classList.remove('bg-safety-amber', 'text-on-primary');
+                    btn.classList.add('bg-surface', 'text-on-surface-variant');
+                });
+                // Set active
+                button.classList.remove('bg-surface', 'text-on-surface-variant');
+                button.classList.add('bg-safety-amber', 'text-on-primary');
+            });
+        });
+    </script>
+</body></html>

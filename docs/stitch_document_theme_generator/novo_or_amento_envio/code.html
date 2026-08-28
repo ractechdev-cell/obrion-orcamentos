@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Obrion Orçamentos - Enviar Orçamento</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#dbc2b1",
+                        "on-error-container": "#93000a",
+                        "surface": "#faf9f7",
+                        "surface-outline": "#C4C7C5",
+                        "on-background": "#1a1c1b",
+                        "outline": "#887365",
+                        "on-surface-variant": "#554337",
+                        "tertiary-fixed-dim": "#c6c6c9",
+                        "background": "#faf9f7",
+                        "secondary-container": "#a0f399",
+                        "inverse-surface": "#2f3130",
+                        "secondary": "#1b6d24",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#fcfcff",
+                        "primary-fixed-dim": "#ffb780",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#5a5c5e",
+                        "on-secondary-container": "#217128",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#b35e00",
+                        "secondary-fixed-dim": "#88d982",
+                        "inverse-primary": "#ffb780",
+                        "on-primary-container": "#fffbff",
+                        "on-tertiary-fixed": "#1a1c1e",
+                        "on-tertiary-fixed-variant": "#454749",
+                        "on-surface": "#1a1c1b",
+                        "inverse-on-surface": "#f1f1ef",
+                        "on-secondary": "#ffffff",
+                        "primary": "#8f4a00",
+                        "error-red": "#D32F2F",
+                        "secondary-fixed": "#a3f69c",
+                        "surface-bright": "#faf9f7",
+                        "primary-fixed": "#ffdcc4",
+                        "surface-container-low": "#f4f3f1",
+                        "surface-container-highest": "#e3e2e0",
+                        "surface-dim": "#dadad8",
+                        "surface-tint": "#924c00",
+                        "surface-container": "#efeeec",
+                        "tertiary-fixed": "#e2e2e5",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#2f1400",
+                        "on-secondary-fixed-variant": "#005312",
+                        "surface-variant": "#e3e2e0",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#002204",
+                        "on-primary-fixed-variant": "#6f3800",
+                        "safety-amber": "#C2680A",
+                        "success-green": "#2E7D32",
+                        "surface-container-high": "#e9e8e6",
+                        "tertiary-container": "#737577",
+                        "warning-orange": "#ED6C02"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "touch-target": "48px",
+                        "md": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md-mobile": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "title-md": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-sm": ["Hanken Grotesk"],
+                        "label-lg": ["Hanken Grotesk"],
+                        "title-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-md-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col font-body-md antialiased pb-safe">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface-dim docked full-width top-0 border-b border-surface-outline flat no shadows flex justify-between items-center h-touch-target px-md w-full sticky z-50">
+<button class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high active:opacity-80 transition-opacity p-sm rounded-full flex items-center justify-center h-touch-target w-touch-target">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+<h1 class="font-headline-md-mobile text-headline-md-mobile text-safety-amber dark:text-primary-fixed-dim font-bold">Obrion</h1>
+<div class="w-touch-target"></div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex flex-col pt-md pb-[100px]">
+<!-- Step Wizard Progress -->
+<div class="px-md mb-lg">
+<div class="flex items-center justify-between relative">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-surface-container-high -z-10 rounded-full"></div>
+<!-- Step 1 -->
+<div class="flex flex-col items-center gap-xs">
+<div class="w-8 h-8 rounded-full bg-safety-amber text-on-primary flex items-center justify-center font-title-md text-title-md shadow-sm">
+<span class="material-symbols-outlined text-[16px]" data-icon="check">check</span>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center gap-xs">
+<div class="w-8 h-8 rounded-full bg-safety-amber text-on-primary flex items-center justify-center font-title-md text-title-md shadow-sm">
+<span class="material-symbols-outlined text-[16px]" data-icon="check">check</span>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col items-center gap-xs">
+<div class="w-8 h-8 rounded-full bg-safety-amber text-on-primary flex items-center justify-center font-title-md text-title-md shadow-sm">
+<span class="material-symbols-outlined text-[16px]" data-icon="check">check</span>
+</div>
+</div>
+<!-- Step 4 (Current) -->
+<div class="flex flex-col items-center gap-xs">
+<div class="w-8 h-8 rounded-full bg-safety-amber text-on-primary flex items-center justify-center font-title-md text-title-md shadow-sm border-2 border-safety-amber ring-4 ring-safety-amber/20">
+                        4
+                    </div>
+</div>
+</div>
+<div class="flex justify-between mt-sm font-label-md text-label-md text-on-surface-variant">
+<span>Cliente</span>
+<span>Itens</span>
+<span>Resumo</span>
+<span class="font-bold text-safety-amber">Envio</span>
+</div>
+</div>
+<!-- Success Content -->
+<div class="flex flex-col items-center justify-center flex-grow px-md text-center">
+<div class="w-24 h-24 rounded-full bg-success-green/10 flex items-center justify-center mb-lg">
+<span class="material-symbols-outlined text-[48px] text-success-green" data-icon="check_circle" data-weight="fill">check_circle</span>
+</div>
+<h2 class="font-headline-md-mobile text-headline-md-mobile text-on-surface mb-sm">Orçamento pronto!</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-xl max-w-sm">
+                O orçamento para <strong>Reforma Residencial Silva</strong> foi gerado com sucesso e está pronto para ser enviado ao cliente.
+            </p>
+<!-- Actions Container -->
+<div class="w-full max-w-sm flex flex-col gap-md">
+<button class="bg-safety-amber text-on-primary h-touch-target rounded w-full flex items-center justify-center gap-sm font-title-md text-title-md active:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="picture_as_pdf">picture_as_pdf</span>
+                    Enviar como PDF
+                </button>
+<button class="bg-surface text-safety-amber border border-safety-amber h-touch-target rounded w-full flex items-center justify-center gap-sm font-title-md text-title-md hover:bg-safety-amber/5 active:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="image">image</span>
+                    Enviar como imagem
+                </button>
+<div class="mt-lg">
+<button class="text-on-surface-variant font-title-md text-title-md h-touch-target w-full flex items-center justify-center hover:bg-surface-container-high rounded active:opacity-80 transition-opacity">
+                        Depois eu envio
+                    </button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

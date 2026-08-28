@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ficha do Cliente - Obrion</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#dbc2b1",
+                        "on-error-container": "#93000a",
+                        "surface": "#faf9f7",
+                        "surface-outline": "#C4C7C5",
+                        "on-background": "#1a1c1b",
+                        "outline": "#887365",
+                        "on-surface-variant": "#554337",
+                        "tertiary-fixed-dim": "#c6c6c9",
+                        "background": "#faf9f7",
+                        "secondary-container": "#a0f399",
+                        "inverse-surface": "#2f3130",
+                        "secondary": "#1b6d24",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#fcfcff",
+                        "primary-fixed-dim": "#ffb780",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#5a5c5e",
+                        "on-secondary-container": "#217128",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#b35e00",
+                        "secondary-fixed-dim": "#88d982",
+                        "inverse-primary": "#ffb780",
+                        "on-primary-container": "#fffbff",
+                        "on-tertiary-fixed": "#1a1c1e",
+                        "on-tertiary-fixed-variant": "#454749",
+                        "on-surface": "#1a1c1b",
+                        "inverse-on-surface": "#f1f1ef",
+                        "on-secondary": "#ffffff",
+                        "primary": "#8f4a00",
+                        "error-red": "#D32F2F",
+                        "secondary-fixed": "#a3f69c",
+                        "surface-bright": "#faf9f7",
+                        "primary-fixed": "#ffdcc4",
+                        "surface-container-low": "#f4f3f1",
+                        "surface-container-highest": "#e3e2e0",
+                        "surface-dim": "#dadad8",
+                        "surface-tint": "#924c00",
+                        "surface-container": "#efeeec",
+                        "tertiary-fixed": "#e2e2e5",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#2f1400",
+                        "on-secondary-fixed-variant": "#005312",
+                        "surface-variant": "#e3e2e0",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#002204",
+                        "on-primary-fixed-variant": "#6f3800",
+                        "safety-amber": "#C2680A",
+                        "success-green": "#2E7D32",
+                        "surface-container-high": "#e9e8e6",
+                        "tertiary-container": "#737577",
+                        "warning-orange": "#ED6C02"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "touch-target": "48px",
+                        "md": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md-mobile": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "title-md": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-sm": ["Hanken Grotesk"],
+                        "label-lg": ["Hanken Grotesk"],
+                        "title-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-md-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Hanken Grotesk', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-[100px]">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center h-touch-target px-md w-full bg-surface dark:bg-surface-dim border-b border-surface-outline flat no shadows sticky top-0 z-50">
+<button class="flex items-center justify-center w-touch-target h-touch-target hover:bg-surface-container-high active:opacity-80 transition-opacity rounded-full">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-headline-md-mobile text-headline-md-mobile text-safety-amber dark:text-primary-fixed-dim font-bold flex-1 text-center truncate px-sm">
+            Construtora Silva
+        </h1>
+<button class="flex items-center justify-center w-touch-target h-touch-target hover:bg-surface-container-high active:opacity-80 transition-opacity rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant dark:text-surface-variant" data-icon="more_vert">more_vert</span>
+</button>
+</header>
+<main class="max-w-3xl mx-auto px-md py-lg space-y-lg">
+<!-- Quick Actions Card -->
+<section class="bg-surface-container-lowest border border-surface-outline rounded-xl p-md">
+<div class="flex items-center justify-between mb-sm">
+<div>
+<h2 class="font-title-lg text-title-lg text-on-surface">João Silva</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Engenheiro Responsável</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-sm mt-md"><button class="h-[56px] flex items-center justify-center gap-sm bg-safety-amber text-on-primary rounded-xl font-title-md text-title-md active:opacity-80 transition-opacity shadow-lg">
+<span class="material-symbols-outlined" data-icon="chat" style="font-variation-settings: 'FILL' 1;">chat</span>
+                    WhatsApp
+                </button>
+<button class="h-[56px] flex items-center justify-center gap-sm border-2 border-safety-amber text-safety-amber bg-surface rounded-xl font-title-md text-title-md active:opacity-80 transition-opacity shadow-lg">
+<span class="material-symbols-outlined" data-icon="call">call</span>
+                    Ligar
+                </button></div>
+<div class="mt-md flex items-start gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant mt-xs" data-icon="location_on">location_on</span>
+<p class="font-body-md text-body-md text-on-surface-variant">Rua das Indústrias, 1500 - Distrito Industrial, São Paulo - SP</p>
+</div>
+</section>
+<!-- Timeline Section -->
+<section>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-md">Histórico do Cliente</h3>
+<div class="relative border-l-2 border-surface-outline ml-[23px] pl-lg space-y-lg pb-lg">
+<!-- Timeline Item: Budget Approved -->
+<div class="relative">
+<div class="absolute -left-[44px] w-[40px] h-[40px] bg-surface border-2 border-success-green rounded-full flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-success-green" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="bg-surface-container-lowest border border-surface-outline rounded-lg p-md">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-label-md text-label-md bg-[#e6f4ea] text-success-green px-sm py-[2px] rounded uppercase">Aprovado há 2 dias</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">15 Out 2023</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface mb-xs">Orçamento #1042</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mb-sm">Reforma Galpão Principal - Estrutura Metálica</p><div class="w-full h-[120px] rounded-lg bg-surface-container overflow-hidden border border-surface-outline mb-sm">
+<img alt="Galpão" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAmk1D2OWusyjQtXhnTq4GdleYWP0G12pXxN9WbfW0aTf_2kzVYNsiKytNvf5uF7UgKSINigKJ9yovA4PaR21Wx4foomtftaSqMIlJC-VdAlSnjIEmtYvAvlIA5fD6bD5ZQLjPXxNbWOPmz7ac4Gmi3qZWgHJXrUvveFnnfiKXvwECqVLSijZ_TCN2dOoecDzySx2VU3W_aD1Tk7rBMUtPL1pboQ5ES64rr7pLGJARIS2TTZR8jSQY"/>
+</div>
+<div class="flex justify-between items-center border-t border-surface-outline pt-sm">
+<span class="font-body-md text-body-md text-on-surface-variant">Valor Total:</span>
+<span class="font-title-md text-title-md text-safety-amber">R$ 45.200,00</span>
+</div>
+</div>
+</div>
+<!-- Timeline Item: Measurement -->
+<div class="relative">
+<div class="absolute -left-[44px] w-[40px] h-[40px] bg-surface border-2 border-surface-outline rounded-full flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="straighten">straighten</span>
+</div>
+<div class="bg-surface-container-lowest border border-surface-outline rounded-lg p-md">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-label-md text-label-md bg-surface-container text-on-surface-variant px-sm py-[2px] rounded uppercase">Medição</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">10 Out 2023</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface mb-xs">Visita Técnica</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Levantamento de medidas e análise estrutural do telhado.</p><div class="flex gap-sm mt-sm">
+<div class="w-[64px] h-[64px] rounded-lg bg-surface-container overflow-hidden border border-surface-outline">
+<img alt="Medição 1" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSDZ6PH5hmQSm81RA2ud4WBh60GqG9-YFV6HSDk60gt3wcNOJ-oKVfBvh_MpvnwNJ_QWvaTJiVIiHtTCV9CV_aaxxCkw5ea6xgCBjZRm_T-pH7-eLH9Dq-rnU63yYBs6kjdmm5AZ3JOY4kflVKBTrkkA86QQrjhkUGQqXBmcUC2xwoloK8Hszn0xcFJhxtoRNmetba3fPMDik2DGiM4Un-rTw-MDQ8vEOMaj8UDAAEnw_njpgBHii6"/>
+</div>
+<div class="w-[64px] h-[64px] rounded-lg bg-surface-container overflow-hidden border border-surface-outline">
+<img alt="Medição 2" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-5mku7RqEzNDxpLRiqZ710yvZFtiYxTmYA2X0NJl80q7dB-rKIH2DjGIjRwg4D99bw1_TIHxnhMBJ4r7qdLIvoOE9XrfOokhtnYuyUJuXy0t-4gfGkwYprM4lKF3Tpb_N6zioRR0-dS-wxZl7pCBfZCDAwMl0jNDRUHILESPdGEx8oyS9Md7_YxflWNp4ITNoLRnjFlSssg-sZTT3uKYC_OT0e1Et_Qtwc1M1z5aUZrNTvhVRO4KX"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Timeline Item: Budget Rejected -->
+<div class="relative">
+<div class="absolute -left-[44px] w-[40px] h-[40px] bg-surface border-2 border-error-red rounded-full flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-error-red" data-icon="cancel">cancel</span>
+</div>
+<div class="bg-surface-container-lowest border border-surface-outline rounded-lg p-md">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-label-md text-label-md bg-error-container text-error-red px-sm py-[2px] rounded uppercase">Recusado</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">02 Set 2023</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface mb-xs">Orçamento #0988</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mb-sm">Pintura Fachada Externa</p>
+<div class="flex justify-between items-center border-t border-surface-outline pt-sm">
+<span class="font-body-md text-body-md text-on-surface-variant">Valor Total:</span>
+<span class="font-title-md text-title-md text-on-surface-variant line-through">R$ 12.500,00</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- FAB for New Budget -->
+<!-- Not rendering contextual FAB as this is a detail screen, but prompt explicitly asked for it -->
+<button class="fixed bottom-[100px] right-md w-[56px] h-[56px] bg-safety-amber text-on-primary rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition-transform z-40">
+<span class="material-symbols-outlined" data-icon="add" style="font-size: 28px;">add</span>
+</button>
+</body></html>
