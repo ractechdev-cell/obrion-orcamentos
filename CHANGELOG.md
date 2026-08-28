@@ -5,6 +5,14 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 ## [Unreleased]
 
 ### Added
+- **Design system Safety Industrial aplicado** (`docs/stitch_document_theme_generator/`) — ver `docs/PROGRESSO_DESIGN_SAFETY_INDUSTRIAL.md` para o checklist por tela e as divergências deliberadas dos modelos.
+  - **Tipografia Hanken Grotesk**, que estava 100% ausente: o tema tinha os tamanhos e pesos certos mas renderizava em Roboto. Empacotada como asset (OFL 1.1) em vez do pacote `google_fonts`, que baixa em runtime e cairia no fallback justamente no canteiro sem sinal.
+  - Tokens que faltavam: `safetyAmber` (#C2680A, a cor de CTA/FAB/marca/dinheiro — existia só como seed e nunca era usada), `surfaceOutline` (#C4C7C5, a borda padrão do design), `info` e `danger`.
+  - Estilos separados por componente em `lib/theme/components/` — `app_theme.dart` concentrava botão, input, card, chip e navegação em 275 linhas; agora só compõe.
+  - Componentes novos: `AppStatusChip`, `AppMetricCard`, `AppAvatar`, `AppSearchField`, `AppFilterChips`, `AppSectionHeader`, `AppSegmentedBar`, `AppTimelineTile`.
+  - Telas refeitas: Home (painel), lista de orçamentos (busca + filtro + valor no card), lista de clientes (avatar + contagem), lista de preços (preço em âmbar) e ficha do cliente (linha do tempo visual).
+  - `test/widgets/screen_layout_test.dart` renderiza as telas em 320dp e 411dp com dado hostil e falha em qualquer estouro de layout. Pegou dois na primeira execução: a barra da Lista de Preços (26px) e o `AppEmptyState` (48px), ambos corrigidos.
+  - `BudgetsRepository.watchAllWithClientNames` passou a trazer o total de cada orçamento e deixou de fazer N+1 (era uma consulta de cliente por orçamento).
 - **Follow-up manual**: botão "Enviar lembrete" (WhatsApp com mensagem pré-pronta, `lib/utils/follow_up_message.dart`) em qualquer orçamento "Enviado" com telefone salvo — na Home (pendências) e na aba Orçamentos. Nunca envia sozinho, só pré-preenche a conversa (`PhoneActions.openWhatsApp` ganhou parâmetro `message`).
 - **`docs/ROADMAP_UX_UI_E_FEATURES_APP1.md`** (trazido pelo fundador, 24/08/2026) — novo roadmap de UX/UI/features, ponto de partida pra elevar o app a nível profissional antes da ★ Validação. **`docs/PROGRESSO_ROADMAP_UX_UI.md`** é o checklist vivo dele, cruzado contra o código real — ver esse arquivo pra status detalhado por item.
 - **Home virou painel** (`HomeScreen`, `BudgetsRepository.loadHomeSummary`): resumo financeiro (em orçamentos / aguardando resposta / aprovados / recebidos) + lista de pendências (orçamentos "Enviado", tocável, leva direto pro orçamento). Grade de atalhos do concorrente não entrou — decisão já registrada de que é redundante com a barra inferior.
