@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 // ignore: unused_import
 import 'enums.dart';
 import 'tables/app_settings_table.dart';
+import 'tables/budget_templates_table.dart';
 import 'tables/budgets_table.dart';
 import 'tables/clients_table.dart';
 import 'tables/measurements_table.dart';
@@ -30,6 +31,8 @@ part 'database.g.dart';
     BudgetItems,
     AppSettings,
     Payments,
+    BudgetTemplates,
+    BudgetTemplateItems,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -40,7 +43,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   /// v1 → v2: adiciona `payments` (controle de pagamentos, ver CLAUDE.md,
   /// monetização). v2 → v3: adiciona `budgets.jobDescription` (descrição
@@ -48,7 +51,9 @@ class AppDatabase extends _$AppDatabase {
   /// `clients.document`/`street`/`streetNumber`/`neighborhood` (formulário
   /// de cliente mais estruturado, ver `clients_table.dart`). v4 → v5:
   /// adiciona `clients.email`. v5 → v6: adiciona `services.category`
-  /// (filtro por categoria na Lista de Preços). Instalações já existentes
+  /// (filtro por categoria na Lista de Preços). v6 → v7: adiciona
+  /// `budget_templates`/`budget_template_items` (modelos de orçamento,
+  /// ver `budget_templates_table.dart`). Instalações já existentes
   /// precisam dessas migrações pra não perder dado nenhum; um `onCreate`
   /// sozinho só resolveria instalações novas do zero.
   @override
@@ -72,6 +77,10 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 6) {
             await m.addColumn(services, services.category);
+          }
+          if (from < 7) {
+            await m.createTable(budgetTemplates);
+            await m.createTable(budgetTemplateItems);
           }
         },
       );

@@ -9,6 +9,7 @@ import '../measurement/measurement_math.dart';
 import '../review/review_service.dart';
 import '../database/enums.dart';
 import '../pdf/budget_share_service.dart';
+import '../providers/budget_templates_repository_provider.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
 import '../providers/payments_repository_provider.dart';
@@ -825,6 +826,84 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     );
   }
 
+  /// Salva os itens/condições deste orçamento como modelo reutilizável —
+  /// ver docs/ROADMAP_UX_UI_E_FEATURES_APP1.md, seção 14. Snapshot no
+  /// momento do toque; editar o orçamento depois não muda o modelo.
+  Future<void> _saveAsTemplate(BuildContext context, BudgetWithItems data) async {
+    if (data.items.isEmpty) {
+      AppSnackBar.show(
+        context,
+        'Adicione ao menos um item antes de salvar como modelo.',
+        variant: AppSnackBarVariant.warning,
+      );
+      return;
+    }
+
+    final nameController = TextEditingController();
+    final name = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 24,
+          right: 24,
+          top: 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Salvar como modelo',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Os itens e condições deste orçamento ficam salvos pra você '
+              'usar de novo em outro cliente.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            AppTextField(
+              controller: nameController,
+              label: 'Nome do modelo',
+              hint: 'Ex: Pintura residencial',
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            AppButton(
+              label: 'Salvar modelo',
+              onPressed: () {
+                final value = nameController.text.trim();
+                if (value.isEmpty) {
+                  AppSnackBar.show(
+                    context,
+                    'Dê um nome pro modelo.',
+                    variant: AppSnackBarVariant.warning,
+                  );
+                  return;
+                }
+                Navigator.of(context).pop(value);
+              },
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
+        ),
+      ),
+    );
+
+    if (name == null || !context.mounted) return;
+    await ref.read(budgetTemplatesRepositoryProvider).createFromBudget(
+          budgetId: _budgetId!,
+          name: name,
+        );
+    if (context.mounted) {
+      AppSnackBar.show(context, 'Modelo "$name" salvo.');
+    }
+  }
+
   /// Exclusão lógica, com confirmação — orçamento carrega trabalho de
   /// medição e negociação, e um toque errado no menu não pode custar isso.
   /// Mesmo padrão de confirmação usado pra excluir cliente e medição.
@@ -961,6 +1040,8 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                   switch (value) {
                     case 'duplicate':
                       _duplicateBudget(context);
+                    case 'save_template':
+                      _saveAsTemplate(context, data);
                     case 'delete':
                       _deleteBudget(context);
                   }
@@ -971,6 +1052,14 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     child: ListTile(
                       leading: Icon(Icons.copy_outlined),
                       title: Text('Duplicar orçamento'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'save_template',
+                    child: ListTile(
+                      leading: Icon(Icons.bookmark_add_outlined),
+                      title: Text('Salvar como modelo'),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),

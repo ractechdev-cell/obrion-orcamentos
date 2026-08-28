@@ -21,6 +21,7 @@ import '../widgets/app_search_field.dart';
 import '../widgets/app_snackbar.dart';
 import '../widgets/app_status_chip.dart';
 import 'budget_form_screen.dart';
+import 'budget_templates_screen.dart';
 import 'budget_wizard_screen.dart';
 
 /// Todos os orçamentos, de todos os clientes, numerados — visão geral que
@@ -154,7 +155,18 @@ class _BudgetsListScreenState extends ConsumerState<BudgetsListScreen> {
     final repo = ref.watch(budgetsRepositoryProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Orçamentos')),
+      appBar: AppBar(
+        title: const Text('Orçamentos'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bookmark_outline),
+            tooltip: 'Meus Modelos',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const BudgetTemplatesScreen()),
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _createBudget(context, ref),
         tooltip: 'Novo orçamento',

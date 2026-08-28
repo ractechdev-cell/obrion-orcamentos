@@ -8,6 +8,7 @@ import '../database/database.dart';
 import '../database/enums.dart';
 import '../measurement/measurement_math.dart';
 import '../pdf/budget_share_service.dart';
+import '../providers/budget_templates_repository_provider.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
@@ -28,6 +29,7 @@ import '../widgets/app_number_input.dart';
 import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
 import 'budget_form_screen.dart';
+import 'budget_templates_screen.dart';
 import 'service_unit_label.dart';
 
 /// Wizard de criação de orçamento — substitui o formulário monolítico de
@@ -346,6 +348,12 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
                                       .colorScheme
                                       .onSurfaceVariant,
                                 ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          TextButton.icon(
+                            onPressed: () => _useTemplate(context),
+                            icon: const Icon(Icons.bookmark_outline, size: 18),
+                            label: const Text('Usar modelo salvo'),
                           ),
                         ],
                       ),
@@ -915,6 +923,26 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
     if (confirmed == true) {
       final repo = ref.read(budgetsRepositoryProvider);
       await repo.removeItem(item.id);
+    }
+  }
+
+  /// Abre a lista de modelos em modo seleção e, se o usuário escolher um,
+  /// copia itens/condições pro orçamento em andamento — ver
+  /// docs/ROADMAP_UX_UI_E_FEATURES_APP1.md, seção 14.
+  Future<void> _useTemplate(BuildContext context) async {
+    final template = await Navigator.of(context).push<BudgetTemplate>(
+      MaterialPageRoute(
+        builder: (_) => const BudgetTemplatesScreen(selectionMode: true),
+      ),
+    );
+    if (template == null || !context.mounted) return;
+
+    await ref.read(budgetTemplatesRepositoryProvider).applyToBudget(
+          templateId: template.id,
+          budgetId: widget.budgetId,
+        );
+    if (context.mounted) {
+      AppSnackBar.show(context, 'Modelo "${template.name}" aplicado.');
     }
   }
 }
