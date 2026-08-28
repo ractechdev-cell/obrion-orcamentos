@@ -10,7 +10,6 @@ import '../measurement/measurement_math.dart';
 import '../pdf/budget_share_service.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
-import '../providers/measurements_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
 import '../repositories/budgets_repository.dart';
@@ -19,6 +18,7 @@ import '../repositories/measurements_repository.dart';
 import '../review/review_service.dart';
 import '../theme/app_semantic_colors.dart';
 import '../theme/app_spacing.dart';
+import '../utils/measurement_flow.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_currency_input.dart';
@@ -43,9 +43,20 @@ import 'service_unit_label.dart';
 /// 3. **Revisão** — resumo com cliente, itens, totais
 /// 4. **Envio** — compartilhar PDF/imagem/WhatsApp, marcar como enviado
 class BudgetWizardScreen extends ConsumerStatefulWidget {
-  const BudgetWizardScreen({super.key, required this.clientId});
+  const BudgetWizardScreen({
+    super.key,
+    required this.clientId,
+    this.budgetId,
+  });
 
   final String clientId;
+
+  /// Rascunho já existente a retomar. Nulo cria um novo.
+  ///
+  /// Sem isso, "Continuar" num rascunho da lista caía no formulário
+  /// antigo em vez do wizard — o mesmo orçamento abria de dois jeitos
+  /// diferentes conforme o caminho de onde se veio.
+  final String? budgetId;
 
   @override
   ConsumerState<BudgetWizardScreen> createState() => _BudgetWizardScreenState();
@@ -56,12 +67,23 @@ class _BudgetWizardScreenState extends ConsumerState<BudgetWizardScreen> {
   String? _budgetId;
   int _currentStep = 0;
 
+  /// Se o rascunho nasceu nesta sessão do wizard. Define o que o "X" faz:
+  /// descartar um rascunho recém-criado é o esperado, mas apagar um que
+  /// já existia — e que a pessoa só abriu pra continuar — destruiria
+  /// trabalho salvo.
+  bool _createdHere = false;
+
   static const _stepLabels = ['Serviços', 'Condições', 'Revisão', 'Envio'];
 
   @override
   void initState() {
     super.initState();
-    _createDraft();
+    final existing = widget.budgetId;
+    if (existing != null) {
+      _budgetId = existing;
+    } else {
+      _createDraft();
+    }
   }
 
   @override
@@ -75,7 +97,12 @@ class _BudgetWizardScreenState extends ConsumerState<BudgetWizardScreen> {
     final budget = await repo.create(clientId: widget.clientId);
     AnalyticsService.trackEvent('create_budget');
     AnalyticsService.trackEvent('budget_created');
-    if (mounted) setState(() => _budgetId = budget.id);
+    if (mounted) {
+      setState(() {
+        _budgetId = budget.id;
+        _createdHere = true;
+      });
+    }
   }
 
   void _nextStep() {
@@ -110,11 +137,19 @@ class _BudgetWizardScreenState extends ConsumerState<BudgetWizardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Novo orçamento'),
+        title: Text(_createdHere ? 'Novo orçamento' : 'Continuar orçamento'),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          tooltip: 'Cancelar',
+          tooltip: _createdHere ? 'Cancelar' : 'Fechar',
           onPressed: () async {
+            // Rascunho que já existia: fechar é só sair. O trabalho é
+            // salvo a cada passo, então não há nada a descartar — e
+            // apagá-lo aqui destruiria orçamento que a pessoa só veio
+            // continuar.
+            if (!_createdHere) {
+              Navigator.of(context).pop();
+              return;
+            }
             final confirmed = await AppDialog.confirm(
               context,
               title: 'Cancelar orçamento?',
@@ -508,31 +543,20 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
     final options = _measurementOptionsForUnit(unit);
     if (options.isEmpty) return null;
 
-    final measurementsRepo = ref.read(measurementsRepositoryProvider);
     final clientId = context
         .findAncestorStateOfType<_BudgetWizardScreenState>()
         ?.widget
         .clientId;
     if (clientId == null) return null;
 
-    final projects =
-        await measurementsRepo.watchProjectsByClient(clientId).first;
-    final allMeasurements = <MeasurementWithDetails>[];
-    for (final project in projects) {
-      allMeasurements.addAll(
-        await measurementsRepo.watchByProject(project.id).first,
-      );
-    }
-
-    if (!context.mounted) return null;
-    if (allMeasurements.isEmpty) {
-      AppSnackBar.show(
-        context,
-        'Nenhuma medição cadastrada pra esse cliente ainda.',
-        variant: AppSnackBarVariant.warning,
-      );
-      return null;
-    }
+    // Sem medição, oferece criar na hora em vez de só avisar — ver
+    // `loadMeasurementsOrOfferToCreate`.
+    final allMeasurements = await loadMeasurementsOrOfferToCreate(
+      context: context,
+      ref: ref,
+      clientId: clientId,
+    );
+    if (allMeasurements.isEmpty || !context.mounted) return null;
 
     MeasurementWithDetails? chosen = allMeasurements.first;
     if (allMeasurements.length > 1) {

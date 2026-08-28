@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_spacing.dart';
 import 'app_button.dart';
 
 /// Confirmações e alertas padronizados (ver docs/APP_FACTORY_CORE.md, UI
@@ -24,6 +25,12 @@ class AppDialog {
       builder: (context) => AlertDialog(
         title: Text(title),
         content: Text(message),
+        // Os botões ocupam a largura toda (48px de altura, regra do
+        // design), então o `OverflowBar` do `AlertDialog` sempre os
+        // empilha. Sem este espaçamento eles ficam colados, e "Cancelar"
+        // encosta em "Confirmar" — perigoso quando a confirmação é
+        // destrutiva e o toque é de mão suja/de luva.
+        actionsOverflowButtonSpacing: AppSpacing.sm,
         actions: [
           AppButton(
             label: cancelLabel,

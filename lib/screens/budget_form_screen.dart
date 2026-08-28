@@ -11,7 +11,6 @@ import '../database/enums.dart';
 import '../pdf/budget_share_service.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
-import '../providers/measurements_repository_provider.dart';
 import '../providers/payments_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
@@ -20,6 +19,7 @@ import '../repositories/measurements_repository.dart';
 import '../theme/app_semantic_colors.dart';
 import '../theme/app_spacing.dart';
 import '../utils/currency_format.dart';
+import '../utils/measurement_flow.dart';
 import '../widgets/app_bottom_sheet.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_card.dart';
@@ -240,26 +240,14 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     final options = _measurementOptionsForUnit(unit);
     if (options.isEmpty) return null;
 
-    final measurementsRepo = ref.read(measurementsRepositoryProvider);
-    final projects = await measurementsRepo
-        .watchProjectsByClient(widget.clientId)
-        .first;
-    final allMeasurements = <MeasurementWithDetails>[];
-    for (final project in projects) {
-      allMeasurements.addAll(
-        await measurementsRepo.watchByProject(project.id).first,
-      );
-    }
-
-    if (!context.mounted) return null;
-    if (allMeasurements.isEmpty) {
-      AppSnackBar.show(
-        context,
-        'Nenhuma medição cadastrada pra esse cliente ainda.',
-        variant: AppSnackBarVariant.warning,
-      );
-      return null;
-    }
+    // Sem medição, oferece criar na hora em vez de só avisar — ver
+    // `loadMeasurementsOrOfferToCreate`.
+    final allMeasurements = await loadMeasurementsOrOfferToCreate(
+      context: context,
+      ref: ref,
+      clientId: widget.clientId,
+    );
+    if (allMeasurements.isEmpty || !context.mounted) return null;
 
     MeasurementWithDetails? chosen = allMeasurements.first;
     if (allMeasurements.length > 1) {
@@ -837,6 +825,30 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     );
   }
 
+  /// Exclusão lógica, com confirmação — orçamento carrega trabalho de
+  /// medição e negociação, e um toque errado no menu não pode custar isso.
+  /// Mesmo padrão de confirmação usado pra excluir cliente e medição.
+  Future<void> _deleteBudget(BuildContext context) async {
+    final confirmed = await AppDialog.confirm(
+      context,
+      isDestructive: true,
+      title: 'Excluir orçamento?',
+      message: 'Os itens e pagamentos registrados nele saem junto. '
+          'Esta ação não pode ser desfeita.',
+      confirmLabel: 'Excluir',
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    await ref.read(budgetsRepositoryProvider).softDelete(_budgetId!);
+    if (!context.mounted) return;
+    AppSnackBar.show(
+      context,
+      'Orçamento excluído.',
+      variant: AppSnackBarVariant.destructive,
+    );
+    Navigator.of(context).pop();
+  }
+
   Future<void> _shareBudget(BuildContext context, BudgetWithItems data) async {
     final format = await AppBottomSheet.showActions<BudgetShareFormat>(
       context,
@@ -940,15 +952,37 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 tooltip: 'Adicionar item',
               ),
               PopupMenuButton<String>(
+                tooltip: 'Mais ações',
                 onSelected: (value) {
-                  if (value == 'duplicate') _duplicateBudget(context);
+                  switch (value) {
+                    case 'duplicate':
+                      _duplicateBudget(context);
+                    case 'delete':
+                      _deleteBudget(context);
+                  }
                 },
-                itemBuilder: (context) => const [
-                  PopupMenuItem(
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
                     value: 'duplicate',
                     child: ListTile(
                       leading: Icon(Icons.copy_outlined),
                       title: Text('Duplicar orçamento'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.delete_outline,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      title: Text(
+                        'Excluir orçamento',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),

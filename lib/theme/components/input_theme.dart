@@ -7,14 +7,26 @@ import '../app_typography.dart';
 
 /// Estilo de campo de entrada do design system Safety Industrial.
 ///
-/// O design especifica um campo **preenchido, sem contorno**, com uma
-/// barra de 2px embaixo que só aparece no foco (`border-b-2
-/// border-transparent focus:border-primary` nos modelos) e altura mínima
-/// de 56px para dar área de toque generosa na digitação.
+/// Campo **preenchido**, com barra inferior que engrossa e fica âmbar no
+/// foco, e altura mínima de 56px para dar área de toque generosa.
 ///
-/// Isso é diferente do `OutlineInputBorder` do Material: aqui o campo se
-/// distingue do fundo pelo preenchimento, e o foco é sinalizado por uma
-/// única aresta — menos ruído visual numa tela cheia de formulário.
+/// Duas escolhas aqui vieram de um erro concreto, e não convém desfazer
+/// sem entender o porquê:
+///
+/// 1. **O preenchimento é `surfaceContainerHigh`, mais escuro que o fundo
+///    da página.** A primeira versão usava `surfaceContainerLow` — a
+///    mesma cor do `scaffoldBackgroundColor` —, então os campos ficavam
+///    literalmente invisíveis nos formulários: sobrava só o rótulo
+///    flutuando no vazio. Qualquer cor escolhida aqui precisa contrastar
+///    **tanto** com o fundo da página (`surfaceContainerLow`) **quanto**
+///    com card e bottom sheet (`surfaceContainerLowest`, branco).
+/// 2. **A barra inferior é visível já em repouso.** Os modelos usam
+///    `border-transparent` até o foco, mas ali o campo tem largura menor
+///    e fica dentro de um card branco; no app, com o campo ocupando a
+///    linha inteira, sem a barra não havia nada dizendo onde tocar. Para
+///    o público do app (pouca familiaridade digital, uso ao sol), o custo
+///    de um contorno a mais é menor que o de um campo que não parece
+///    campo.
 class AppInputTheme {
   const AppInputTheme._();
 
@@ -37,21 +49,20 @@ class AppInputTheme {
 
     return InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.surfaceContainerLow,
+      fillColor: AppColors.surfaceContainerHigh,
       constraints: const BoxConstraints(minHeight: minHeight),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.md,
       ),
-      // Transparente (não `BorderSide.none`) para que a linha ocupe
-      // espaço já no estado normal — sem isso o campo "pula" 2px quando
-      // recebe foco.
-      border: border(Colors.transparent, 2),
-      enabledBorder: border(Colors.transparent, 2),
+      // Largura 2 em todos os estados (mudando só a cor) para o campo não
+      // "pular" ao ganhar foco.
+      border: border(AppColors.outline, 2),
+      enabledBorder: border(AppColors.outline, 2),
       focusedBorder: border(AppColors.safetyAmber, 2),
       errorBorder: border(AppColors.error, 2),
       focusedErrorBorder: border(AppColors.error, 2),
-      disabledBorder: border(Colors.transparent, 2),
+      disabledBorder: border(AppColors.outlineVariant, 2),
       labelStyle: AppTypography.bodyMedium.copyWith(
         fontFamily: AppTypography.fontFamily,
         color: AppColors.onSurfaceVariant,

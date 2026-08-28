@@ -20,6 +20,7 @@ import '../widgets/app_search_field.dart';
 import '../widgets/app_snackbar.dart';
 import '../widgets/app_status_chip.dart';
 import 'budget_form_screen.dart';
+import 'budget_wizard_screen.dart';
 
 /// Todos os orçamentos, de todos os clientes, numerados — visão geral que
 /// o histórico por cliente (`ClientDetailScreen`) não substitui: aqui dá
@@ -86,9 +87,12 @@ class _BudgetsListScreenState extends ConsumerState<BudgetsListScreen> {
     );
 
     if (selected != null && context.mounted) {
+      // Wizard, não o formulário direto: criar orçamento tem que abrir do
+      // mesmo jeito aqui e na ficha do cliente. Antes cada caminho abria
+      // uma tela diferente pro mesmo ato.
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => BudgetFormScreen(clientId: selected.id),
+          builder: (_) => BudgetWizardScreen(clientId: selected.id),
         ),
       );
     }
@@ -272,12 +276,20 @@ class _BudgetCard extends StatelessWidget {
     final budget = entry.budget;
     final isDraft = budget.status == BudgetStatus.draft;
 
+    // Rascunho continua no wizard (é onde ele foi montado); orçamento já
+    // fechado abre no formulário, que é a tela de gestão — status,
+    // pagamento, recibo, compartilhar.
     void open() => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => BudgetFormScreen(
-              clientId: budget.clientId,
-              budgetId: budget.id,
-            ),
+            builder: (_) => isDraft
+                ? BudgetWizardScreen(
+                    clientId: budget.clientId,
+                    budgetId: budget.id,
+                  )
+                : BudgetFormScreen(
+                    clientId: budget.clientId,
+                    budgetId: budget.id,
+                  ),
           ),
         );
 
