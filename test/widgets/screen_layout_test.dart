@@ -9,6 +9,7 @@ import 'package:orcamentos/repositories/budgets_repository.dart';
 import 'package:orcamentos/repositories/clients_repository.dart';
 import 'package:orcamentos/repositories/services_repository.dart';
 import 'package:orcamentos/screens/budgets_list_screen.dart';
+import 'package:orcamentos/screens/client_detail_screen.dart';
 import 'package:orcamentos/screens/clients_screen.dart';
 import 'package:orcamentos/screens/home_screen.dart';
 import 'package:orcamentos/screens/services_screen.dart';
@@ -36,7 +37,7 @@ void main() {
 
   /// Dado propositalmente hostil ao layout: nome longo sem espaço para
   /// quebrar bem, e valores na casa dos milhões.
-  Future<void> seedStressData() async {
+  Future<Client> seedStressData() async {
     final clientsRepo = ClientsRepository(database);
     final budgetsRepo = BudgetsRepository(database);
     final servicesRepo = ServicesRepository(database);
@@ -69,6 +70,8 @@ void main() {
     );
     // Serviço sem preço nem categoria — o outro extremo.
     await servicesRepo.create(name: 'Serviço', unit: ServiceUnit.unit);
+
+    return client;
   }
 
   /// Renderiza [screen] no tamanho pedido, deixa o dado carregar, roda
@@ -163,6 +166,21 @@ void main() {
           size: entry.value,
           expectations: () =>
               expect(find.byType(ServicesScreen), findsOneWidget),
+        );
+      });
+
+      testWidgets('Ficha do cliente (linha do tempo) não estoura',
+          (tester) async {
+        // O cliente vem do próprio seeder: consultar o banco aqui, no
+        // corpo do teste, travaria — `await` em stream do Drift dentro da
+        // zona de tempo simulado do `flutter_test` nunca completa.
+        final client = await seedStressData();
+        await renderScreen(
+          tester,
+          ClientDetailScreen(client: client),
+          size: entry.value,
+          expectations: () =>
+              expect(find.byType(ClientDetailScreen), findsOneWidget),
         );
       });
 

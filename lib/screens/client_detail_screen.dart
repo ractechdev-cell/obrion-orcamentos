@@ -2,20 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/database.dart';
+import '../database/enums.dart';
 import '../measurement/measurement_math.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
 import '../providers/measurements_repository_provider.dart';
 import '../repositories/measurements_repository.dart';
+import '../theme/app_semantic_colors.dart';
 import '../theme/app_spacing.dart';
 import '../utils/phone_actions.dart';
 import '../widgets/app_bottom_sheet.dart';
-import '../widgets/app_card.dart';
 import '../widgets/app_dialog.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/app_snackbar.dart';
+import '../widgets/app_status_chip.dart';
+import '../widgets/app_timeline_tile.dart';
 import 'budget_form_screen.dart';
 import 'budget_wizard_screen.dart';
 import 'client_form_screen.dart';
@@ -30,6 +33,7 @@ class _TimelineEntry {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.status,
     this.onDelete,
   });
 
@@ -38,6 +42,10 @@ class _TimelineEntry {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+
+  /// Só para orçamento — define o selo e a cor do marcador na linha do
+  /// tempo. Nulo em medição, que não tem ciclo de status.
+  final BudgetStatus? status;
 
   /// Só preenchido pra medição — excluir orçamento não faz parte deste
   /// menu (o orçamento tem seu próprio ciclo de vida via status).
@@ -107,6 +115,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
             title:
                 'Orçamento ${budget.createdAt.day}/${budget.createdAt.month}/${budget.createdAt.year}',
             subtitle: statusLabel(budget.status),
+            status: budget.status,
             onTap: () => _openBudget(budget.id),
           ),
       ]..sort((a, b) => b.date.compareTo(a.date));
@@ -355,63 +364,25 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   )
                 : RefreshIndicator(
                     onRefresh: _load,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.all(AppSpacing.md),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        // Espaço pro último card não ficar sob o botão
+                        // flutuante.
+                        AppSpacing.xxl + AppSpacing.lg,
+                      ),
                       itemCount: _entries.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: AppSpacing.sm),
                       itemBuilder: (context, index) {
                         final entry = _entries[index];
-                        final colorScheme = Theme.of(context).colorScheme;
-                        return AppCard(
-                          onTap: entry.onTap,
-                          child: Row(
-                            children: [
-                              Icon(
-                                entry.kind == _TimelineKind.measurement
-                                    ? Icons.straighten_outlined
-                                    : Icons.request_quote_outlined,
-                                color: colorScheme.primary,
-                              ),
-                              const SizedBox(width: AppSpacing.md),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      entry.title,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium,
-                                    ),
-                                    Text(
-                                      entry.subtitle,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: colorScheme.onSurfaceVariant,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                '${entry.date.day}/${entry.date.month}',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
-                              ),
-                              if (entry.onDelete != null)
-                                IconButton(
-                                  icon: const Icon(Icons.more_vert, size: 20),
-                                  tooltip: 'Mais opções',
-                                  onPressed: () =>
-                                      _openTimelineEntryMenu(context, entry),
-                                ),
-                            ],
-                          ),
+                        return _TimelineTile(
+                          entry: entry,
+                          isFirst: index == 0,
+                          isLast: index == _entries.length - 1,
+                          onMenu: entry.onDelete == null
+                              ? null
+                              : () => _openTimelineEntryMenu(context, entry),
                         );
                       },
                     ),
@@ -448,6 +419,103 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
               onPressed: () => PhoneActions.call(context, phone),
               icon: const Icon(Icons.call_outlined, size: 18),
               label: const Text('Ligar'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Item da linha do tempo — marcador colorido pelo estado do orçamento
+/// (verde aprovado, vermelho recusado) e card com selo, data e resumo.
+class _TimelineTile extends StatelessWidget {
+  const _TimelineTile({
+    required this.entry,
+    required this.isFirst,
+    required this.isLast,
+    this.onMenu,
+  });
+
+  final _TimelineEntry entry;
+  final bool isFirst;
+  final bool isLast;
+  final VoidCallback? onMenu;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final semantic = context.semanticColors;
+    final status = entry.status;
+
+    // Marcador ganha cor só quando o estado carrega informação — aceito e
+    // recusado são desfecho; rascunho e enviado ainda estão em curso, e
+    // colorir tudo tiraria o destaque justamente de quem o tem.
+    final accent = switch (status) {
+      BudgetStatus.accepted => semantic.success,
+      BudgetStatus.declined => semantic.danger,
+      _ => null,
+    };
+
+    final icon = switch (status) {
+      BudgetStatus.accepted => Icons.check_circle_outline,
+      BudgetStatus.declined => Icons.cancel_outlined,
+      null => Icons.straighten_outlined,
+      _ => Icons.request_quote_outlined,
+    };
+
+    final date = entry.date;
+    final dateLabel = '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/${date.year}';
+
+    return AppTimelineTile(
+      icon: icon,
+      accent: accent,
+      isFirst: isFirst,
+      isLast: isLast,
+      onTap: entry.onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (status != null)
+                AppStatusChip.budget(status)
+              else
+                const AppStatusChip(label: 'Medição'),
+              const Spacer(),
+              Text(
+                dateLabel,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              if (onMenu != null)
+                // `visualDensity` compacto: o menu fica na mesma linha do
+                // selo e da data, e o alvo padrão de 48px empurraria a
+                // altura do cabeçalho do card.
+                IconButton(
+                  icon: const Icon(Icons.more_vert, size: 20),
+                  tooltip: 'Mais opções',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: onMenu,
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            entry.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            entry.subtitle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ],
