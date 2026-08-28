@@ -1208,29 +1208,37 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                       ),
                       const SizedBox(height: AppSpacing.sm),
                     ],
-                    Row(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
-                          child: Text(
-                            'Status: ${statusLabel(budget.status)}',
-                            style: Theme.of(context).textTheme.labelLarge,
-                          ),
+                        Text(
+                          'Status: ${statusLabel(budget.status)}',
+                          style: Theme.of(context).textTheme.labelLarge,
                         ),
                         if (budget.status == BudgetStatus.draft ||
-                            budget.status == BudgetStatus.sent)
-                          AppButton(
-                            label: budget.status == BudgetStatus.draft
-                                ? 'Marcar como enviado'
-                                : 'Marcar como aceito',
-                            onPressed: () => _advanceStatus(budget.status),
-                            variant: AppButtonVariant.secondary,
-                          ),
-                        if (budget.status == BudgetStatus.sent) ...[
-                          const SizedBox(width: AppSpacing.sm),
-                          IconButton(
-                            onPressed: _declineStatus,
-                            icon: const Icon(Icons.close),
-                            tooltip: 'Marcar como recusado',
+                            budget.status == BudgetStatus.sent) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: AppButton(
+                                  label: budget.status == BudgetStatus.draft
+                                      ? 'Marcar como enviado'
+                                      : 'Marcar como aceito',
+                                  onPressed: () =>
+                                      _advanceStatus(budget.status),
+                                  variant: AppButtonVariant.secondary,
+                                ),
+                              ),
+                              if (budget.status == BudgetStatus.sent) ...[
+                                const SizedBox(width: AppSpacing.sm),
+                                IconButton(
+                                  onPressed: _declineStatus,
+                                  icon: const Icon(Icons.close),
+                                  tooltip: 'Marcar como recusado',
+                                ),
+                              ],
+                            ],
                           ),
                         ],
                       ],

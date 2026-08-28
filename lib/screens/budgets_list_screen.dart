@@ -5,6 +5,7 @@ import '../database/database.dart';
 import '../database/enums.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
+import '../widgets/app_dialog.dart';
 import '../repositories/budgets_repository.dart';
 import '../repositories/example_data_seeder.dart';
 import '../theme/app_spacing.dart';
@@ -94,6 +95,29 @@ class _BudgetsListScreenState extends ConsumerState<BudgetsListScreen> {
         MaterialPageRoute(
           builder: (_) => BudgetWizardScreen(clientId: selected.id),
         ),
+      );
+    }
+  }
+
+  Future<void> _deleteBudget(
+    BuildContext context,
+    BudgetWithClientName entry,
+  ) async {
+    final confirmed = await AppDialog.confirm(
+      context,
+      isDestructive: true,
+      title: 'Excluir orçamento?',
+      message: 'Os itens e pagamentos registrados nele saem junto. '
+          'Esta ação não pode ser desfeita.',
+      confirmLabel: 'Excluir',
+    );
+    if (confirmed != true || !context.mounted) return;
+    await ref.read(budgetsRepositoryProvider).softDelete(entry.budget.id);
+    if (context.mounted) {
+      AppSnackBar.show(
+        context,
+        'Orçamento excluído.',
+        variant: AppSnackBarVariant.destructive,
       );
     }
   }
@@ -244,6 +268,7 @@ class _BudgetsListScreenState extends ConsumerState<BudgetsListScreen> {
                               entry.budget.clientId,
                               entry.clientName,
                             ),
+                            onDelete: () => _deleteBudget(context, entry),
                           );
                         },
                       ),
@@ -264,11 +289,13 @@ class _BudgetCard extends StatelessWidget {
     required this.number,
     required this.entry,
     required this.onFollowUp,
+    required this.onDelete,
   });
 
   final int number;
   final BudgetWithClientName entry;
   final VoidCallback onFollowUp;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -327,6 +354,32 @@ class _BudgetCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
               AppStatusChip.budget(budget.status),
+              PopupMenuButton<String>(
+                iconSize: 20,
+                padding: EdgeInsets.zero,
+                tooltip: 'Mais ações',
+                onSelected: (value) {
+                  if (value == 'delete') onDelete();
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.delete_outline,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      title: Text(
+                        'Excluir orçamento',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),

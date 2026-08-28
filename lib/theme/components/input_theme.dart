@@ -55,14 +55,14 @@ class AppInputTheme {
         horizontal: AppSpacing.md,
         vertical: AppSpacing.md,
       ),
-      // Largura 2 em todos os estados (mudando só a cor) para o campo não
+      // Largura 1 em todos os estados (mudando só a cor) para o campo não
       // "pular" ao ganhar foco.
-      border: border(AppColors.outline, 2),
-      enabledBorder: border(AppColors.outline, 2),
-      focusedBorder: border(AppColors.safetyAmber, 2),
-      errorBorder: border(AppColors.error, 2),
-      focusedErrorBorder: border(AppColors.error, 2),
-      disabledBorder: border(AppColors.outlineVariant, 2),
+      border: border(AppColors.outline, 1),
+      enabledBorder: border(AppColors.outline, 1),
+      focusedBorder: border(AppColors.safetyAmber, 1),
+      errorBorder: border(AppColors.error, 1),
+      focusedErrorBorder: border(AppColors.error, 1),
+      disabledBorder: border(AppColors.outlineVariant, 1),
       labelStyle: AppTypography.bodyMedium.copyWith(
         fontFamily: AppTypography.fontFamily,
         color: AppColors.onSurfaceVariant,

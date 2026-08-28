@@ -116,7 +116,10 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 'Orçamento ${budget.createdAt.day}/${budget.createdAt.month}/${budget.createdAt.year}',
             subtitle: statusLabel(budget.status),
             status: budget.status,
-            onTap: () => _openBudget(budget.id),
+            onTap: () => _openBudget(
+              budget.id,
+              isDraft: budget.status == BudgetStatus.draft,
+            ),
           ),
       ]..sort((a, b) => b.date.compareTo(a.date));
 
@@ -186,11 +189,18 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     }
   }
 
-  Future<void> _openBudget(String budgetId) async {
+  Future<void> _openBudget(String budgetId, {bool isDraft = false}) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            BudgetFormScreen(clientId: widget.client.id, budgetId: budgetId),
+        builder: (_) => isDraft
+            ? BudgetWizardScreen(
+                clientId: widget.client.id,
+                budgetId: budgetId,
+              )
+            : BudgetFormScreen(
+                clientId: widget.client.id,
+                budgetId: budgetId,
+              ),
       ),
     );
     _load();

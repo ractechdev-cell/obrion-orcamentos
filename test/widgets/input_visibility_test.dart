@@ -55,11 +55,12 @@ void main() {
     expect(enabled.borderSide.color.a, greaterThan(0.0));
   });
 
-  test('a borda não muda de espessura ao focar', () {
+  test('a borda não muda de espessura ao focar e mede 1px', () {
     // Espessura diferente entre os estados faz o campo "pular" quando
-    // recebe foco, empurrando o resto do formulário.
+    // recebe foco, empurrando o resto do formulário. 1px é o valor atual.
     final enabled = theme.inputDecorationTheme.enabledBorder!;
     final focused = theme.inputDecorationTheme.focusedBorder!;
+    expect(enabled.borderSide.width, 1.0);
     expect(focused.borderSide.width, enabled.borderSide.width);
     expect(focused.borderSide.color, isNot(enabled.borderSide.color));
   });
