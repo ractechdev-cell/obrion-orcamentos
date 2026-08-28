@@ -10,6 +10,7 @@ import '../database/enums.dart';
 import '../providers/profile_repository_provider.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
+import '../utils/input_formatters.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_text_field.dart';
 import '../widgets/app_trade_selector.dart';
@@ -305,7 +306,7 @@ class _TradeQuestionPage extends StatelessWidget {
 /// Esses dados aparecem no cabeçalho de todo PDF enviado ao cliente —
 /// sem eles o PDF sai sem identificação do profissional, o que parece
 /// amador. Todos os campos são opcionais e editáveis depois em Ajustes.
-class _ProfileSetupPage extends StatelessWidget {
+class _ProfileSetupPage extends StatefulWidget {
   const _ProfileSetupPage({
     required this.nameController,
     required this.phoneController,
@@ -325,6 +326,13 @@ class _ProfileSetupPage extends StatelessWidget {
   final String? logoPath;
   final VoidCallback onPickLogo;
   final VoidCallback onRemoveLogo;
+
+  @override
+  State<_ProfileSetupPage> createState() => _ProfileSetupPageState();
+}
+
+class _ProfileSetupPageState extends State<_ProfileSetupPage> {
+  bool _isDocumentCpf = true;
 
   @override
   Widget build(BuildContext context) {
@@ -355,74 +363,83 @@ class _ProfileSetupPage extends StatelessWidget {
                 ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          // Logo.
-          Row(
-            children: [
-              _LogoBox(logoPath: logoPath),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Logo da empresa',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Wrap(
-                      spacing: AppSpacing.xs,
+              // Logo.
+              Row(
+                children: [
+                  _LogoBox(logoPath: widget.logoPath),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TextButton(
-                          onPressed: onPickLogo,
-                          child: Text(
-                            logoPath == null ? 'Escolher' : 'Trocar',
-                          ),
+                        Text(
+                          'Logo da empresa',
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
-                        if (logoPath != null)
-                          TextButton(
-                            onPressed: onRemoveLogo,
-                            child: const Text('Remover'),
-                          ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Wrap(
+                          spacing: AppSpacing.xs,
+                          children: [
+                            TextButton(
+                              onPressed: widget.onPickLogo,
+                              child: Text(
+                                widget.logoPath == null ? 'Escolher' : 'Trocar',
+                              ),
+                            ),
+                            if (widget.logoPath != null)
+                              TextButton(
+                                onPressed: widget.onRemoveLogo,
+                                child: const Text('Remover'),
+                              ),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          AppTextField(
-            controller: nameController,
-            label: 'Seu nome ou da empresa',
-            hint: 'Ex: João Pereira Pinturas',
-          ),
-          const SizedBox(height: AppSpacing.md),
-          AppTextField(
-            controller: phoneController,
-            label: 'Telefone',
-            hint: 'Ex: (11) 98765-4321',
-            keyboardType: TextInputType.phone,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          AppTextField(
-            controller: emailController,
-            label: 'E-mail',
-            hint: 'Ex: joao@pinturas.com',
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          AppTextField(
-            controller: documentController,
-            label: 'CPF ou CNPJ',
-            hint: 'Ex: 00.000.000/0001-00',
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          AppTextField(
-            controller: addressController,
-            label: 'Endereço comercial',
-            hint: 'Ex: Rua das Flores, 123 — São Paulo/SP',
-          ),
+              const SizedBox(height: AppSpacing.lg),
+              AppTextField(
+                controller: widget.nameController,
+                label: 'Seu nome ou da empresa',
+                hint: 'Ex: João Pereira Pinturas',
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AppTextField(
+                controller: widget.phoneController,
+                label: 'Telefone',
+                hint: 'Ex: (11) 98765-4321',
+                keyboardType: TextInputType.phone,
+                inputFormatters: [phoneFormatter],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AppTextField(
+                controller: widget.emailController,
+                label: 'E-mail',
+                hint: 'Ex: joao@pinturas.com',
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AppTextField(
+                controller: widget.documentController,
+                label: 'CPF ou CNPJ',
+                hint: 'Ex: 00.000.000/0001-00',
+                keyboardType: TextInputType.number,
+                inputFormatters: [_isDocumentCpf ? cpfFormatter : cnpjFormatter],
+                onChanged: (value) {
+                  final digits = value.replaceAll(RegExp(r'\D'), '');
+                  final shouldBeCpf = digits.length <= 11;
+                  if (shouldBeCpf != _isDocumentCpf) {
+                    setState(() => _isDocumentCpf = shouldBeCpf);
+                  }
+                },
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AppTextField(
+                controller: widget.addressController,
+                label: 'Endereço comercial',
+                hint: 'Ex: Rua das Flores, 123 — São Paulo/SP',
+              ),
         ],
       ),
     );
