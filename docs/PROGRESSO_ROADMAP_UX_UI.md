@@ -28,7 +28,7 @@
 | 15 | Importar contato | ⏸️ Pendente — **mudança nativa** | Precisa de `flutter_contacts` (ou similar) + permissão `READ_CONTACTS` no `AndroidManifest.xml` → só entra em vigor num release completo (não patch), exige reinstalação. Avaliado em 24/08/2026, não implementado ainda. |
 | 16 | Ações rápidas do cliente | ✅ Feito | Botões "WhatsApp"/"Ligar" na ficha do cliente (`lib/utils/phone_actions.dart`), sem `canLaunchUrl` (evita precisar de `<queries>` no manifest — continua patchável). |
 | 17 | Melhorar duplicação | ✅ Feito (24/08/2026), parcial | `BudgetsRepository.duplicate()` já existia mas estava **órfão** (nenhuma tela chamava desde que `budgets_screen.dart` foi removido) — corrigido: menu ⋮ no orçamento → "Duplicar orçamento". A UX refinada do roadmap ("O que deseja manter? ☑ Serviços ☑ Preços ☐ Cliente") **não** entrou — duplicar hoje sempre copia serviços/preços/condições pro mesmo cliente, como já era antes de virar órfão. |
-| 18 | PDF profissional | ✅ Feito | Descrição da obra, assinatura (profissional + contratante com CPF/CNPJ), todos os campos da seção 15 do roadmap já presentes. |
+| 18 | PDF profissional | ✅ Feito (28/08/2026) | Descrição da obra, assinatura (profissional + contratante com CPF/CNPJ), todos os campos da seção 15 do roadmap presentes. **Melhorado (28/08):** cabeçalho agora exibe telefone + e-mail + endereço comercial do profissional, número sequencial do orçamento como título. `professionalDocument` (CPF/CNPJ) renderizado no cabeçalho. Recibo também exibe telefone + e-mail. |
 | 19 | Exportação em imagem | ✅ Feito | `BudgetShareService.shareAsImage`. |
 | 20 | Compartilhamento WhatsApp | ✅ Feito | Via `share_plus` (folha do sistema). |
 | 21 | Revisão completa de responsividade | ✅ Feito (26/08/2026) | Passe formal completo: 14 telas analisadas, arquitetura responsiva confirmada (uso correto de `Expanded`, `ListView`, `AppSpacing.*`). **2 correções aplicadas**: altura de bottom sheets em `BudgetFormScreen` e `BudgetsListScreen` agora usa `.clamp(400.0, 700.0)` para telas pequenas/grandes. Nenhum problema crítico encontrado. Ver `docs/REVISAO_RESPONSIVIDADE_26_08_2026.md`. |
@@ -69,10 +69,13 @@ Não iniciada — nenhum item de IA deve ser feature de lançamento (regra já e
 
 ---
 
-## Achados durante esta rodada (24/08/2026) que valem registrar
+## Achados durante esta rodada (24-28/08/2026) que valem registrar
 
 - **`BudgetsRepository.duplicate()` estava órfão** — mesma classe de bug já vista com `MeasurementsRepository.softDeleteMeasurement()`: método existe, testado, mas nenhuma tela chamava. Motivo provável: perdido quando `budgets_screen.dart` foi removido na unificação do histórico do cliente. Corrigido nesta rodada — mas vale conferir se não há mais nenhum método "órfão" no repositório (busca rápida: grep por métodos públicos do repositório vs. chamadas em `lib/screens/`).
 - **Home "painel" exigiu uma consulta nova** (`loadHomeSummary`) que varre `budgets`/`budget_items`/`payments`/`clients` inteiros e agrega em memória — aceitável pro volume de um profissional solo, mas **não escala** se o app crescer pra uso com muitos orçamentos/ano. Se isso um dia virar perceptível (tela lenta pra abrir), é o primeiro lugar a otimizar (mover a agregação pra SQL).
+- **PDF melhorado (28/08/2026)**: cabeçalho agora exibe telefone + e-mail + endereço do profissional, número sequencial do orçamento, CPF/CNPJ. Perfil ganhou campos `email` e `address`. Onboarding agora coleta nome, telefone, CNPJ e logo na 4ª página.
+- **Distribuição corrigida (28/08/2026)**: workflow `build-distribute.yml` agora baixa o APK do Shorebird em vez de compilar separado — evita builds duplicados que divergem do release.
+- **5 correções de teste no aparelho (28/08/2026)**: campos invisíveis em formulários, diálogos com botões colados, exclusão de orçamento, status rascunho, "usar medição" sem medição.
 
 ---
 
