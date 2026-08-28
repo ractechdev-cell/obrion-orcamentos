@@ -127,18 +127,41 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de Preços'),
+        // Menu em vez de dois botões com texto: "Reajustar" e "Sugestões"
+        // lado a lado estouravam a barra em aparelho de 320dp (pego pelo
+        // teste de layout). Também aproxima dos modelos, em que a barra
+        // superior carrega ícone, não rótulo.
         actions: [
-          TextButton.icon(
-            onPressed: () => _bulkAdjustPrices(context),
-            icon: const Icon(Icons.percent_outlined, size: 20),
-            label: const Text('Reajustar'),
+          PopupMenuButton<String>(
+            tooltip: 'Mais ações',
+            onSelected: (value) {
+              switch (value) {
+                case 'adjust':
+                  _bulkAdjustPrices(context);
+                case 'defaults':
+                  _populateDefaults(context);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'adjust',
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.percent_outlined),
+                  title: Text('Reajustar preços'),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'defaults',
+                enabled: !_populating,
+                child: const ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.playlist_add),
+                  title: Text('Carregar sugestões'),
+                ),
+              ),
+            ],
           ),
-          TextButton.icon(
-            onPressed: _populating ? null : () => _populateDefaults(context),
-            icon: const Icon(Icons.playlist_add, size: 20),
-            label: const Text('Sugestões'),
-          ),
-          const SizedBox(width: AppSpacing.xs),
         ],
       ),
       floatingActionButton: FloatingActionButton(

@@ -49,9 +49,8 @@ class AppEmptyState extends StatelessWidget {
         Text(
           message,
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+          style: Theme.of(context).textTheme.bodyLarge
+              ?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
         if (actionLabel != null && onAction != null) ...[
           const SizedBox(height: AppSpacing.lg),
@@ -59,26 +58,45 @@ class AppEmptyState extends StatelessWidget {
         ],
         if (secondaryActionLabel != null && onSecondaryAction != null) ...[
           const SizedBox(height: AppSpacing.sm),
-          TextButton(onPressed: onSecondaryAction, child: Text(secondaryActionLabel!)),
+          TextButton(
+            onPressed: onSecondaryAction,
+            child: Text(secondaryActionLabel!),
+          ),
         ],
       ],
     );
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: reduceMotion
-            ? content
-            : TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0, end: 1),
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOut,
-                builder: (context, value, child) => Opacity(
-                  opacity: value,
-                  child: Transform.scale(scale: 0.92 + (0.08 * value), child: child),
-                ),
-                child: content,
-              ),
+    // Rolável: com mensagem de 3 linhas mais duas ações, o conteúdo
+    // passava da altura útil em aparelho de 320×640 e estourava embaixo
+    // (pego pelo teste de layout). `Center` sozinho não resolve porque
+    // não dá para rolar o que transborda.
+    return SingleChildScrollView(
+      child: ConstrainedBox(
+        // Ocupa a altura disponível quando sobra espaço, para que o
+        // conteúdo continue centralizado nas telas maiores.
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.of(context).size.height * 0.5,
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: reduceMotion
+                ? content
+                : TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                    builder: (context, value, child) => Opacity(
+                      opacity: value,
+                      child: Transform.scale(
+                        scale: 0.92 + (0.08 * value),
+                        child: child,
+                      ),
+                    ),
+                    child: content,
+                  ),
+          ),
+        ),
       ),
     );
   }
