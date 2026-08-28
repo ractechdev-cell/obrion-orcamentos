@@ -21,9 +21,15 @@ class BudgetPdfGenerator {
     required BudgetWithItems data,
     required Client client,
     required ProfessionalProfile professional,
+    int? budgetNumber,
   }) async {
     final doc = pw.Document();
-    final content = BudgetPdfContent.fromData(data: data, client: client, professional: professional);
+    final content = BudgetPdfContent.fromData(
+      data: data,
+      client: client,
+      professional: professional,
+      budgetNumber: budgetNumber,
+    );
     final logo = await _loadLogo(professional.logoPath);
 
     doc.addPage(
@@ -83,26 +89,50 @@ class BudgetPdfGenerator {
   }
 
   static pw.Widget _buildHeader(BudgetPdfContent content, pw.MemoryImage? logo) {
+    // Linha de contato: telefone · email, ou só um deles.
+    final contactParts = [
+      if (content.professionalPhone != null) content.professionalPhone!,
+      if (content.professionalEmail != null) content.professionalEmail!,
+    ];
+    final contactLine = contactParts.isEmpty ? null : contactParts.join(' · ');
+
+    final budgetTitle = content.budgetNumber != null
+        ? 'Orçamento nº ${content.budgetNumber}'
+        : 'Orçamento';
+
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Row(
-          crossAxisAlignment: pw.CrossAxisAlignment.center,
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             if (logo != null) ...[
-              pw.Container(height: 40, width: 40, child: pw.Image(logo, fit: pw.BoxFit.contain)),
+              pw.Container(height: 48, width: 48, child: pw.Image(logo, fit: pw.BoxFit.contain)),
               pw.SizedBox(width: 12),
             ],
+            pw.Expanded(
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    content.professionalName,
+                    style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                  ),
+                  if (contactLine != null)
+                    pw.Text(contactLine, style: const pw.TextStyle(fontSize: 10)),
+                  if (content.professionalDocument != null)
+                    pw.Text(content.professionalDocument!, style: const pw.TextStyle(fontSize: 10)),
+                  if (content.professionalAddress != null)
+                    pw.Text(content.professionalAddress!, style: const pw.TextStyle(fontSize: 10)),
+                ],
+              ),
+            ),
             pw.Text(
-              content.professionalName,
-              style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+              budgetTitle,
+              style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
             ),
           ],
         ),
-        if (content.professionalPhone != null)
-          pw.Text(content.professionalPhone!, style: const pw.TextStyle(fontSize: 11)),
-        if (content.professionalDocument != null)
-          pw.Text(content.professionalDocument!, style: const pw.TextStyle(fontSize: 11)),
         pw.Divider(),
       ],
     );

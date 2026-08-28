@@ -870,22 +870,26 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
 
     final clientsRepo = ref.read(clientsRepositoryProvider);
     final profileRepo = ref.read(profileRepositoryProvider);
+    final budgetsRepo = ref.read(budgetsRepositoryProvider);
 
     final client = await clientsRepo.getById(data.budget.clientId);
     if (client == null) return;
     final professional = await profileRepo.getProfile();
+    final budgetNumber = await budgetsRepo.getBudgetNumber(data.budget.id);
 
     if (format == BudgetShareFormat.pdf) {
       await BudgetShareService.shareAsPdf(
         data: data,
         client: client,
         professional: professional,
+        budgetNumber: budgetNumber,
       );
     } else {
       await BudgetShareService.shareAsImage(
         data: data,
         client: client,
         professional: professional,
+        budgetNumber: budgetNumber,
       );
     }
     final formatParam = format == BudgetShareFormat.pdf ? 'pdf' : 'imagem';

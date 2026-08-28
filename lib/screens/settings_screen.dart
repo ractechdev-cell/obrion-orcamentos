@@ -34,7 +34,9 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _documentController = TextEditingController();
+  final _addressController = TextEditingController();
   String? _logoPath;
   Set<Trade> _selectedTrades = {};
   bool _loading = true;
@@ -96,7 +98,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       setState(() {
         _nameController.text = profile.name ?? '';
         _phoneController.text = profile.phone ?? '';
+        _emailController.text = profile.email ?? '';
         _documentController.text = profile.document ?? '';
+        _addressController.text = profile.address ?? '';
         _logoPath = (profile.logoPath?.isNotEmpty ?? false)
             ? profile.logoPath
             : null;
@@ -139,7 +143,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await repo.saveProfile(
       name: _nameController.text.trim(),
       phone: _phoneController.text.trim(),
+      email: _emailController.text.trim(),
       document: _documentController.text.trim(),
+      address: _addressController.text.trim(),
       logoPath: _logoPath,
       trades: _selectedTrades,
     );
@@ -153,7 +159,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
     _documentController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -196,6 +204,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   label: 'CPF ou CNPJ (opcional)',
                   hint: 'Ex: 00.000.000/0001-00',
                   keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppTextField(
+                  controller: _emailController,
+                  label: 'E-mail (opcional)',
+                  hint: 'Ex: joao@pinturas.com',
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppTextField(
+                  controller: _addressController,
+                  label: 'Endereço comercial (opcional)',
+                  hint: 'Ex: Rua das Flores, 123 — São Paulo/SP',
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 _buildLogoPicker(context),

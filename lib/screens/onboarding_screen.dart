@@ -69,7 +69,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // Dados do perfil coletados na última página.
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _documentController = TextEditingController();
+  final _addressController = TextEditingController();
   String? _logoPath;
 
   bool get _isLast => _index == _pageCount - 1;
@@ -79,7 +81,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _controller.dispose();
     _nameController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
     _documentController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -103,17 +107,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Future<void> _finish() async {
     final repo = ref.read(profileRepositoryProvider);
+    String? trimOrNull(String v) => v.trim().isEmpty ? null : v.trim();
     await repo.saveProfile(
       trades: _selectedTrades.isEmpty ? null : _selectedTrades,
-      name: _nameController.text.trim().isEmpty
-          ? null
-          : _nameController.text.trim(),
-      phone: _phoneController.text.trim().isEmpty
-          ? null
-          : _phoneController.text.trim(),
-      document: _documentController.text.trim().isEmpty
-          ? null
-          : _documentController.text.trim(),
+      name: trimOrNull(_nameController.text),
+      phone: trimOrNull(_phoneController.text),
+      email: trimOrNull(_emailController.text),
+      document: trimOrNull(_documentController.text),
+      address: trimOrNull(_addressController.text),
       logoPath: _logoPath,
     );
     widget.onDone();
@@ -167,7 +168,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     return _ProfileSetupPage(
                       nameController: _nameController,
                       phoneController: _phoneController,
+                      emailController: _emailController,
                       documentController: _documentController,
+                      addressController: _addressController,
                       logoPath: _logoPath,
                       onPickLogo: _pickLogo,
                       onRemoveLogo: () => setState(() => _logoPath = null),
@@ -306,7 +309,9 @@ class _ProfileSetupPage extends StatelessWidget {
   const _ProfileSetupPage({
     required this.nameController,
     required this.phoneController,
+    required this.emailController,
     required this.documentController,
+    required this.addressController,
     required this.logoPath,
     required this.onPickLogo,
     required this.onRemoveLogo,
@@ -314,7 +319,9 @@ class _ProfileSetupPage extends StatelessWidget {
 
   final TextEditingController nameController;
   final TextEditingController phoneController;
+  final TextEditingController emailController;
   final TextEditingController documentController;
+  final TextEditingController addressController;
   final String? logoPath;
   final VoidCallback onPickLogo;
   final VoidCallback onRemoveLogo;
@@ -398,10 +405,23 @@ class _ProfileSetupPage extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           AppTextField(
+            controller: emailController,
+            label: 'E-mail',
+            hint: 'Ex: joao@pinturas.com',
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          AppTextField(
             controller: documentController,
             label: 'CPF ou CNPJ',
             hint: 'Ex: 00.000.000/0001-00',
             keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          AppTextField(
+            controller: addressController,
+            label: 'Endereço comercial',
+            hint: 'Ex: Rua das Flores, 123 — São Paulo/SP',
           ),
         ],
       ),

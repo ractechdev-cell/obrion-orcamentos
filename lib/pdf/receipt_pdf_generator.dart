@@ -45,8 +45,18 @@ class ReceiptPdfGenerator {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Text(professionalName, style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
-            if (professional.phone?.isNotEmpty ?? false)
-              pw.Text(professional.phone!, style: const pw.TextStyle(fontSize: 11)),
+            if ((professional.phone?.isNotEmpty ?? false) || (professional.email?.isNotEmpty ?? false))
+              pw.Text(
+                [
+                  if (professional.phone?.isNotEmpty ?? false) professional.phone!,
+                  if (professional.email?.isNotEmpty ?? false) professional.email!,
+                ].join(' · '),
+                style: const pw.TextStyle(fontSize: 10),
+              ),
+            if (professional.document?.isNotEmpty ?? false)
+              pw.Text(professional.document!, style: const pw.TextStyle(fontSize: 10)),
+            if (professional.address?.isNotEmpty ?? false)
+              pw.Text(professional.address!, style: const pw.TextStyle(fontSize: 10)),
             pw.SizedBox(height: 8),
             pw.Divider(),
             pw.SizedBox(height: 24),

@@ -7,7 +7,9 @@ import '../database/enums.dart';
 class _Keys {
   static const professionalName = 'professional_name';
   static const professionalPhone = 'professional_phone';
+  static const professionalEmail = 'professional_email';
   static const professionalDocument = 'professional_document';
+  static const professionalAddress = 'professional_address';
   static const professionalLogoPath = 'professional_logo_path';
   static const trades = 'professional_trades';
 }
@@ -22,16 +24,22 @@ class ProfessionalProfile {
   const ProfessionalProfile({
     this.name,
     this.phone,
+    this.email,
     this.document,
+    this.address,
     this.logoPath,
     this.trades = const {},
   });
 
   final String? name;
   final String? phone;
+  final String? email;
 
   /// CPF ou CNPJ do profissional/empresa — aparece no cabeçalho do PDF.
   final String? document;
+
+  /// Endereço comercial — aparece no cabeçalho do PDF.
+  final String? address;
   final String? logoPath;
   final Set<Trade> trades;
 }
@@ -49,7 +57,9 @@ class ProfileRepository {
     return ProfessionalProfile(
       name: map[_Keys.professionalName],
       phone: map[_Keys.professionalPhone],
+      email: map[_Keys.professionalEmail],
       document: map[_Keys.professionalDocument],
+      address: map[_Keys.professionalAddress],
       logoPath: map[_Keys.professionalLogoPath],
       trades: _decodeTrades(map[_Keys.trades]),
     );
@@ -58,7 +68,9 @@ class ProfileRepository {
   Future<void> saveProfile({
     String? name,
     String? phone,
+    String? email,
     String? document,
+    String? address,
     String? logoPath,
     Set<Trade>? trades,
   }) async {
@@ -66,7 +78,9 @@ class ProfileRepository {
       batch.insertAllOnConflictUpdate(_db.appSettings, [
         AppSettingsCompanion.insert(key: _Keys.professionalName, value: name ?? ''),
         AppSettingsCompanion.insert(key: _Keys.professionalPhone, value: phone ?? ''),
+        AppSettingsCompanion.insert(key: _Keys.professionalEmail, value: email ?? ''),
         AppSettingsCompanion.insert(key: _Keys.professionalDocument, value: document ?? ''),
+        AppSettingsCompanion.insert(key: _Keys.professionalAddress, value: address ?? ''),
         AppSettingsCompanion.insert(key: _Keys.professionalLogoPath, value: logoPath ?? ''),
         if (trades != null)
           AppSettingsCompanion.insert(key: _Keys.trades, value: _encodeTrades(trades)),

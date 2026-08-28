@@ -1423,18 +1423,21 @@ class _SendStepState extends ConsumerState<_SendStep> {
     if (data == null || client == null || !context.mounted) return;
 
     final professional = await profileRepo.getProfile();
+    final budgetNumber = await repo.getBudgetNumber(widget.budgetId);
 
     if (format == BudgetShareFormat.pdf) {
       await BudgetShareService.shareAsPdf(
         data: data,
         client: client,
         professional: professional,
+        budgetNumber: budgetNumber,
       );
     } else {
       await BudgetShareService.shareAsImage(
         data: data,
         client: client,
         professional: professional,
+        budgetNumber: budgetNumber,
       );
     }
 

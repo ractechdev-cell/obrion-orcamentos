@@ -127,6 +127,22 @@ class BudgetsRepository {
 
   final AppDatabase _db;
 
+  /// Retorna o número sequencial do orçamento — mesma ordem de
+  /// `watchAllWithClientNames` (createdAt ASC, não deletados).
+  /// Usado no cabeçalho do PDF pra identificar o documento.
+  Future<int> getBudgetNumber(String budgetId) async {
+    final budget = await (_db.select(_db.budgets)
+          ..where((b) => b.id.equals(budgetId)))
+        .getSingleOrNull();
+    if (budget == null) return 0;
+    final olderOrEqual = await (_db.select(_db.budgets)
+          ..where((b) =>
+              b.deletedAt.isNull() &
+              b.createdAt.isSmallerOrEqualValue(budget.createdAt)))
+        .get();
+    return olderOrEqual.length;
+  }
+
   /// Observa todos os orçamentos de um cliente, mais recentes primeiro.
   Stream<List<Budget>> watchByClient(String clientId) {
     return (_db.select(_db.budgets)

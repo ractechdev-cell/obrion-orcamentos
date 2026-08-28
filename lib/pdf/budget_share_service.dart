@@ -25,8 +25,14 @@ class BudgetShareService {
     required BudgetWithItems data,
     required Client client,
     required ProfessionalProfile professional,
+    int? budgetNumber,
   }) async {
-    final bytes = await _generateBytes(data: data, client: client, professional: professional);
+    final bytes = await _generateBytes(
+      data: data,
+      client: client,
+      professional: professional,
+      budgetNumber: budgetNumber,
+    );
 
     await SharePlus.instance.share(
       ShareParams(
@@ -45,8 +51,14 @@ class BudgetShareService {
     required BudgetWithItems data,
     required Client client,
     required ProfessionalProfile professional,
+    int? budgetNumber,
   }) async {
-    final bytes = await _generateBytes(data: data, client: client, professional: professional);
+    final bytes = await _generateBytes(
+      data: data,
+      client: client,
+      professional: professional,
+      budgetNumber: budgetNumber,
+    );
 
     final pages = Printing.raster(bytes, pages: [0], dpi: 150);
     final firstPage = await pages.first;
@@ -97,11 +109,13 @@ class BudgetShareService {
     required BudgetWithItems data,
     required Client client,
     required ProfessionalProfile professional,
+    int? budgetNumber,
   }) async {
     final doc = await BudgetPdfGenerator.generate(
       data: data,
       client: client,
       professional: professional,
+      budgetNumber: budgetNumber,
     );
     return doc.save();
   }
