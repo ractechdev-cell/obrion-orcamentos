@@ -113,9 +113,19 @@ class PatchUpdateService {
   /// baixado. Nunca lança: se o restart falhar por algum motivo (ex.:
   /// build sandboxed), o app continua rodando com o código antigo em
   /// vez de travar.
+  ///
+  /// `mode: RestartMode.process` é essencial — sem ele, o pacote usa
+  /// `platformDefault`, que no Android **não mata o processo**, só
+  /// relança a Activity por cima da antiga (`forceKill: false` no lado
+  /// nativo). O Flutter engine antigo continuava rodando em memória com
+  /// o código velho, então o patch baixado só era aplicado se o usuário
+  /// fechasse o app manualmente depois — exatamente o sintoma relatado
+  /// em teste real no aparelho (29/08/2026). `RestartMode.process` força
+  /// `forceKill: true` no lado Kotlin, que chama
+  /// `Runtime.getRuntime().exit(0)` após lançar a nova Activity.
   static Future<void> _restartApp() async {
     try {
-      await Restart.restartApp();
+      await Restart.restartApp(mode: RestartMode.process);
     } catch (error, stack) {
       if (kDebugMode) {
         debugPrint('[PatchUpdate] Restart falhou: $error\n$stack');
