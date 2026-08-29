@@ -184,6 +184,7 @@ class _BudgetWizardScreenState extends ConsumerState<BudgetWizardScreen> {
               children: [
                 _ServicesStep(
                   budgetId: _budgetId!,
+                  clientId: widget.clientId,
                   onNext: _nextStep,
                 ),
                 _ConditionsStep(
@@ -293,10 +294,12 @@ class _WizardStepIndicator extends StatelessWidget {
 class _ServicesStep extends ConsumerStatefulWidget {
   const _ServicesStep({
     required this.budgetId,
+    required this.clientId,
     required this.onNext,
   });
 
   final String budgetId;
+  final String clientId;
   final VoidCallback onNext;
 
   @override
@@ -553,18 +556,12 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
     final options = _measurementOptionsForUnit(unit);
     if (options.isEmpty) return null;
 
-    final clientId = context
-        .findAncestorStateOfType<_BudgetWizardScreenState>()
-        ?.widget
-        .clientId;
-    if (clientId == null) return null;
-
     // Sem medição, oferece criar na hora em vez de só avisar — ver
     // `loadMeasurementsOrOfferToCreate`.
     final allMeasurements = await loadMeasurementsOrOfferToCreate(
       context: context,
       ref: ref,
-      clientId: clientId,
+      clientId: widget.clientId,
     );
     if (allMeasurements.isEmpty || !context.mounted) return null;
 

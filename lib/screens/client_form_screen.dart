@@ -37,7 +37,6 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   bool _saving = false;
   bool _loading = true;
   bool _detailsExpanded = false;
-  bool _isDocumentCpf = true;
 
   bool get _isEditing => widget.clientId != null;
 
@@ -65,8 +64,6 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
       _streetController.text = client.street ?? '';
       _streetNumberController.text = client.streetNumber ?? '';
       _neighborhoodController.text = client.neighborhood ?? '';
-      final digits = (client.document ?? '').replaceAll(RegExp(r'\D'), '');
-      _isDocumentCpf = digits.length <= 11;
     }
     setState(() {
       _loading = false;
@@ -239,14 +236,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                       controller: _documentController,
                       label: 'CPF/CNPJ (opcional)',
                       keyboardType: TextInputType.number,
-                      inputFormatters: [_isDocumentCpf ? cpfFormatter : cnpjFormatter],
-                      onChanged: (value) {
-                        final digits = value.replaceAll(RegExp(r'\D'), '');
-                        final shouldBeCpf = digits.length <= 11;
-                        if (shouldBeCpf != _isDocumentCpf) {
-                          setState(() => _isDocumentCpf = shouldBeCpf);
-                        }
-                      },
+                      inputFormatters: [documentFormatter],
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Row(

@@ -332,8 +332,6 @@ class _ProfileSetupPage extends StatefulWidget {
 }
 
 class _ProfileSetupPageState extends State<_ProfileSetupPage> {
-  bool _isDocumentCpf = true;
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -420,20 +418,13 @@ class _ProfileSetupPageState extends State<_ProfileSetupPage> {
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: AppSpacing.md),
-              AppTextField(
-                controller: widget.documentController,
-                label: 'CPF ou CNPJ',
-                hint: 'Ex: 00.000.000/0001-00',
-                keyboardType: TextInputType.number,
-                inputFormatters: [_isDocumentCpf ? cpfFormatter : cnpjFormatter],
-                onChanged: (value) {
-                  final digits = value.replaceAll(RegExp(r'\D'), '');
-                  final shouldBeCpf = digits.length <= 11;
-                  if (shouldBeCpf != _isDocumentCpf) {
-                    setState(() => _isDocumentCpf = shouldBeCpf);
-                  }
-                },
-              ),
+          AppTextField(
+            controller: widget.documentController,
+            label: 'CPF ou CNPJ',
+            hint: 'Ex: 00.000.000/0001-00',
+            keyboardType: TextInputType.number,
+            inputFormatters: [documentFormatter],
+          ),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
                 controller: widget.addressController,

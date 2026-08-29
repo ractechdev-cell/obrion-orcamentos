@@ -47,7 +47,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _saving = false;
   String? _versionLabel;
   LocalAccount _account = const LocalAccount(signedIn: false);
-  bool _isDocumentCpf = true;
   bool _pdfConfigExpanded = false;
 
   @override
@@ -114,8 +113,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ? profile.logoPath
             : null;
         _selectedTrades = profile.trades;
-        final digits = (profile.document ?? '').replaceAll(RegExp(r'\D'), '');
-        _isDocumentCpf = digits.length <= 11;
         _pdfConfigExpanded = [
           _pixKeyController,
           _pdfFooterTextController,
@@ -227,14 +224,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   label: 'CPF ou CNPJ (opcional)',
                   hint: 'Ex: 00.000.000/0001-00',
                   keyboardType: TextInputType.number,
-                  inputFormatters: [_isDocumentCpf ? cpfFormatter : cnpjFormatter],
-                  onChanged: (value) {
-                    final digits = value.replaceAll(RegExp(r'\D'), '');
-                    final shouldBeCpf = digits.length <= 11;
-                    if (shouldBeCpf != _isDocumentCpf) {
-                      setState(() => _isDocumentCpf = shouldBeCpf);
-                    }
-                  },
+                  inputFormatters: [documentFormatter],
                 ),
                 const SizedBox(height: AppSpacing.md),
                 AppTextField(

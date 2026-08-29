@@ -1,0 +1,7 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "shorebird": true,
+        "git commit": true,
+        "gh": true
+    }
+}
