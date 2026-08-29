@@ -12,6 +12,7 @@ import '../pdf/budget_share_service.dart';
 import '../providers/budget_templates_repository_provider.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
+import '../providers/home_refresh_provider.dart';
 import '../providers/measurements_repository_provider.dart';
 import '../providers/payments_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
@@ -597,6 +598,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                       notes: notes.isEmpty ? null : notes,
                     );
                 AnalyticsService.trackEvent('payment_registered');
+                // Recebidos/Aguardando/Aprovados na Home dependem de
+                // pagamentos — sem isso a Home só atualizava na próxima
+                // vez que o app fosse reaberto (ver `homeRefreshProvider`).
+                ref.read(homeRefreshProvider.notifier).bump();
                 if (context.mounted) {
                   AppSnackBar.show(context, 'Pagamento registrado.');
                   Navigator.of(context).pop();
@@ -619,6 +624,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     );
     if (confirmed == true) {
       await ref.read(paymentsRepositoryProvider).softDelete(payment.id);
+      ref.read(homeRefreshProvider.notifier).bump();
     }
   }
 
@@ -780,18 +786,25 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     if (next != current) {
       final repo = ref.read(budgetsRepositoryProvider);
       await repo.updateStatus(_budgetId!, next);
+      // Aguardando/Aprovados na Home dependem do status do orçamento.
+      ref.read(homeRefreshProvider.notifier).bump();
     }
   }
 
   Future<void> _declineStatus() async {
     final repo = ref.read(budgetsRepositoryProvider);
     await repo.updateStatus(_budgetId!, BudgetStatus.declined);
+    ref.read(homeRefreshProvider.notifier).bump();
   }
 
-  /// Recibo do valor recebido até agora — mesmo motor de PDF do orçamento
-  /// (reduzido), casa com a tabela `payments` já construída. Ver
+  /// Recibo de um pagamento específico — cada pagamento parcial gera seu
+  /// próprio recibo, não o total acumulado do orçamento. Ver
   /// docs/POSICIONAMENTO_E_FEATURES_APP1.md, Parte 4, item 10.
-  Future<void> _emitReceipt(BuildContext context, BudgetWithItems data) async {
+  Future<void> _emitReceipt(
+    BuildContext context,
+    BudgetWithItems data,
+    Payment payment,
+  ) async {
     final clientsRepo = ref.read(clientsRepositoryProvider);
     final profileRepo = ref.read(profileRepositoryProvider);
 
@@ -802,9 +815,9 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     await BudgetShareService.shareReceipt(
       client: client,
       professional: professional,
-      amountCents: data.totalPaidCents,
-      date: DateTime.now(),
-      note: data.budget.jobDescription,
+      amountCents: payment.amountCents,
+      date: payment.createdAt,
+      note: payment.notes ?? data.budget.jobDescription,
     );
     AnalyticsService.trackEvent('pdf_generated', {'format': 'recibo'});
   }
@@ -1179,6 +1192,15 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                                       ),
                                     ),
                                     IconButton(
+                                      onPressed: () =>
+                                          _emitReceipt(context, data, payment),
+                                      icon: const Icon(
+                                        Icons.receipt_long_outlined,
+                                        size: 20,
+                                      ),
+                                      tooltip: 'Emitir recibo deste pagamento',
+                                    ),
+                                    IconButton(
                                       onPressed: () => _removePayment(payment),
                                       icon: const Icon(
                                         Icons.delete_outline,
@@ -1280,21 +1302,6 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                           ),
                         ],
                       ),
-                      if (data.totalPaidCents > 0) ...[
-                        const SizedBox(height: AppSpacing.sm),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: OutlinedButton.icon(
-                            style: _compactButtonStyle,
-                            onPressed: () => _emitReceipt(context, data),
-                            icon: const Icon(
-                              Icons.receipt_long_outlined,
-                              size: 18,
-                            ),
-                            label: const Text('Emitir recibo'),
-                          ),
-                        ),
-                      ],
                     ],
                     const SizedBox(height: AppSpacing.md),
                     if (budget.validUntil != null) ...[

@@ -12,6 +12,7 @@ import '../pdf/budget_share_service.dart';
 import '../providers/budget_templates_repository_provider.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
+import '../providers/home_refresh_provider.dart';
 import '../providers/measurements_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
@@ -1651,6 +1652,7 @@ class _SendStepState extends ConsumerState<_SendStep> {
     unawaited(ReviewService.requestReviewIfAvailable());
 
     await repo.updateStatus(widget.budgetId, BudgetStatus.sent);
+    ref.read(homeRefreshProvider.notifier).bump();
 
     if (mounted) setState(() => _sent = true);
   }

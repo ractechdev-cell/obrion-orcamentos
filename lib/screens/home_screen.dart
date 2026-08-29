@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/budgets_repository_provider.dart';
+import '../providers/home_refresh_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../repositories/budgets_repository.dart';
 import '../theme/app_colors.dart';
@@ -137,6 +138,7 @@ class _HomeSummary extends ConsumerStatefulWidget {
 
 class _HomeSummaryState extends ConsumerState<_HomeSummary> {
   HomeSummary? _summary;
+  int _lastRefreshToken = -1;
 
   @override
   void initState() {
@@ -151,6 +153,15 @@ class _HomeSummaryState extends ConsumerState<_HomeSummary> {
 
   @override
   Widget build(BuildContext context) {
+    // `HomeScreen` fica sempre montada (`IndexedStack`), então escuta o
+    // contador de `homeRefreshProvider` para recarregar sempre que algo
+    // relevante mudar em outra tela (pagamento, status, novo orçamento).
+    final refreshToken = ref.watch(homeRefreshProvider);
+    if (refreshToken != _lastRefreshToken) {
+      _lastRefreshToken = refreshToken;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    }
+
     final summary = _summary;
     final semantic = context.semanticColors;
     String money(int? cents) => cents == null ? '—' : formatCurrencyBrl(cents);
