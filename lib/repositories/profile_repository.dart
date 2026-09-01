@@ -77,6 +77,11 @@ class ProfileRepository {
     );
   }
 
+  /// Salva o perfil de forma parcial — cada tela de Ajustes edita só o
+  /// que é dela (ex.: `TradesScreen` só passa `trades`), então um
+  /// parâmetro nulo aqui significa "não mexi nisso", preservando o valor
+  /// já salvo. Passar string vazia é diferente de não passar: significa
+  /// que o usuário limpou o campo de propósito (ex.: removeu a logo).
   Future<void> saveProfile({
     String? name,
     String? phone,
@@ -89,19 +94,49 @@ class ProfileRepository {
     String? pdfFooterText,
     String? pdfTermsAndConditions,
   }) async {
+    final current = await getProfile();
     await _db.batch((batch) {
       batch.insertAllOnConflictUpdate(_db.appSettings, [
-        AppSettingsCompanion.insert(key: _Keys.professionalName, value: name ?? ''),
-        AppSettingsCompanion.insert(key: _Keys.professionalPhone, value: phone ?? ''),
-        AppSettingsCompanion.insert(key: _Keys.professionalEmail, value: email ?? ''),
-        AppSettingsCompanion.insert(key: _Keys.professionalDocument, value: document ?? ''),
-        AppSettingsCompanion.insert(key: _Keys.professionalAddress, value: address ?? ''),
-        AppSettingsCompanion.insert(key: _Keys.professionalLogoPath, value: logoPath ?? ''),
-        AppSettingsCompanion.insert(key: _Keys.pixKey, value: pixKey ?? ''),
-        AppSettingsCompanion.insert(key: _Keys.pdfFooterText, value: pdfFooterText ?? ''),
-        AppSettingsCompanion.insert(key: _Keys.pdfTermsAndConditions, value: pdfTermsAndConditions ?? ''),
-        if (trades != null)
-          AppSettingsCompanion.insert(key: _Keys.trades, value: _encodeTrades(trades)),
+        AppSettingsCompanion.insert(
+          key: _Keys.professionalName,
+          value: name ?? current.name ?? '',
+        ),
+        AppSettingsCompanion.insert(
+          key: _Keys.professionalPhone,
+          value: phone ?? current.phone ?? '',
+        ),
+        AppSettingsCompanion.insert(
+          key: _Keys.professionalEmail,
+          value: email ?? current.email ?? '',
+        ),
+        AppSettingsCompanion.insert(
+          key: _Keys.professionalDocument,
+          value: document ?? current.document ?? '',
+        ),
+        AppSettingsCompanion.insert(
+          key: _Keys.professionalAddress,
+          value: address ?? current.address ?? '',
+        ),
+        AppSettingsCompanion.insert(
+          key: _Keys.professionalLogoPath,
+          value: logoPath ?? current.logoPath ?? '',
+        ),
+        AppSettingsCompanion.insert(
+          key: _Keys.pixKey,
+          value: pixKey ?? current.pixKey ?? '',
+        ),
+        AppSettingsCompanion.insert(
+          key: _Keys.pdfFooterText,
+          value: pdfFooterText ?? current.pdfFooterText ?? '',
+        ),
+        AppSettingsCompanion.insert(
+          key: _Keys.pdfTermsAndConditions,
+          value: pdfTermsAndConditions ?? current.pdfTermsAndConditions ?? '',
+        ),
+        AppSettingsCompanion.insert(
+          key: _Keys.trades,
+          value: _encodeTrades(trades ?? current.trades),
+        ),
       ]);
     });
   }

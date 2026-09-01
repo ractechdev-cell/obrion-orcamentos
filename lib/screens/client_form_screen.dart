@@ -7,6 +7,7 @@ import '../theme/app_spacing.dart';
 import '../utils/input_formatters.dart';
 import '../utils/validators.dart';
 import '../widgets/app_button.dart';
+import '../widgets/app_card.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/app_snackbar.dart';
 import '../widgets/app_text_field.dart';
@@ -176,15 +177,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                       100,
                     ),
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(AppSpacing.md),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                      AppCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -224,19 +217,13 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                         ),
                       ),
                       const SizedBox(height: AppSpacing.lg),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                      AppCard(
+                        padding: EdgeInsets.zero,
                         child: Column(
                           children: [
                             InkWell(
                               onTap: () => setState(() => _detailsExpanded = !_detailsExpanded),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(12),
                               child: Container(
                                 constraints: const BoxConstraints(minHeight: 56),
                                 padding: const EdgeInsets.all(AppSpacing.md),
@@ -269,10 +256,11 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                               Container(
                                 padding: const EdgeInsets.all(AppSpacing.md),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                                  color: Theme.of(context).colorScheme.surfaceContainerLow,
                                   border: Border(
                                     top: BorderSide(
-                                      color: Theme.of(context).colorScheme.outline,
+                                      color: Theme.of(context).colorScheme.outlineVariant,
+                                      width: 0.5,
                                     ),
                                   ),
                                 ),
@@ -340,16 +328,11 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                       padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.surface,
-                        border: Border(
-                          top: BorderSide(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 6,
-                            offset: const Offset(0, -4),
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 8,
+                            offset: const Offset(0, -2),
                           ),
                         ],
                       ),

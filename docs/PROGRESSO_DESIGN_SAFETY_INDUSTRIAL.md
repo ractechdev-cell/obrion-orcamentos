@@ -50,10 +50,10 @@ que ninguém sabe se pode remover.
 | Lista de clientes | ✅ Feito | Avatar, selo "N orçamentos". |
 | Lista de preços | ✅ Feito | Preço em âmbar à direita com unidade abaixo; chips de categoria. |
 | Ficha do cliente | ✅ Feito | Linha do tempo com marcadores coloridos por desfecho. |
-| Detalhe do orçamento | ✅ Feito (01/09/2026) | Card "Resumo Financeiro" (subtotal/desconto/total) + card "Pagamento" separado com badge de status e botão primary. `budget_form_screen.dart` linhas 1219-1400. |
-| Wizard de orçamento | ⏸️ Pendente | Existe e funciona (`budget_wizard_screen.dart`, 26/08/2026); falta apenas `AppWizardStepper` (barra de etapas no topo) — cosmético, não bloqueia uso. |
-| Novo/editar cliente | ✅ Feito (01/09/2026) | Card "Informações Básicas" + card "Adicionar Endereço" expansível + barra de ações fixa (Cancelar/Salvar 1:2). `client_form_screen.dart` linhas 162-408. |
-| Ajustes | ✅ Feito (01/09/2026) | Cards por seção com ícone: Perfil Profissional (`badge_outlined`), Meus Ofícios (`handyman_outlined`), Identidade (`image_outlined`), Configurações PDF (`picture_as_pdf_outlined`). `settings_screen.dart` linhas 188-429. |
+| Detalhe do orçamento | ✅ Feito (01/09/2026) | Card "Resumo Financeiro" (subtotal/desconto/total) + card "Pagamento" separado com badge de status e botão primary, ambos via `AppCard` (borda fina de 1px do tema — a primeira versão usava `Border.all` grosso, corrigido no mesmo dia). `budget_form_screen.dart` linhas 1219-1400. |
+| Wizard de orçamento | ✅ Feito (01/09/2026) | `AppWizardStepper` implementado — barra de etapas com círculo âmbar na etapa atual. `budget_wizard_screen.dart` (`_WizardStepIndicator`). |
+| Novo/editar cliente | ✅ Feito (01/09/2026) | Card "Informações Básicas" + card "Adicionar Endereço" expansível (via `AppCard`, borda fina) + barra de ações fixa (Cancelar/Salvar 1:2). `client_form_screen.dart` linhas 162-408. |
+| Ajustes | ✅ Feito (01/09/2026), revisado (01/09/2026) | Menu de navegação (`ListTile`s), não cards com formulário inline: cada seção abre em sub-tela própria (`lib/screens/settings/`) — Perfil Profissional, Meus Ofícios, Identidade, Configurações do PDF. Padrão trazido do app COTIX (ver `create_alert_modal.dart`/`settings_screen.dart` de lá). `ProfileRepository.saveProfile()` passou a aceitar salvamento parcial (cada sub-tela só grava o que edita, preservando o resto). |
 | Nova medição | ⏸️ Pendente | Tela existe (`measurement_form_screen.dart`), funcional; falta aplicar acabamento visual do modelo `nova_medi_o_obrion` — cosmético. |
 | Onboarding | ⏸️ Pendente | Tela existe (`onboarding_screen.dart`), funcional; falta aplicar acabamento visual do modelo `onboarding_obrion` — cosmético. |
 | Login | ⏸️ Pendente | Não há modelo correspondente; seguir o padrão das demais. |
