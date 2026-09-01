@@ -176,7 +176,6 @@ class _BudgetWizardScreenState extends ConsumerState<BudgetWizardScreen> {
             labels: _stepLabels,
             onStepTap: _goToStep,
           ),
-          const Divider(height: 1),
           Expanded(
             child: PageView(
               controller: _pageController,
@@ -231,10 +230,19 @@ class _WizardStepIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    const safetyAmber = Color(0xFFC2680A);
+
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
+        horizontal: AppSpacing.lg,
         vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outline),
+        ),
       ),
       child: Row(
         children: [
@@ -243,42 +251,58 @@ class _WizardStepIndicator extends StatelessWidget {
               Expanded(
                 child: Container(
                   height: 2,
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  color: i <= currentStep
-                      ? colorScheme.primary
-                      : colorScheme.outlineVariant,
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  color: colorScheme.outline,
                 ),
               ),
-            GestureDetector(
-              onTap: i <= currentStep ? () => onStepTap(i) : null,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircleAvatar(
-                    radius: 12,
-                    backgroundColor: i <= currentStep
-                        ? colorScheme.primary
-                        : colorScheme.outlineVariant,
-                    child: Text(
-                      '${i + 1}',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: i <= currentStep
+            Expanded(
+              child: GestureDetector(
+                onTap: i <= currentStep ? () => onStepTap(i) : null,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: i == currentStep
+                            ? safetyAmber
+                            : colorScheme.surface,
+                        border: i == currentStep
+                            ? null
+                            : Border.all(
+                                color: colorScheme.outline,
+                                width: 2,
+                              ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${i + 1}',
+                          style: textTheme.titleMedium?.copyWith(
+                            color: i == currentStep
                                 ? colorScheme.onPrimary
                                 : colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.bold,
                           ),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    labels[i],
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: i <= currentStep
-                              ? colorScheme.primary
-                              : colorScheme.onSurfaceVariant,
                         ),
-                  ),
-                ],
+                      ),
+                    ),
+                    if (i == currentStep) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        labels[i],
+                        style: textTheme.labelMedium?.copyWith(
+                          color: safetyAmber,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ],
