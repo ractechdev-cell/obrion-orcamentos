@@ -68,7 +68,7 @@ void main() {
     await tester.tap(find.text('Ajustes'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Seu perfil profissional'), findsOneWidget);
+    expect(find.text('Perfil Profissional'), findsOneWidget);
   });
 
   testWidgets('Light theme resolves without throwing',

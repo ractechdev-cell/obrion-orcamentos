@@ -1220,6 +1220,7 @@ class _ConditionsStepState extends ConsumerState<_ConditionsStep> {
     if (confirmed == true && _clientId != null && mounted) {
       final name = nameController.text.trim();
       if (name.isEmpty) {
+        if (!context.mounted) return;
         AppSnackBar.show(context, 'O nome da obra é obrigatório');
         return;
       }
@@ -1231,10 +1232,9 @@ class _ConditionsStepState extends ConsumerState<_ConditionsStep> {
         address: addressController.text.trim().isEmpty ? null : addressController.text.trim(),
       );
       
-      if (mounted) {
-        setState(() => _selectedProjectId = project.id);
-        AppSnackBar.show(context, 'Obra criada');
-      }
+      if (!context.mounted) return;
+      setState(() => _selectedProjectId = project.id);
+      AppSnackBar.show(context, 'Obra criada');
     }
 
     nameController.dispose();

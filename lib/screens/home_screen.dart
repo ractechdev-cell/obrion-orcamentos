@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../providers/budgets_repository_provider.dart';
 import '../providers/home_refresh_provider.dart';
+import '../providers/notification_permission_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../repositories/budgets_repository.dart';
 import '../theme/app_colors.dart';
@@ -15,6 +17,7 @@ import '../widgets/app_avatar.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_metric_card.dart';
+import '../widgets/app_notification_banner.dart';
 import '../widgets/app_section_header.dart';
 import '../widgets/app_segmented_bar.dart';
 import '../widgets/app_status_chip.dart';
@@ -37,7 +40,9 @@ class HomeScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _Greeting(),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
+        const _NotificationBannerWrapper(),
+        const SizedBox(height: AppSpacing.md),
         const _HomeSummary(),
       ],
     );
@@ -379,6 +384,39 @@ class _PendingBudgetTile extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Mostra o [AppNotificationBanner] quando as notificações do sistema
+/// estão desabilitadas. Widget próprio (não inline na Home) para que o
+/// `ref.watch(notificationPermissionProvider)` rebuilde só este trecho,
+/// não a Home inteira, a cada checagem.
+///
+/// A Home fica sempre montada via `IndexedStack` (ver `main_shell.dart`),
+/// então este `ConsumerWidget` já cobre tanto a primeira abertura quanto
+/// a volta de segundo plano — sem precisar de observer de lifecycle
+/// dedicado, porque o provider é reavaliado sempre que algo o invalida
+/// (ver `_HomeSummaryState` para o mesmo padrão de invalidação sob
+/// demanda usado no resumo de valores).
+///
+/// `AsyncValue.when`: enquanto carrega ou se der erro, não mostra nada —
+/// o pior caso aqui é só "não avisou ainda", nunca travar a Home por
+/// causa de uma checagem de permissão.
+class _NotificationBannerWrapper extends ConsumerWidget {
+  const _NotificationBannerWrapper();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final permissionAsync = ref.watch(notificationPermissionProvider);
+
+    return permissionAsync.when(
+      data: (status) {
+        if (status.isGranted) return const SizedBox.shrink();
+        return const AppNotificationBanner();
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

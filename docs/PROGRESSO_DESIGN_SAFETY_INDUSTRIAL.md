@@ -50,12 +50,12 @@ que ninguém sabe se pode remover.
 | Lista de clientes | ✅ Feito | Avatar, selo "N orçamentos". |
 | Lista de preços | ✅ Feito | Preço em âmbar à direita com unidade abaixo; chips de categoria. |
 | Ficha do cliente | ✅ Feito | Linha do tempo com marcadores coloridos por desfecho. |
-| Detalhe do orçamento | ⏸️ Pendente | O modelo tem card "Resumo Financeiro" e card "Pagamento" com selo de estado. É a tela do dinheiro — maior valor entre as pendentes. |
-| Wizard de orçamento | ⏸️ Pendente | Existe e funciona; falta a barra de etapas e o acabamento dos modelos (`novo_or_amento_*`). |
-| Novo/editar cliente | ⏸️ Pendente | Modelo agrupa em card "Informações Básicas" + "Adicionar Endereço" recolhido, com barra de ações fixa embaixo (Cancelar / Salvar). |
-| Ajustes | ⏸️ Pendente | Modelo tem cards por seção (conta, perfil, ofícios, identidade) com ícone no título. |
-| Nova medição | ⏸️ Pendente | Ver `nova_medi_o_obrion`. |
-| Onboarding | ⏸️ Pendente | Ver `onboarding_obrion`. |
+| Detalhe do orçamento | ✅ Feito (01/09/2026) | Card "Resumo Financeiro" (subtotal/desconto/total) + card "Pagamento" separado com badge de status e botão primary. `budget_form_screen.dart` linhas 1219-1400. |
+| Wizard de orçamento | ⏸️ Pendente | Existe e funciona (`budget_wizard_screen.dart`, 26/08/2026); falta apenas `AppWizardStepper` (barra de etapas no topo) — cosmético, não bloqueia uso. |
+| Novo/editar cliente | ✅ Feito (01/09/2026) | Card "Informações Básicas" + card "Adicionar Endereço" expansível + barra de ações fixa (Cancelar/Salvar 1:2). `client_form_screen.dart` linhas 162-408. |
+| Ajustes | ✅ Feito (01/09/2026) | Cards por seção com ícone: Perfil Profissional (`badge_outlined`), Meus Ofícios (`handyman_outlined`), Identidade (`image_outlined`), Configurações PDF (`picture_as_pdf_outlined`). `settings_screen.dart` linhas 188-429. |
+| Nova medição | ⏸️ Pendente | Tela existe (`measurement_form_screen.dart`), funcional; falta aplicar acabamento visual do modelo `nova_medi_o_obrion` — cosmético. |
+| Onboarding | ⏸️ Pendente | Tela existe (`onboarding_screen.dart`), funcional; falta aplicar acabamento visual do modelo `onboarding_obrion` — cosmético. |
 | Login | ⏸️ Pendente | Não há modelo correspondente; seguir o padrão das demais. |
 
 ## Divergências deliberadas dos modelos

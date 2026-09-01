@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/notification_permission_provider.dart';
 import '../providers/preferences_repository_provider.dart';
 import '../widgets/app_loading.dart';
 import 'budgets_list_screen.dart';
@@ -27,7 +28,7 @@ class MainShell extends ConsumerStatefulWidget {
   ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends ConsumerState<MainShell> {
+class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserver {
   int _index = 0;
 
   /// Só a aba visitada é montada — evita disparar consultas ao banco
@@ -49,7 +50,26 @@ class _MainShellState extends ConsumerState<MainShell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadOnboardingState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Rechecka a permissão de notificação sempre que o app volta ao
+  /// primeiro plano — cobre o caminho onde o usuário toca "Habilitar" no
+  /// `AppNotificationBanner`, vai até as Configurações do sistema, liga
+  /// a notificação e volta: sem isso o banner ficaria "preso" com o
+  /// status antigo (negado) até o app ser reaberto do zero.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(notificationPermissionProvider);
+    }
   }
 
   Future<void> _loadOnboardingState() async {

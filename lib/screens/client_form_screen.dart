@@ -166,124 +166,218 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
           ? const AppLoading()
           : Form(
               key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.all(AppSpacing.md),
+              child: Stack(
                 children: [
-                  AppTextField(
-                    controller: _nameController,
-                    label: 'Nome',
-                    validator: requiredValidator('o nome'),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  AppTextField(
-                    controller: _phoneController,
-                    label: 'Telefone',
-                    keyboardType: TextInputType.phone,
-                    validator: phoneValidator,
-                    inputFormatters: [phoneFormatter],
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'Com telefone, dá pra chamar o cliente no WhatsApp direto da ficha.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md,
+                      AppSpacing.md,
+                      AppSpacing.md,
+                      100,
+                    ),
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  AppTextField(
-                    controller: _emailController,
-                    label: 'E-mail (opcional)',
-                    keyboardType: TextInputType.emailAddress,
-                    validator: optionalEmailValidator,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  // Cabeçalho colapsável controlado à mão (em vez de
-                  // `ExpansionTile`) — pra garantir que a seta de
-                  // expandir/recolher sempre apareça, sem depender do
-                  // ícone padrão do widget.
-                  InkWell(
-                    onTap: () => setState(() => _detailsExpanded = !_detailsExpanded),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Adicionar endereço e mais detalhes'),
-                                Text(
-                                  'Opcional',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Informações Básicas',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            AppTextField(
+                              controller: _nameController,
+                              label: 'Nome',
+                              validator: requiredValidator('o nome'),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            AppTextField(
+                              controller: _phoneController,
+                              label: 'Telefone',
+                              keyboardType: TextInputType.phone,
+                              validator: phoneValidator,
+                              inputFormatters: [phoneFormatter],
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              'Com telefone, dá pra chamar o cliente no WhatsApp direto da ficha.',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            AppTextField(
+                              controller: _emailController,
+                              label: 'E-mail (opcional)',
+                              keyboardType: TextInputType.emailAddress,
+                              validator: optionalEmailValidator,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            InkWell(
+                              onTap: () => setState(() => _detailsExpanded = !_detailsExpanded),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                constraints: const BoxConstraints(minHeight: 56),
+                                padding: const EdgeInsets.all(AppSpacing.md),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.location_on_outlined,
+                                      color: Theme.of(context).colorScheme.outline,
+                                    ),
+                                    const SizedBox(width: AppSpacing.sm),
+                                    Expanded(
+                                      child: Text(
+                                        'Adicionar Endereço',
+                                        style: Theme.of(context).textTheme.titleMedium,
+                                      ),
+                                    ),
+                                    AnimatedRotation(
+                                      turns: _detailsExpanded ? 0.5 : 0,
+                                      duration: const Duration(milliseconds: 200),
+                                      child: Icon(
+                                        Icons.expand_more,
                                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                                       ),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
+                            if (_detailsExpanded)
+                              Container(
+                                padding: const EdgeInsets.all(AppSpacing.md),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                                  border: Border(
+                                    top: BorderSide(
+                                      color: Theme.of(context).colorScheme.outline,
+                                    ),
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    AppTextField(
+                                      controller: _documentController,
+                                      label: 'CPF/CNPJ (opcional)',
+                                      keyboardType: TextInputType.number,
+                                      inputFormatters: [documentFormatter],
+                                    ),
+                                    const SizedBox(height: AppSpacing.md),
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          flex: 3,
+                                          child: AppTextField(
+                                            controller: _streetController,
+                                            label: 'Rua',
+                                          ),
+                                        ),
+                                        const SizedBox(width: AppSpacing.sm),
+                                        Expanded(
+                                          flex: 1,
+                                          child: AppTextField(
+                                            controller: _streetNumberController,
+                                            label: 'Número',
+                                            keyboardType: TextInputType.number,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: AppSpacing.md),
+                                    AppTextField(
+                                      controller: _neighborhoodController,
+                                      label: 'Bairro',
+                                    ),
+                                    const SizedBox(height: AppSpacing.md),
+                                    AppTextField(
+                                      controller: _addressController,
+                                      label: 'Complemento / referência da obra',
+                                      hint: 'Ex: frente ao mercado, apto 302',
+                                      maxLines: 2,
+                                    ),
+                                    const SizedBox(height: AppSpacing.md),
+                                    AppTextField(
+                                      controller: _notesController,
+                                      label: 'Observações',
+                                      maxLines: 3,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        border: Border(
+                          top: BorderSide(
+                            color: Theme.of(context).colorScheme.outline,
                           ),
-                          AnimatedRotation(
-                            turns: _detailsExpanded ? 0.5 : 0,
-                            duration: const Duration(milliseconds: 200),
-                            child: const Icon(Icons.keyboard_arrow_down),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 6,
+                            offset: const Offset(0, -4),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                  if (_detailsExpanded) ...[
-                    const SizedBox(height: AppSpacing.md),
-                    AppTextField(
-                      controller: _documentController,
-                      label: 'CPF/CNPJ (opcional)',
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [documentFormatter],
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: AppTextField(
-                            controller: _streetController,
-                            label: 'Rua',
-                          ),
+                      child: SafeArea(
+                        top: false,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: AppButton(
+                                label: 'Cancelar',
+                                variant: AppButtonVariant.secondary,
+                                onPressed: _saving ? null : () => Navigator.of(context).pop(),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              flex: 2,
+                              child: AppButton(
+                                label: _isEditing ? 'Salvar' : 'Salvar Cliente',
+                                icon: Icons.save,
+                                loading: _saving,
+                                onPressed: _saving ? null : _save,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          flex: 1,
-                          child: AppTextField(
-                            controller: _streetNumberController,
-                            label: 'Número',
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    AppTextField(
-                      controller: _neighborhoodController,
-                      label: 'Bairro',
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    AppTextField(
-                      controller: _addressController,
-                      label: 'Complemento / referência da obra',
-                      hint: 'Ex: frente ao mercado, apto 302',
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    AppTextField(
-                      controller: _notesController,
-                      label: 'Observações',
-                      maxLines: 3,
-                    ),
-                  ],
-                  const SizedBox(height: AppSpacing.lg),
-                  AppButton(
-                    label: _isEditing ? 'Salvar alterações' : 'Salvar cliente',
-                    loading: _saving,
-                    onPressed: _saving ? null : _save,
                   ),
                 ],
               ),

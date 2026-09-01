@@ -1217,98 +1217,162 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                       ),
               ),
               Container(
+                color: Theme.of(context).colorScheme.surfaceContainerLowest,
                 padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerLow,
-                  border: Border(
-                    top: BorderSide(
-                      color: Theme.of(context).colorScheme.outlineVariant,
-                    ),
-                  ),
-                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Subtotal'),
-                        Text(formatCents(totals.subtotalCents)),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        FilledButton.tonalIcon(
-                          style: _compactButtonStyle,
-                          onPressed: () => _editDiscount(
-                            budget.discountCents,
-                            totals.subtotalCents,
-                          ),
-                          icon: const Icon(Icons.percent_outlined, size: 18),
-                          label: const Text('Desconto'),
-                        ),
-                        Text('- ${formatCents(totals.discountCents)}'),
-                      ],
-                    ),
-                    const Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Total',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        Text(
-                          formatCents(totals.totalCents),
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    if (data.items.isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            'Recebido',
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            'Resumo Financeiro',
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
-                          Text(
-                            formatCents(data.totalPaidCents),
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: context.semanticColors.success,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                          const SizedBox(height: AppSpacing.md),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Subtotal',
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                              Text(
+                                formatCents(totals.subtotalCents),
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Desconto',
+                                    style: Theme.of(context).textTheme.bodyLarge
+                                        ?.copyWith(color: context.semanticColors.success),
+                                  ),
+                                  const SizedBox(width: AppSpacing.xs),
+                                  IconButton(
+                                    onPressed: () => _editDiscount(
+                                      budget.discountCents,
+                                      totals.subtotalCents,
+                                    ),
+                                    icon: const Icon(Icons.edit_outlined, size: 16),
+                                    iconSize: 16,
+                                    visualDensity: VisualDensity.compact,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    tooltip: 'Editar desconto',
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                '- ${formatCents(totals.discountCents)}',
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(color: context.semanticColors.success),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: AppSpacing.md * 2),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Total',
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              Text(
+                                formatCents(totals.totalCents),
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          FilledButton.tonalIcon(
-                            style: _compactButtonStyle,
-                            onPressed: () => _registerPayment(context),
-                            icon: const Icon(Icons.add_card_outlined, size: 18),
-                            label: const Text('Registrar pagamento'),
+                    ),
+                    if (data.items.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      Container(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline,
                           ),
-                          Text(
-                            'Pendente: ${formatCents(data.pendingCents)}',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Pagamento',
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: data.pendingCents > 0
+                                        ? Theme.of(context).colorScheme.errorContainer
+                                        : Theme.of(context).colorScheme.tertiaryContainer,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    data.pendingCents > 0 ? 'Pendente' : 'Pago',
+                                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                      color: data.pendingCents > 0
+                                          ? Theme.of(context).colorScheme.onErrorContainer
+                                          : Theme.of(context).colorScheme.onTertiaryContainer,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            RichText(
+                              text: TextSpan(
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                                children: [
+                                  const TextSpan(text: 'Restante a pagar: '),
+                                  TextSpan(
+                                    text: formatCents(data.pendingCents),
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            AppButton(
+                              label: 'Registrar Pagamento',
+                              onPressed: () => _registerPayment(context),
+                              icon: Icons.payments,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                     const SizedBox(height: AppSpacing.md),
                     if (budget.validUntil != null) ...[
                       Text(
-                        // Ver CLAUDE.md, "Retenção precisa de mecanismo":
-                        // antes só dava pra ver isso abrindo "Detalhes";
-                        // fica visível direto na tela, como no concorrente.
                         'Válido até ${budget.validUntil!.day.toString().padLeft(2, '0')}/'
                         '${budget.validUntil!.month.toString().padLeft(2, '0')}/'
                         '${budget.validUntil!.year}',
@@ -1318,41 +1382,46 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                       ),
                       const SizedBox(height: AppSpacing.sm),
                     ],
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                    Row(
                       children: [
                         Text(
-                          'Status: ${statusLabel(budget.status)}',
+                          'Status:',
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
-                        if (budget.status == BudgetStatus.draft ||
-                            budget.status == BudgetStatus.sent) ...[
-                          const SizedBox(height: AppSpacing.sm),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: AppButton(
-                                  label: budget.status == BudgetStatus.draft
-                                      ? 'Marcar como enviado'
-                                      : 'Marcar como aceito',
-                                  onPressed: () =>
-                                      _advanceStatus(budget.status),
-                                  variant: AppButtonVariant.secondary,
-                                ),
-                              ),
-                              if (budget.status == BudgetStatus.sent) ...[
-                                const SizedBox(width: AppSpacing.sm),
-                                IconButton(
-                                  onPressed: _declineStatus,
-                                  icon: const Icon(Icons.close),
-                                  tooltip: 'Marcar como recusado',
-                                ),
-                              ],
-                            ],
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          statusLabel(budget.status),
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
-                        ],
+                        ),
                       ],
                     ),
+                    if (budget.status == BudgetStatus.draft ||
+                        budget.status == BudgetStatus.sent) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: AppButton(
+                              label: budget.status == BudgetStatus.draft
+                                  ? 'Marcar como enviado'
+                                  : 'Marcar como aceito',
+                              onPressed: () => _advanceStatus(budget.status),
+                              variant: AppButtonVariant.secondary,
+                            ),
+                          ),
+                          if (budget.status == BudgetStatus.sent) ...[
+                            const SizedBox(width: AppSpacing.sm),
+                            IconButton(
+                              onPressed: _declineStatus,
+                              icon: const Icon(Icons.close),
+                              tooltip: 'Marcar como recusado',
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),

@@ -194,136 +194,256 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               padding: const EdgeInsets.all(AppSpacing.md),
               children: [
                 _buildAccountCard(context),
-                const SizedBox(height: AppSpacing.xl),
-                const Divider(),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  'Seu perfil profissional',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'Aparece no cabeçalho do PDF de orçamento enviado ao cliente.',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppTextField(
-                  controller: _nameController,
-                    label: 'Seu nome ou da empresa',
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppTextField(
-                  controller: _phoneController,
-                  label: 'Telefone',
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [phoneFormatter],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppTextField(
-                  controller: _documentController,
-                  label: 'CPF ou CNPJ (opcional)',
-                  hint: 'Ex: 00.000.000/0001-00',
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [documentFormatter],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppTextField(
-                  controller: _emailController,
-                  label: 'E-mail (opcional)',
-                  hint: 'Ex: joao@pinturas.com',
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppTextField(
-                  controller: _addressController,
-                  label: 'Endereço comercial (opcional)',
-                  hint: 'Ex: Rua das Flores, 123 — São Paulo/SP',
+                const SizedBox(height: AppSpacing.lg),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.badge_outlined,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(
+                            'Perfil Profissional',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Estas informações aparecerão no cabeçalho do seu orçamento em PDF.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppTextField(
+                        controller: _nameController,
+                        label: 'Seu nome ou da empresa',
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppTextField(
+                        controller: _phoneController,
+                        label: 'Telefone',
+                        keyboardType: TextInputType.phone,
+                        inputFormatters: [phoneFormatter],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppTextField(
+                        controller: _documentController,
+                        label: 'CPF ou CNPJ (opcional)',
+                        hint: 'Ex: 00.000.000/0001-00',
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [documentFormatter],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppTextField(
+                        controller: _emailController,
+                        label: 'E-mail (opcional)',
+                        hint: 'Ex: joao@pinturas.com',
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppTextField(
+                        controller: _addressController,
+                        label: 'Endereço comercial (opcional)',
+                        hint: 'Ex: Rua das Flores, 123 — São Paulo/SP',
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                _buildLogoPicker(context),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.handyman_outlined,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(
+                            'Meus Ofícios',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Selecione suas áreas de atuação para personalizar os modelos de orçamento.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppTradeSelector(
+                        selected: _selectedTrades,
+                        onChanged: (trades) =>
+                            setState(() => _selectedTrades = trades),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.lg),
-                InkWell(
-                  onTap: () => setState(() => _pdfConfigExpanded = !_pdfConfigExpanded),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.image_outlined,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(
+                            'Identidade',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Adicione sua logomarca aos orçamentos. (Opcional)',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _buildLogoPicker(context),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      InkWell(
+                        onTap: () => setState(() => _pdfConfigExpanded = !_pdfConfigExpanded),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          child: Row(
                             children: [
-                              Text(
-                                'Configurações do PDF',
-                                style: Theme.of(context).textTheme.titleMedium,
+                              Icon(
+                                Icons.picture_as_pdf_outlined,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
-                              Text(
-                                'Chave PIX, rodapé customizado, termos e condições',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    ),
+                              const SizedBox(width: AppSpacing.sm),
+                              Expanded(
+                                child: Text(
+                                  'Configurações do PDF',
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
+                              ),
+                              AnimatedRotation(
+                                turns: _pdfConfigExpanded ? 0.5 : 0,
+                                duration: const Duration(milliseconds: 200),
+                                child: Icon(
+                                  Icons.expand_more,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        AnimatedRotation(
-                          turns: _pdfConfigExpanded ? 0.5 : 0,
-                          duration: const Duration(milliseconds: 200),
-                          child: const Icon(Icons.keyboard_arrow_down),
+                      ),
+                      if (_pdfConfigExpanded)
+                        Container(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              top: BorderSide(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Chave PIX, rodapé customizado, termos e condições',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              AppTextField(
+                                controller: _pixKeyController,
+                                label: 'Chave PIX (opcional)',
+                                hint: 'Aparece no final do PDF',
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              AppTextField(
+                                controller: _pdfFooterTextController,
+                                label: 'Texto do rodapé (opcional)',
+                                hint: 'Ex: Obrigado pela confiança!',
+                                maxLines: 2,
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              AppTextField(
+                                controller: _pdfTermsAndConditionsController,
+                                label: 'Termos e condições (opcional)',
+                                hint: 'Ex: Pagamento em 3x sem juros',
+                                maxLines: 4,
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
+                    ],
                   ),
-                ),
-                if (_pdfConfigExpanded) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  AppTextField(
-                    controller: _pixKeyController,
-                    label: 'Chave PIX (opcional)',
-                    hint: 'Aparece no final do PDF',
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  AppTextField(
-                    controller: _pdfFooterTextController,
-                    label: 'Texto do rodapé (opcional)',
-                    hint: 'Ex: Obrigado pela confiança!',
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  AppTextField(
-                    controller: _pdfTermsAndConditionsController,
-                    label: 'Termos e condições (opcional)',
-                    hint: 'Ex: Pagamento em 3x sem juros',
-                    maxLines: 4,
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  'Seus ofícios',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'Escolha seus ofícios. As sugestões da Lista de Preços vão mudar de acordo.',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppTradeSelector(
-                  selected: _selectedTrades,
-                  onChanged: (trades) =>
-                      setState(() => _selectedTrades = trades),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 AppButton(
-                  label: 'Salvar',
+                  label: 'Salvar Configurações',
+                  icon: Icons.save,
                   loading: _saving,
                   onPressed: _saving ? null : _save,
                 ),
                 if (_versionLabel != null) ...[
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: AppSpacing.md),
                   Center(
                     child: Text(
                       _versionLabel!,
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],
