@@ -6,16 +6,16 @@ import '../repositories/measurements_repository.dart';
 import '../screens/measurement_form_screen.dart';
 import '../widgets/app_dialog.dart';
 
-/// Carrega as medições do cliente e, se não houver nenhuma, oferece criar
-/// a primeira ali mesmo.
+/// Carrega os cômodos já medidos do cliente e, se não houver nenhum,
+/// oferece medir o primeiro ali mesmo.
 ///
-/// Antes, "Usar medição" sem medição cadastrada só mostrava um aviso e
+/// Antes, "Usar medição" sem cômodo cadastrado só mostrava um aviso e
 /// parava — beco sem saída bem no meio do fluxo que é o diferencial do
 /// app (medir e orçar sem redigitar). Quem chegava ali tinha que
-/// adivinhar que precisava sair, achar a ficha do cliente, criar a
-/// medição e voltar.
+/// adivinhar que precisava sair, achar a "Casa do Cliente", medir o
+/// cômodo e voltar.
 ///
-/// Retorna a lista já recarregada quando a pessoa cria a medição, ou
+/// Retorna a lista já recarregada quando a pessoa mede o cômodo, ou
 /// vazia se ela desistir.
 Future<List<MeasurementWithDetails>> loadMeasurementsOrOfferToCreate({
   required BuildContext context,
@@ -38,16 +38,16 @@ Future<List<MeasurementWithDetails>> loadMeasurementsOrOfferToCreate({
   if (!context.mounted) return const [];
   final wantsToCreate = await AppDialog.confirm(
     context,
-    title: 'Nenhuma medição ainda',
+    title: 'Nenhum cômodo medido ainda',
     message: 'Para puxar a quantidade automaticamente, este cliente '
-        'precisa de uma medição. Quer criar agora?',
-    confirmLabel: 'Criar medição',
+        'precisa de um cômodo medido. Quer medir agora?',
+    confirmLabel: 'Medir cômodo',
     cancelLabel: 'Agora não',
   );
   if (wantsToCreate != true || !context.mounted) return const [];
 
-  // A medição pende de uma obra; se o cliente ainda não tem nenhuma,
-  // cria a padrão — mesmo caminho de `ClientDetailScreen._addMeasurement`.
+  // O cômodo pende de uma obra; se o cliente ainda não tem nenhuma,
+  // cria a padrão — mesmo caminho de `HouseScreen._addRoom`.
   final repo = ref.read(measurementsRepositoryProvider);
   final projects = await repo.watchProjectsByClient(clientId).first;
   final projectId = projects.isEmpty
@@ -62,6 +62,6 @@ Future<List<MeasurementWithDetails>> loadMeasurementsOrOfferToCreate({
     ),
   );
 
-  // Recarrega: a pessoa pode ter salvo ou desistido na tela de medição.
+  // Recarrega: a pessoa pode ter salvo ou desistido na tela do cômodo.
   return load();
 }

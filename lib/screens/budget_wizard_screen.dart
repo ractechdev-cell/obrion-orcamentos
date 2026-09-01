@@ -602,7 +602,7 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
-                  'Qual medição?',
+                  'Qual cômodo?',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -693,7 +693,7 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
                   child: OutlinedButton.icon(
                     style: _compactButtonStyle,
                     icon: const Icon(Icons.straighten_outlined, size: 18),
-                    label: const Text('Usar medição'),
+                    label: const Text('Usar cômodo medido'),
                     onPressed: () async {
                       final value = await _pickMeasurementQuantity(
                         context,
@@ -806,7 +806,7 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
                   child: OutlinedButton.icon(
                     style: _compactButtonStyle,
                     icon: const Icon(Icons.straighten_outlined, size: 18),
-                    label: const Text('Usar medição'),
+                    label: const Text('Usar cômodo medido'),
                     onPressed: () async {
                       final value = await _pickMeasurementQuantity(
                         context,

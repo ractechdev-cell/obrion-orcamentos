@@ -2,8 +2,10 @@ import 'package:drift/drift.dart';
 
 import '../database/database.dart';
 import '../database/enums.dart';
+import '../measurement/measurement_math.dart';
 
-/// Modelo completo de medição com seus vãos e grandezas derivadas.
+/// Modelo completo de um cômodo medido, com seus vãos e grandezas
+/// derivadas.
 class MeasurementWithDetails {
   const MeasurementWithDetails({
     required this.measurement,
@@ -12,6 +14,29 @@ class MeasurementWithDetails {
 
   final Measurement measurement;
   final List<MeasurementOpening> openings;
+}
+
+/// Soma das grandezas de todos os cômodos de uma casa/obra — o resumo
+/// exibido no topo da tela "Casa do Cliente" (ex.: "42,5 m² de piso" no
+/// total dos 6 cômodos já medidos).
+class HouseTotals {
+  const HouseTotals({
+    required this.roomCount,
+    required this.floorAreaSqM,
+    required this.ceilingAreaSqM,
+    required this.wallAreaSqM,
+  });
+
+  const HouseTotals.empty()
+      : roomCount = 0,
+        floorAreaSqM = 0,
+        ceilingAreaSqM = 0,
+        wallAreaSqM = 0;
+
+  final int roomCount;
+  final double floorAreaSqM;
+  final double ceilingAreaSqM;
+  final double wallAreaSqM;
 }
 
 /// Repositório de medições e projetos/obras (ver CLAUDE.md,
@@ -175,5 +200,34 @@ class MeasurementsRepository {
     final count = await (_db.update(_db.measurements)..where((m) => m.id.equals(id)))
         .write(MeasurementsCompanion(deletedAt: Value(DateTime.now())));
     return count > 0;
+  }
+
+  /// Observa a soma das grandezas derivadas de todos os cômodos de uma
+  /// obra — usado no resumo da tela "Casa do Cliente". Soma em memória
+  /// (mesmo padrão de `BudgetsRepository.loadHomeSummary`): aceitável pro
+  /// volume de cômodos de uma casa residencial, não escala pra milhares
+  /// de linhas.
+  Stream<HouseTotals> watchHouseTotals(String projectId) {
+    return watchByProject(projectId).map((rooms) {
+      if (rooms.isEmpty) return const HouseTotals.empty();
+      double floor = 0, ceiling = 0, wall = 0;
+      for (final room in rooms) {
+        final derived = RoomDerivedQuantities.fromMeasurement(
+          lengthMeters: room.measurement.lengthMeters,
+          widthMeters: room.measurement.widthMeters,
+          heightMeters: room.measurement.heightMeters,
+          openings: room.openings,
+        );
+        floor += derived.floorAreaSqM;
+        ceiling += derived.ceilingAreaSqM;
+        wall += derived.wallAreaSqM;
+      }
+      return HouseTotals(
+        roomCount: rooms.length,
+        floorAreaSqM: floor,
+        ceilingAreaSqM: ceiling,
+        wallAreaSqM: wall,
+      );
+    });
   }
 }

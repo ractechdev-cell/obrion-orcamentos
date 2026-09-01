@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../analytics/analytics_service.dart';
+import '../database/database.dart';
 import '../database/enums.dart';
+import '../measurement/measurement_math.dart';
 import '../providers/measurements_repository_provider.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
@@ -18,10 +20,16 @@ typedef _OpeningDraft = ({OpeningType type, double widthMeters, double heightMet
 
 String _openingLabel(OpeningType type) => type == OpeningType.door ? 'Porta' : 'Janela';
 
-/// Formulário de medição — cria uma nova ou edita uma existente, conforme
+/// Formulário de cômodo — cria um novo ou edita um existente, conforme
 /// [measurementId] seja nulo ou não. Vãos (portas/janelas) são geridos
 /// como uma lista editável, não mais um valor fixo — ver CLAUDE.md,
 /// "Medição guarda geometria bruta, não 'a área'".
+///
+/// **Nome na UI é "cômodo", não "medição"** (decisão 01/09/2026): em obra
+/// civil, "medição" tem significado próprio — o boletim financeiro que
+/// mede % da obra executada pra liberar pagamento. Nada a ver com medir
+/// as dimensões de um ambiente. O nome de tabela/classe no banco
+/// (`Measurement`) não muda — é dado, não é UI.
 class MeasurementFormScreen extends ConsumerStatefulWidget {
   const MeasurementFormScreen({super.key, required this.projectId, this.measurementId});
 
@@ -43,6 +51,27 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
   bool _loading = true;
 
   bool get _isEditing => widget.measurementId != null;
+
+  /// Grandezas recalculadas a cada mudança de medida ou vão — ver "Nova
+  /// medição" no design Safety Industrial, seção "Grandezas Derivadas":
+  /// o modelo mostra o cálculo ao vivo em vez de só salvar cego.
+  RoomDerivedQuantities get _derived => RoomDerivedQuantities.fromMeasurement(
+        lengthMeters: double.tryParse(_lengthController.text.replaceAll(',', '.')) ?? 0,
+        widthMeters: double.tryParse(_widthController.text.replaceAll(',', '.')) ?? 0,
+        heightMeters: double.tryParse(_heightController.text.replaceAll(',', '.')) ?? 0,
+        openings: [
+          for (final o in _openings)
+            MeasurementOpening(
+              id: '',
+              measurementId: '',
+              type: o.type,
+              widthMeters: o.widthMeters,
+              heightMeters: o.heightMeters,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
+        ],
+      );
 
   @override
   void initState() {
@@ -129,12 +158,12 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
       if (!_isEditing) AnalyticsService.trackEvent('measurement_completed');
 
       if (mounted) {
-        AppSnackBar.show(context, _isEditing ? 'Medição atualizada.' : 'Medição salva.');
+        AppSnackBar.show(context, _isEditing ? 'Cômodo atualizado.' : 'Cômodo salvo.');
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
-        AppSnackBar.show(context, 'Erro ao salvar medição. Tente novamente.');
+        AppSnackBar.show(context, 'Erro ao salvar o cômodo. Tente novamente.');
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -143,8 +172,10 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final derived = _derived;
+
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? 'Editar medição' : 'Nova medição')),
+      appBar: AppBar(title: Text(_isEditing ? 'Editar cômodo' : 'Medir Cômodo')),
       body: _loading
           ? const AppLoading()
           : Form(
@@ -155,69 +186,178 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
                   AppTextField(
                     controller: _nameController,
                     label: 'Nome do cômodo',
+                    hint: 'Ex: Quarto, Sala, Cozinha',
                     validator: requiredValidator('o nome'),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  AppNumberInput(
-                    controller: _lengthController,
-                    label: 'Comprimento',
-                    suffixText: 'm',
-                    validator: positiveNumberValidator('o comprimento'),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  AppNumberInput(
-                    controller: _widthController,
-                    label: 'Largura',
-                    suffixText: 'm',
-                    validator: positiveNumberValidator('a largura'),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  AppNumberInput(
-                    controller: _heightController,
-                    label: 'Altura',
-                    suffixText: 'm',
-                    validator: positiveNumberValidator('a altura'),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: AppNumberInput(
+                          controller: _lengthController,
+                          label: 'Comp.',
+                          suffixText: 'm',
+                          validator: positiveNumberValidator('o comprimento'),
+                          onChanged: (_) => setState(() {}),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: AppNumberInput(
+                          controller: _widthController,
+                          label: 'Larg.',
+                          suffixText: 'm',
+                          validator: positiveNumberValidator('a largura'),
+                          onChanged: (_) => setState(() {}),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: AppNumberInput(
+                          controller: _heightController,
+                          label: 'Altura',
+                          suffixText: 'm',
+                          validator: positiveNumberValidator('a altura'),
+                          onChanged: (_) => setState(() {}),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  Text('Vãos (portas e janelas)', style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: AppSpacing.sm),
-                  if (_openings.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                      child: Text(
-                        'Nenhum vão adicionado — a parede será calculada sem descontos.',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
-                  for (var i = 0; i < _openings.length; i++)
-                    Card(
-                      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: ListTile(
-                        leading: Icon(
-                          _openings[i].type == OpeningType.door
-                              ? Icons.sensor_door_outlined
-                              : Icons.window_outlined,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.meeting_room_outlined,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                'Descontar Vãos',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: _addOpening,
+                              icon: const Icon(Icons.add, size: 18),
+                              label: const Text('Adicionar'),
+                            ),
+                          ],
                         ),
-                        title: Text(
-                          '${_openingLabel(_openings[i].type)} — '
-                          '${_openings[i].widthMeters.toStringAsFixed(2)} × '
-                          '${_openings[i].heightMeters.toStringAsFixed(2)} m',
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
-                          tooltip: 'Remover vão',
-                          onPressed: () => setState(() => _openings.removeAt(i)),
-                        ),
-                      ),
+                        const SizedBox(height: AppSpacing.sm),
+                        if (_openings.isEmpty)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outlineVariant,
+                                style: BorderStyle.solid,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.sensor_window_outlined,
+                                  size: 32,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(height: AppSpacing.xs),
+                                Text(
+                                  'Nenhum vão adicionado.\nAdicione portas e janelas para descontar da área de parede.',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          for (var i = 0; i < _openings.length; i++)
+                            Card(
+                              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                              child: ListTile(
+                                leading: Icon(
+                                  _openings[i].type == OpeningType.door
+                                      ? Icons.sensor_door_outlined
+                                      : Icons.window_outlined,
+                                ),
+                                title: Text(
+                                  '${_openingLabel(_openings[i].type)} — '
+                                  '${_openings[i].widthMeters.toStringAsFixed(2)} × '
+                                  '${_openings[i].heightMeters.toStringAsFixed(2)} m',
+                                ),
+                                trailing: IconButton(
+                                  icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
+                                  tooltip: 'Remover vão',
+                                  onPressed: () => setState(() => _openings.removeAt(i)),
+                                ),
+                              ),
+                            ),
+                      ],
                     ),
-                  OutlinedButton.icon(
-                    onPressed: _addOpening,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Adicionar vão'),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.calculate_outlined,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Text(
+                              'Grandezas Derivadas',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _DerivedQuantityRow(
+                          icon: Icons.grid_on_outlined,
+                          label: 'Área de Piso',
+                          valueSqM: derived.floorAreaSqM,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        _DerivedQuantityRow(
+                          icon: Icons.roofing_outlined,
+                          label: 'Área de Teto',
+                          valueSqM: derived.ceilingAreaSqM,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        _DerivedQuantityRow(
+                          icon: Icons.foundation_outlined,
+                          label: 'Área de Parede',
+                          caption: '(já descontando vãos)',
+                          valueSqM: derived.wallAreaSqM,
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   AppButton(
-                    label: _isEditing ? 'Salvar alterações' : 'Salvar medição',
+                    label: _isEditing ? 'Salvar alterações' : 'Salvar cômodo',
                     loading: _saving,
                     onPressed: _saving ? null : _save,
                   ),
@@ -299,6 +439,72 @@ class _OpeningDialogState extends State<_OpeningDialog> {
         ),
         AppButton(label: 'Adicionar', onPressed: _confirm),
       ],
+    );
+  }
+}
+
+/// Uma linha do painel "Grandezas Derivadas" — ícone, rótulo (+ legenda
+/// opcional) à esquerda, valor em destaque à direita. Ver modelo
+/// `docs/stitch_document_theme_generator/nova_medi_o_obrion/`.
+class _DerivedQuantityRow extends StatelessWidget {
+  const _DerivedQuantityRow({
+    required this.icon,
+    required this.label,
+    required this.valueSqM,
+    this.caption,
+  });
+
+  final IconData icon;
+  final String label;
+  final String? caption;
+  final double valueSqM;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: caption == null
+                ? Text(label, style: theme.textTheme.bodyLarge)
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(label, style: theme.textTheme.bodyLarge),
+                      Text(
+                        caption!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+          RichText(
+            text: TextSpan(
+              style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.onSurface),
+              children: [
+                TextSpan(text: valueSqM.toStringAsFixed(2)),
+                TextSpan(
+                  text: ' m²',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

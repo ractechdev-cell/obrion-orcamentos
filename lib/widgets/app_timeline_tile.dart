@@ -7,9 +7,9 @@ import 'app_card.dart';
 /// Um evento da linha do tempo do cliente: marcador circular ligado por um
 /// fio vertical, com o card do evento ao lado.
 ///
-/// A linha é o que transforma "lista de coisas" em "história do cliente" —
-/// mostra que medição e orçamento são etapas do mesmo trabalho, e não dois
-/// cadastros soltos que por acaso têm o mesmo nome em cima.
+/// A linha é o que transforma "lista de coisas" em "histórico do cliente".
+/// Hoje usada só para orçamentos (ver `ClientDetailScreen`) — cômodos
+/// medidos vivem em `HouseScreen`, à parte (decisão 01/09/2026).
 class AppTimelineTile extends StatelessWidget {
   const AppTimelineTile({
     super.key,

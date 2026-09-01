@@ -3,11 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/database.dart';
 import '../database/enums.dart';
-import '../measurement/measurement_math.dart';
 import '../providers/budgets_repository_provider.dart';
 import '../providers/clients_repository_provider.dart';
-import '../providers/measurements_repository_provider.dart';
-import '../repositories/measurements_repository.dart';
 import '../theme/app_semantic_colors.dart';
 import '../theme/app_spacing.dart';
 import '../utils/phone_actions.dart';
@@ -22,44 +19,37 @@ import '../widgets/app_timeline_tile.dart';
 import 'budget_form_screen.dart';
 import 'budget_wizard_screen.dart';
 import 'client_form_screen.dart';
-import 'measurement_form_screen.dart';
-
-enum _TimelineKind { measurement, budget }
+import 'house_screen.dart';
 
 class _TimelineEntry {
   const _TimelineEntry({
-    required this.kind,
     required this.date,
     required this.title,
     required this.subtitle,
     required this.onTap,
-    this.status,
-    this.onDelete,
+    required this.status,
   });
 
-  final _TimelineKind kind;
   final DateTime date;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
 
-  /// Só para orçamento — define o selo e a cor do marcador na linha do
-  /// tempo. Nulo em medição, que não tem ciclo de status.
-  final BudgetStatus? status;
-
-  /// Só preenchido pra medição — excluir orçamento não faz parte deste
-  /// menu (o orçamento tem seu próprio ciclo de vida via status).
-  final VoidCallback? onDelete;
+  /// Define o selo e a cor do marcador na linha do tempo.
+  final BudgetStatus status;
 }
 
-/// Histórico do cliente — medições e orçamentos juntos numa linha do
-/// tempo, em vez de navegar Clientes → Medições e Clientes → Orçamentos
-/// como telas separadas e desconectadas.
+/// Histórico de orçamentos do cliente, em linha do tempo.
 ///
-/// Consulta única (`initState`, `.first` nas streams dos repositórios),
+/// **Medição não entra mais aqui** (decisão 01/09/2026) — antes medição e
+/// orçamento apareciam juntos, o que confundia (medição em obra civil já
+/// tem outro significado: boletim financeiro de % executada). Cada
+/// cômodo medido vive agora em [HouseScreen], acessível pelo ícone de
+/// casa no app bar.
+///
+/// Consulta única (`initState`, `.first` na stream do repositório),
 /// recarregada ao voltar de uma tela de detalhe — mesmo motivo do resumo
-/// da Home: não precisa ser reativa segundo a segundo, e evita abrir
-/// streams de banco concorrentes numa tela que mistura dois repositórios.
+/// da Home: não precisa ser reativa segundo a segundo.
 class ClientDetailScreen extends ConsumerStatefulWidget {
   const ClientDetailScreen({super.key, required this.client});
 
@@ -73,7 +63,6 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
   bool _loading = true;
   String? _error;
   List<_TimelineEntry> _entries = [];
-  String? _projectId;
 
   @override
   void initState() {
@@ -84,33 +73,12 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
   Future<void> _load() async {
     if (mounted) setState(() => _loading = true);
     try {
-      final measurementsRepo = ref.read(measurementsRepositoryProvider);
       final budgetsRepo = ref.read(budgetsRepositoryProvider);
-
-      final projects = await measurementsRepo
-          .watchProjectsByClient(widget.client.id)
-          .first;
-      final projectId = projects.isEmpty ? null : projects.first.id;
-
-      final measurements = projectId == null
-          ? const <MeasurementWithDetails>[]
-          : await measurementsRepo.watchByProject(projectId).first;
       final budgets = await budgetsRepo.watchByClient(widget.client.id).first;
 
       final entries = <_TimelineEntry>[
-        for (final item in measurements)
-          _TimelineEntry(
-            kind: _TimelineKind.measurement,
-            date: item.measurement.createdAt,
-            title: item.measurement.name,
-            subtitle: '${_floorAreaLabel(item)} de piso',
-            onTap: () => _openMeasurement(projectId!, item.measurement.id),
-            onDelete: () =>
-                _deleteMeasurement(item.measurement.id, item.measurement.name),
-          ),
         for (final budget in budgets)
           _TimelineEntry(
-            kind: _TimelineKind.budget,
             date: budget.createdAt,
             title:
                 'Orçamento ${budget.createdAt.day}/${budget.createdAt.month}/${budget.createdAt.year}',
@@ -126,7 +94,6 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       if (mounted) {
         setState(() {
           _entries = entries;
-          _projectId = projectId;
           _error = null;
           _loading = false;
         });
@@ -137,54 +104,6 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
           _error = 'Falha ao carregar o histórico do cliente.';
           _loading = false;
         });
-      }
-    }
-  }
-
-  String _floorAreaLabel(MeasurementWithDetails item) {
-    final derived = RoomDerivedQuantities.fromMeasurement(
-      lengthMeters: item.measurement.lengthMeters,
-      widthMeters: item.measurement.widthMeters,
-      heightMeters: item.measurement.heightMeters,
-      openings: item.openings,
-    );
-    return '${derived.floorAreaSqM.toStringAsFixed(2)} m²';
-  }
-
-  Future<void> _openMeasurement(String projectId, String measurementId) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => MeasurementFormScreen(
-          projectId: projectId,
-          measurementId: measurementId,
-        ),
-      ),
-    );
-    _load();
-  }
-
-  /// Excluir medição — não tinha nenhum caminho na UI até agora
-  /// (`MeasurementsRepository.softDeleteMeasurement` existia, mas nenhuma
-  /// tela chamava). Mesmo padrão de confirmação usado pra excluir cliente.
-  Future<void> _deleteMeasurement(String measurementId, String name) async {
-    final confirmed = await AppDialog.confirm(
-      context,
-      isDestructive: true,
-      title: 'Excluir "$name"?',
-      message: 'Esta ação não pode ser desfeita.',
-      confirmLabel: 'Excluir',
-    );
-    if (confirmed == true) {
-      await ref
-          .read(measurementsRepositoryProvider)
-          .softDeleteMeasurement(measurementId);
-      if (mounted) {
-        AppSnackBar.show(
-          context,
-          'Medição excluída.',
-          variant: AppSnackBarVariant.destructive,
-        );
-        _load();
       }
     }
   }
@@ -215,78 +134,15 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     _load();
   }
 
-  Future<void> _addMeasurement() async {
-    var projectId = _projectId;
-    if (projectId == null) {
-      final repo = ref.read(measurementsRepositoryProvider);
-      final project = await repo.createProject(
-        clientId: widget.client.id,
-        name: 'Obra Principal',
-      );
-      projectId = project.id;
-    }
-    if (!mounted) return;
+  Future<void> _openHouse() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => MeasurementFormScreen(projectId: projectId!),
+        builder: (_) => HouseScreen(
+          clientId: widget.client.id,
+          clientName: widget.client.name,
+        ),
       ),
     );
-    _load();
-  }
-
-  Future<void> _openAddMenu(BuildContext context) async {
-    final action = await AppBottomSheet.showActions<String>(
-      context,
-      actions: const [
-        AppBottomSheetAction(
-          label: 'Novo orçamento',
-          value: 'budget',
-          icon: Icons.request_quote_outlined,
-        ),
-        AppBottomSheetAction(
-          label: 'Nova medição',
-          value: 'measurement',
-          icon: Icons.straighten_outlined,
-        ),
-      ],
-    );
-    if (action == 'budget') {
-      await _addBudget();
-    } else if (action == 'measurement') {
-      await _addMeasurement();
-    }
-  }
-
-  /// Menu por item da linha do tempo — só as medições têm ação de
-  /// excluir hoje (ver `_TimelineEntry.onDelete`). Ícone visível em vez de
-  /// depender de long-press, pro mesmo público de baixa familiaridade
-  /// digital que o resto do app já leva em conta.
-  Future<void> _openTimelineEntryMenu(
-    BuildContext context,
-    _TimelineEntry entry,
-  ) async {
-    final action = await AppBottomSheet.showActions<String>(
-      context,
-      title: entry.title,
-      actions: const [
-        AppBottomSheetAction(
-          label: 'Editar',
-          value: 'edit',
-          icon: Icons.edit_outlined,
-        ),
-        AppBottomSheetAction(
-          label: 'Excluir',
-          value: 'delete',
-          icon: Icons.delete_outline,
-          isDestructive: true,
-        ),
-      ],
-    );
-    if (action == 'edit') {
-      entry.onTap();
-    } else if (action == 'delete') {
-      entry.onDelete?.call();
-    }
   }
 
   Future<void> _openClientMenu(BuildContext context) async {
@@ -342,8 +198,17 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.client.name),
+        title: Text(
+          widget.client.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.home_outlined),
+            tooltip: 'Casa do cliente',
+            onPressed: _openHouse,
+          ),
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () => _openClientMenu(context),
@@ -351,8 +216,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _openAddMenu(context),
-        tooltip: 'Adicionar',
+        onPressed: _addBudget,
+        tooltip: 'Novo orçamento',
         child: const Icon(Icons.add),
       ),
       body: Column(
@@ -367,7 +232,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 : _entries.isEmpty
                 ? AppEmptyState(
                     message:
-                        'Este cliente ainda não tem medição nem orçamento.\n\n'
+                        'Este cliente ainda não tem orçamento.\n\n'
                         'Crie o primeiro orçamento para começar o histórico dele.',
                     actionLabel: 'Criar orçamento',
                     onAction: _addBudget,
@@ -390,9 +255,6 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                           entry: entry,
                           isFirst: index == 0,
                           isLast: index == _entries.length - 1,
-                          onMenu: entry.onDelete == null
-                              ? null
-                              : () => _openTimelineEntryMenu(context, entry),
                         );
                       },
                     ),
@@ -444,13 +306,11 @@ class _TimelineTile extends StatelessWidget {
     required this.entry,
     required this.isFirst,
     required this.isLast,
-    this.onMenu,
   });
 
   final _TimelineEntry entry;
   final bool isFirst;
   final bool isLast;
-  final VoidCallback? onMenu;
 
   @override
   Widget build(BuildContext context) {
@@ -470,7 +330,6 @@ class _TimelineTile extends StatelessWidget {
     final icon = switch (status) {
       BudgetStatus.accepted => Icons.check_circle_outline,
       BudgetStatus.declined => Icons.cancel_outlined,
-      null => Icons.straighten_outlined,
       _ => Icons.request_quote_outlined,
     };
 
@@ -489,10 +348,7 @@ class _TimelineTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              if (status != null)
-                AppStatusChip.budget(status)
-              else
-                const AppStatusChip(label: 'Medição'),
+              Flexible(child: AppStatusChip.budget(status)),
               const Spacer(),
               Text(
                 dateLabel,
@@ -500,16 +356,6 @@ class _TimelineTile extends StatelessWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (onMenu != null)
-                // `visualDensity` compacto: o menu fica na mesma linha do
-                // selo e da data, e o alvo padrão de 48px empurraria a
-                // altura do cabeçalho do card.
-                IconButton(
-                  icon: const Icon(Icons.more_vert, size: 20),
-                  tooltip: 'Mais opções',
-                  visualDensity: VisualDensity.compact,
-                  onPressed: onMenu,
-                ),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
