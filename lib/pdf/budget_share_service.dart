@@ -21,7 +21,14 @@ enum BudgetShareFormat { pdf, image }
 class BudgetShareService {
   const BudgetShareService._();
 
-  static Future<void> shareAsPdf({
+  /// Retorna `false` se o usuário explicitamente descartou a folha de
+  /// compartilhamento do sistema — aí não gerar evento de envio nem marcar
+  /// o orçamento como enviado. `ShareResultStatus.success` e `unavailable`
+  /// (Android não informa o alvo escolhido) contam como compartilhado.
+  static bool _wasShared(ShareResult result) =>
+      result.status != ShareResultStatus.dismissed;
+
+  static Future<bool> shareAsPdf({
     required BudgetWithItems data,
     required Client client,
     required ProfessionalProfile professional,
@@ -36,7 +43,7 @@ class BudgetShareService {
       project: project,
     );
 
-    await SharePlus.instance.share(
+    final result = await SharePlus.instance.share(
       ShareParams(
         files: [
           XFile.fromData(bytes, mimeType: 'application/pdf', name: 'orcamento.pdf'),
@@ -45,11 +52,12 @@ class BudgetShareService {
         text: 'Segue o orçamento em anexo.',
       ),
     );
+    return _wasShared(result);
   }
 
   /// Compartilha a primeira página do orçamento como PNG — pensado pra
   /// quem abre imagem no WhatsApp sem pensar e ignora anexo em PDF.
-  static Future<void> shareAsImage({
+  static Future<bool> shareAsImage({
     required BudgetWithItems data,
     required Client client,
     required ProfessionalProfile professional,
@@ -68,7 +76,7 @@ class BudgetShareService {
     final firstPage = await pages.first;
     final png = await firstPage.toPng();
 
-    await SharePlus.instance.share(
+    final result = await SharePlus.instance.share(
       ShareParams(
         files: [
           XFile.fromData(png, mimeType: 'image/png', name: 'orcamento.png'),
@@ -77,6 +85,7 @@ class BudgetShareService {
         text: 'Segue o orçamento em anexo.',
       ),
     );
+    return _wasShared(result);
   }
 
   /// Recibo do valor recebido até agora — reaproveita [ReceiptPdfGenerator]

@@ -3,6 +3,7 @@ import '../repositories/budgets_repository.dart';
 import '../repositories/profile_repository.dart';
 import '../screens/service_unit_label.dart';
 import '../utils/currency_format.dart';
+import '../utils/quantity_format.dart';
 
 /// Formata centavos como "R$ 1.234,56". Formatação para R$ só na borda de
 /// apresentação — o dado continua `int` centavos até aqui (ver CLAUDE.md).
@@ -85,7 +86,7 @@ class BudgetPdfContent {
         for (final item in data.items)
           BudgetPdfItemLine(
             description: item.description,
-            quantityAndUnit: '${item.quantity} ${serviceUnitLabel(item.unit)}',
+            quantityAndUnit: '${formatQuantity(item.quantity)} ${serviceUnitLabel(item.unit)}',
             unitPriceFormatted: formatCurrencyForPdf(item.unitPriceCents),
             totalFormatted: formatCurrencyForPdf(item.totalCents),
           ),

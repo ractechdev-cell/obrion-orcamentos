@@ -23,6 +23,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_semantic_colors.dart';
 import '../theme/app_spacing.dart';
 import '../utils/measurement_flow.dart';
+import '../utils/quantity_format.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_currency_input.dart';
@@ -85,6 +86,11 @@ class _BudgetWizardScreenState extends ConsumerState<BudgetWizardScreen> {
   /// já existia — e que a pessoa só abriu pra continuar — destruiria
   /// trabalho salvo.
   bool _createdHere = false;
+
+  /// Vira `true` quando o orçamento é compartilhado na última etapa. O
+  /// "X" de um orçamento **enviado** só fecha a tela — apagar um documento
+  /// que acabou de sair pro cliente seria perda de dado (ver auditoria P2).
+  bool _sent = false;
 
   static const _stepLabels = ['Serviços', 'Condições', 'Revisão', 'Envio'];
 
@@ -173,11 +179,12 @@ class _BudgetWizardScreenState extends ConsumerState<BudgetWizardScreen> {
           icon: const Icon(Icons.close),
           tooltip: _createdHere ? 'Cancelar' : 'Fechar',
           onPressed: () async {
-            // Rascunho que já existia: fechar é só sair. O trabalho é
-            // salvo a cada passo, então não há nada a descartar — e
-            // apagá-lo aqui destruiria orçamento que a pessoa só veio
-            // continuar.
-            if (!_createdHere) {
+            // Rascunho que já existia — ou orçamento que acabou de ser
+            // enviado: fechar é só sair. O trabalho é salvo a cada passo,
+            // então não há nada a descartar — e apagá-lo aqui destruiria
+            // orçamento que a pessoa só veio continuar (ou que o
+            // cliente já recebeu).
+            if (!_createdHere || _sent) {
               Navigator.of(context).pop();
               return;
             }
@@ -228,6 +235,7 @@ class _BudgetWizardScreenState extends ConsumerState<BudgetWizardScreen> {
                   budgetId: _budgetId!,
                   clientId: widget.clientId,
                   onBack: _previousStep,
+                  onShared: () => setState(() => _sent = true),
                 ),
               ],
             ),
@@ -427,7 +435,7 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
                                   children: [
                                     Text(item.description),
                                     Text(
-                                      '${item.quantity} ${serviceUnitLabel(item.unit)} × ${formatCents(item.unitPriceCents)}',
+                                      '${formatQuantity(item.quantity)} ${serviceUnitLabel(item.unit)} × ${formatCents(item.unitPriceCents)}',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodySmall,
@@ -984,13 +992,21 @@ class _ConditionsStep extends ConsumerStatefulWidget {
   ConsumerState<_ConditionsStep> createState() => _ConditionsStepState();
 }
 
-class _ConditionsStepState extends ConsumerState<_ConditionsStep> {
+class _ConditionsStepState extends ConsumerState<_ConditionsStep>
+    with AutomaticKeepAliveClientMixin {
   final _notesController = TextEditingController();
   final _jobDescriptionController = TextEditingController();
   DateTime? _validUntil;
   bool _loaded = false;
   String? _selectedProjectId;
   String? _clientId;
+
+  /// Sem isso o `PageView` descarta a etapa ao voltar — e tudo que a
+  /// pessoa digitou em Observações/Descrição sem tocar em "Ir para
+  /// revisão" sumia (ver auditoria P1). Manter viva preserva os campos
+  /// entre as etapas; o salvamento em banco continua no "Ir para revisão".
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void dispose() {
@@ -1028,6 +1044,7 @@ class _ConditionsStepState extends ConsumerState<_ConditionsStep> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return FutureBuilder(
       future: _loadBudget(),
       builder: (context, _) {
@@ -1328,7 +1345,7 @@ class _ReviewStep extends ConsumerWidget {
                               children: [
                                 Text(item.description),
                                 Text(
-                                  '${item.quantity} ${serviceUnitLabel(item.unit)} × ${formatCents(item.unitPriceCents)}',
+                                  '${formatQuantity(item.quantity)} ${serviceUnitLabel(item.unit)} × ${formatCents(item.unitPriceCents)}',
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ],
@@ -1482,25 +1499,71 @@ class _SendStep extends ConsumerStatefulWidget {
     required this.budgetId,
     required this.clientId,
     required this.onBack,
+    required this.onShared,
   });
 
   final String budgetId;
   final String clientId;
   final VoidCallback onBack;
 
+  /// Avisa o wizard quando o orçamento foi de fato compartilhado — o
+  /// "X" do AppBar passa a só fechar a tela, sem oferecer descartar.
+  final VoidCallback onShared;
+
   @override
   ConsumerState<_SendStep> createState() => _SendStepState();
 }
 
-class _SendStepState extends ConsumerState<_SendStep> {
+class _SendStepState extends ConsumerState<_SendStep>
+    with AutomaticKeepAliveClientMixin {
   bool _sent = false;
+
+  /// Impede duplo toque em "Enviar": o share_plus trata uma segunda
+  /// chamada enquanto a primeira está pendente como `unavailable`, e isso
+  /// viraria falso "Enviado" + analytics duplicados (ver auditoria P2).
+  bool _sharing = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      children: [
-        if (!_sent) ...[
+    super.build(context);
+    // O total na tela de envio é âncora de confiança: quem vai mandar
+    // pro cliente precisa reconhecer o valor que está saindo — a etapa
+    // Revisão fica um toque atrás e volta a ser obrigatório conferir ali
+    // (ver auditoria UX P2).
+    final repo = ref.watch(budgetsRepositoryProvider);
+    return StreamBuilder<BudgetWithItems?>(
+      stream: repo.watchById(widget.budgetId),
+      builder: (context, snapshot) {
+        final totalCents = snapshot.data?.totals.totalCents;
+        final subtotalCents = snapshot.data?.totals.subtotalCents;
+        final hasValue = (subtotalCents ?? 0) > 0;
+        return ListView(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          children: [
+            if (!_sent && hasValue && totalCents != null) ...[
+              AppCard(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text(
+                      formatCents(totalCents),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
+            if (!_sent) ...[
           Icon(
             Icons.check_circle_outline,
             size: 80,
@@ -1524,14 +1587,14 @@ class _SendStepState extends ConsumerState<_SendStep> {
           AppButton(
             label: 'Enviar como PDF',
             icon: Icons.picture_as_pdf_outlined,
-            onPressed: () => _share(BudgetShareFormat.pdf),
+            onPressed: _sharing ? null : () => _share(BudgetShareFormat.pdf),
           ),
           const SizedBox(height: AppSpacing.sm),
           AppButton(
             label: 'Enviar como imagem',
             icon: Icons.image_outlined,
             variant: AppButtonVariant.secondary,
-            onPressed: () => _share(BudgetShareFormat.image),
+            onPressed: _sharing ? null : () => _share(BudgetShareFormat.image),
           ),
           const SizedBox(height: AppSpacing.xl),
           Row(
@@ -1574,6 +1637,8 @@ class _SendStepState extends ConsumerState<_SendStep> {
           ),
         ],
       ],
+      );
+    },
     );
   }
 
@@ -1585,7 +1650,7 @@ class _SendStepState extends ConsumerState<_SendStep> {
 
     final data = await repo.watchById(widget.budgetId).first;
     final client = await clientsRepo.getById(widget.clientId);
-    if (data == null || client == null || !context.mounted) return;
+    if (data == null || client == null || !mounted) return;
 
     final professional = await profileRepo.getProfile();
     final budgetNumber = await repo.getBudgetNumber(widget.budgetId);
@@ -1596,22 +1661,51 @@ class _SendStepState extends ConsumerState<_SendStep> {
       project = projects.where((p) => p.id == data.budget.projectId).firstOrNull;
     }
 
-    if (format == BudgetShareFormat.pdf) {
-      await BudgetShareService.shareAsPdf(
-        data: data,
-        client: client,
-        professional: professional,
-        budgetNumber: budgetNumber,
-        project: project,
-      );
-    } else {
-      await BudgetShareService.shareAsImage(
-        data: data,
-        client: client,
-        professional: professional,
-        budgetNumber: budgetNumber,
-        project: project,
-      );
+    // Falha de geração/rastreamento não pode passar em silêncio: o
+    // usuário não saberia que o documento não saiu (ver auditoria P2).
+    setState(() => _sharing = true);
+    final bool shared;
+    try {
+      shared = format == BudgetShareFormat.pdf
+          ? await BudgetShareService.shareAsPdf(
+              data: data,
+              client: client,
+              professional: professional,
+              budgetNumber: budgetNumber,
+              project: project,
+            )
+          : await BudgetShareService.shareAsImage(
+              data: data,
+              client: client,
+              professional: professional,
+              budgetNumber: budgetNumber,
+              project: project,
+            );
+    } catch (_) {
+      if (mounted) {
+        AppSnackBar.show(
+          context,
+          'Não consegui gerar ou compartilhar o orçamento. Tente novamente.',
+          variant: AppSnackBarVariant.destructive,
+        );
+      }
+      return;
+    } finally {
+      if (mounted) setState(() => _sharing = false);
+    }
+
+    // Folha de compartilhamento descartada: o usuário ainda não mandou —
+    // marcar "Enviado" aqui poluiria o funil e dispararia o lembrete de
+    // resposta à toa (ver auditoria P1).
+    if (!shared) {
+      if (mounted) {
+        AppSnackBar.show(
+          context,
+          'Compartilhamento cancelado.',
+          variant: AppSnackBarVariant.warning,
+        );
+      }
+      return;
     }
 
     final formatParam = format == BudgetShareFormat.pdf ? 'pdf' : 'imagem';
@@ -1629,6 +1723,7 @@ class _SendStepState extends ConsumerState<_SendStep> {
     ref.read(homeRefreshProvider.notifier).bump();
 
     if (mounted) setState(() => _sent = true);
+    widget.onShared();
   }
 
   Future<void> _skipAndFinish() async {

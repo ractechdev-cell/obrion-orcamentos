@@ -22,6 +22,7 @@ import '../theme/app_semantic_colors.dart';
 import '../theme/app_spacing.dart';
 import '../utils/currency_format.dart';
 import '../utils/measurement_flow.dart';
+import '../utils/quantity_format.dart';
 import '../widgets/app_bottom_sheet.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_card.dart';
@@ -839,23 +840,47 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
       project = projects.where((p) => p.id == data.budget.projectId).firstOrNull;
     }
 
-    if (format == BudgetShareFormat.pdf) {
-      await BudgetShareService.shareAsPdf(
-        data: data,
-        client: client,
-        professional: professional,
-        budgetNumber: budgetNumber,
-        project: project,
-      );
-    } else {
-      await BudgetShareService.shareAsImage(
-        data: data,
-        client: client,
-        professional: professional,
-        budgetNumber: budgetNumber,
-        project: project,
-      );
+    final bool shared;
+    try {
+      shared = format == BudgetShareFormat.pdf
+          ? await BudgetShareService.shareAsPdf(
+              data: data,
+              client: client,
+              professional: professional,
+              budgetNumber: budgetNumber,
+              project: project,
+            )
+          : await BudgetShareService.shareAsImage(
+              data: data,
+              client: client,
+              professional: professional,
+              budgetNumber: budgetNumber,
+              project: project,
+            );
+    } catch (_) {
+      if (context.mounted) {
+        AppSnackBar.show(
+          context,
+          'Não consegui gerar ou compartilhar o orçamento. Tente novamente.',
+          variant: AppSnackBarVariant.destructive,
+        );
+      }
+      return;
     }
+
+    // Folha de compartilhamento descartada: nada foi enviado — manter o
+    // status atual e não contar no funil (ver auditoria P1).
+    if (!shared) {
+      if (context.mounted) {
+        AppSnackBar.show(
+          context,
+          'Compartilhamento cancelado.',
+          variant: AppSnackBarVariant.warning,
+        );
+      }
+      return;
+    }
+
     final formatParam = format == BudgetShareFormat.pdf ? 'pdf' : 'imagem';
     AnalyticsService.trackEvent('pdf_generated', {'format': formatParam});
     // `channel` é sempre 'outro': a folha de compartilhamento do sistema
@@ -872,6 +897,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
       final repo = ref.read(budgetsRepositoryProvider);
       await repo.updateStatus(_budgetId!, BudgetStatus.sent);
     }
+    // Sem isso, enviar pelo form deixava a Home (aguardando/aprovados)
+    // desatualizada até o app reiniciar — o wizard já avisava, aqui não
+    // (ver auditoria P2).
+    ref.read(homeRefreshProvider.notifier).bump();
   }
 
   @override
@@ -993,7 +1022,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                                       children: [
                                         Text(item.description),
                                         Text(
-                                          '${item.quantity} ${serviceUnitLabel(item.unit)} × ${formatCents(item.unitPriceCents)}',
+                                          '${formatQuantity(item.quantity)} ${serviceUnitLabel(item.unit)} × ${formatCents(item.unitPriceCents)}',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodySmall,

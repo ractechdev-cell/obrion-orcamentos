@@ -56,7 +56,7 @@ void main() {
     expect(content.clientAddress, 'Rua das Flores, 123');
     expect(content.items, hasLength(1));
     expect(content.items.single.description, 'Pintura de parede');
-    expect(content.items.single.quantityAndUnit, '40.0 m²');
+    expect(content.items.single.quantityAndUnit, '40 m²');
     expect(content.items.single.unitPriceFormatted, 'R\$ 25,00');
     expect(content.items.single.totalFormatted, 'R\$ 1.000,00');
     expect(content.subtotalFormatted, 'R\$ 1.000,00');

@@ -75,8 +75,22 @@ class _BudgetsListScreenState extends ConsumerState<BudgetsListScreen> {
                   itemCount: clients.length,
                   itemBuilder: (context, index) {
                     final client = clients[index];
+                    // Dois clientes com o mesmo nome são comuns no
+                    // canteiro — telefone/endereço no rodapé evita mandar
+                    // orçamento pro cliente errado (ver auditoria UX P2).
+                    final disambiguator = [
+                      if ((client.phone ?? '').isNotEmpty) client.phone!,
+                      if ((client.address ?? '').isNotEmpty) client.address!,
+                    ].join(' · ');
                     return ListTile(
                       title: Text(client.name),
+                      subtitle: disambiguator.isEmpty
+                          ? null
+                          : Text(
+                              disambiguator,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                       onTap: () => Navigator.of(context).pop(client),
                     );
                   },

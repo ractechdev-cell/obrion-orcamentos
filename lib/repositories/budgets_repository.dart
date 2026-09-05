@@ -441,6 +441,19 @@ class BudgetsRepository {
       notes: source.notes,
     );
 
+    // Duplicar = começar igual ao anterior: descrição da obra e validade
+    // fazem parte das condições que o profissional replica (ver auditoria
+    // P2). `updateDetails` sobrescreve todos os campos que recebe, então
+    // notes é repassado junto pra não zerar o que `create` já gravou.
+    if (source.jobDescription != null || source.validUntil != null) {
+      await updateDetails(
+        newBudget.id,
+        notes: source.notes,
+        jobDescription: source.jobDescription,
+        validUntil: source.validUntil,
+      );
+    }
+
     for (final item in sourceItems) {
       await addItem(
         newBudget.id,

@@ -124,6 +124,13 @@ void main() {
       ),
     );
     await budgetsRepo.updateDiscount(original.id, 2000);
+    final validUntil = DateTime(2026, 12, 31);
+    await budgetsRepo.updateDetails(
+      original.id,
+      notes: 'Reforma banheiro',
+      jobDescription: 'Revestir todo o piso da casa.',
+      validUntil: validUntil,
+    );
 
     final duplicated = await budgetsRepo.duplicate(original.id);
 
@@ -136,6 +143,8 @@ void main() {
     expect(result!.items, hasLength(1));
     expect(result.items.first.totalCents, 40000);
     expect(result.totals.discountCents, 2000);
+    expect(result.budget.jobDescription, 'Revestir todo o piso da casa.');
+    expect(result.budget.validUntil, validUntil);
   });
 
   test('updateDetails saves notes and validUntil', () async {

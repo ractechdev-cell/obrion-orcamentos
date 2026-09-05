@@ -4,6 +4,25 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 
 ## [Unreleased]
 
+### Fixed (auditoria pré-validação — 05/09/2026)
+
+- **Orçamento enviado não é mais apagável pelo "X" do wizard**: o "X" de um orçamento já compartilhado agora só fecha a tela — antes o `_createdHere` seguia `true` e o fechar oferecia descartar (soft delete) um documento que o cliente já tinha recebido.
+- **Condições digitadas não se perdem ao voltar no wizard**: a etapa Condições ganhou `AutomaticKeepAliveClientMixin` — Observações/Descrição/validade sobreviviam apenas tocando "Ir para revisão"; voltar uma etapa (ou tocar no indicador) descartava o texto digitado.
+- **Compartilhamento cancelado não marca mais "Enviado"**: `BudgetShareService.shareAsPdf/shareAsImage` retornam se a folha do sistema foi descartada (`ShareResult.dismissed`) — wizard e formulário de gestão só atualizam o status, disparam analytics e agendam o lembrete quando houve envio de fato. Falha de geração/compartilhamento virou `AppSnackBar` visível (antes era exceção silenciosa com a tela travada).
+- **Duplo toque em "Enviar" bloqueado** (wizard): o segundo toque com a primeira chamada pendente virava `unavailable` no share_plus → falso "Enviado" + eventos duplicados.
+- **Duplicar orçamento copia descrição da obra e validade** — antes nascia sem `jobDescription`/`validUntil`, e o PDF do duplicado ficava sem a descrição que o original tinha.
+- **Total visível na etapa Envio do wizard** (âncora de confiança ao compartilhar).
+- **Compartilhar pelo formulário de gestão atualiza a Home** (`homeRefreshProvider.bump`) — antes a aba ficava desatualizada até reiniciar o app.
+
+### Changed
+
+- Quantidade exibida sem o ".0" solto: novo `formatQuantity` (tela e PDF) **apara zeros sem arredondar** (até 4 casas) — a conta "quantidade × preço" que o cliente confere continua batendo com o total da linha.
+
+### Added
+
+- Subtítulo (telefone/endereço) na seleção de cliente ao criar orçamento pela aba Orçamentos — dois "João" deixam de ser indistinguíveis.
+- `test/utils/quantity_format_test.dart`.
+
 ### Added
 - **Volume m³ na medição → orçamento** (auditoria 04/09/2026): `RoomDerivedQuantities.volumeCubicMeters(slabThicknessMeters)` — área do piso × espessura, matemática pura em `lib/measurement/measurement_math.dart`. A espessura não é persistida (não é propriedade do cômodo — o mesmo cômodo pode ter contrapiso de 5cm ou 10cm): é parâmetro no momento da cotação. Formulário de cômodo ganhou campo "Espessura (cm)" com Volume ao vivo no painel de grandezas; "Usar cômodo medido" para serviço m³ pergunta a espessura e devolve o volume como quantidade (wizard e formulário de gestão). Conversão cm→m centralizada em `centimetersToMeters`.
 - **Fluxo "usar cômodo medido" centralizado** (`lib/measurement/measurement_quantities.dart` + `lib/utils/measurement_flow.dart`): enum/opções de grandeza e o `pickMeasurementQuantity` com seleção de cômodo + espessura vivem numa fonte única — o wizard e o formulário de gestão compartilham o mesmo comportamento (era duplicação de ~90 linhas por arquivo).
