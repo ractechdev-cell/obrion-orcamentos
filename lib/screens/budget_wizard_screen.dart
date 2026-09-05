@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../analytics/analytics_service.dart';
 import '../database/database.dart';
 import '../database/enums.dart';
-import '../measurement/measurement_math.dart';
+import '../measurement/measurement_quantities.dart';
 import '../pdf/budget_share_service.dart';
 import '../providers/budget_templates_repository_provider.dart';
 import '../providers/budgets_repository_provider.dart';
@@ -18,8 +18,8 @@ import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
 import '../repositories/budgets_repository.dart';
 import '../repositories/clients_repository.dart';
-import '../repositories/measurements_repository.dart';
 import '../review/review_service.dart';
+import '../theme/app_colors.dart';
 import '../theme/app_semantic_colors.dart';
 import '../theme/app_spacing.dart';
 import '../utils/measurement_flow.dart';
@@ -72,6 +72,14 @@ class _BudgetWizardScreenState extends ConsumerState<BudgetWizardScreen> {
   String? _budgetId;
   int _currentStep = 0;
 
+  /// "Orçamento nº N" — âncora de continuidade com a lista e com o
+  /// `BudgetFormScreen` (a tela de gestão do mesmo orçamento): o número é
+  /// o mesmo em todos os lugares, então o profissional reconhece que está
+  /// trabalhando no mesmo documento mesmo quando a tela muda (rascunho
+  /// abre no wizard, enviado abre no form — ver decisão em
+  /// `budgets_list_screen.dart`).
+  String? _budgetNumberLabel;
+
   /// Se o rascunho nasceu nesta sessão do wizard. Define o que o "X" faz:
   /// descartar um rascunho recém-criado é o esperado, mas apagar um que
   /// já existia — e que a pessoa só abriu pra continuar — destruiria
@@ -86,9 +94,21 @@ class _BudgetWizardScreenState extends ConsumerState<BudgetWizardScreen> {
     final existing = widget.budgetId;
     if (existing != null) {
       _budgetId = existing;
+      _loadBudgetNumber();
     } else {
       _createDraft();
     }
+  }
+
+  /// Carrega o número sequencial do orçamento (posição na ordem de
+  /// criação — mesma numeração da aba Orçamentos) para exibir no título.
+  Future<void> _loadBudgetNumber() async {
+    final id = _budgetId;
+    if (id == null) return;
+    final number = await ref
+        .read(budgetsRepositoryProvider)
+        .getBudgetNumber(id);
+    if (mounted) setState(() => _budgetNumberLabel = 'Orçamento nº $number');
   }
 
   @override
@@ -107,6 +127,7 @@ class _BudgetWizardScreenState extends ConsumerState<BudgetWizardScreen> {
         _budgetId = budget.id;
         _createdHere = true;
       });
+      _loadBudgetNumber();
     }
   }
 
@@ -142,7 +163,12 @@ class _BudgetWizardScreenState extends ConsumerState<BudgetWizardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_createdHere ? 'Novo orçamento' : 'Continuar orçamento'),
+        title: Text(
+          // O número unifica com a lista e com a tela de gestão: mesmo
+          // documento reconhecível mesmo mudando de tela.
+          _budgetNumberLabel ??
+              (_createdHere ? 'Novo orçamento' : 'Continuar orçamento'),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.close),
           tooltip: _createdHere ? 'Cancelar' : 'Fechar',
@@ -231,7 +257,6 @@ class _WizardStepIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    const safetyAmber = Color(0xFFC2680A);
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -267,7 +292,7 @@ class _WizardStepIndicator extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: i == currentStep
-                            ? safetyAmber
+                            ? AppColors.safetyAmber
                             : colorScheme.surface,
                         border: i == currentStep
                             ? null
@@ -293,7 +318,7 @@ class _WizardStepIndicator extends StatelessWidget {
                       Text(
                         labels[i],
                         style: textTheme.labelMedium?.copyWith(
-                          color: safetyAmber,
+                          color: AppColors.safetyAmber,
                           fontWeight: FontWeight.w600,
                         ),
                         textAlign: TextAlign.center,
@@ -574,91 +599,6 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
     }
   }
 
-  Future<double?> _pickMeasurementQuantity(
-    BuildContext context,
-    ServiceUnit unit,
-  ) async {
-    final options = _measurementOptionsForUnit(unit);
-    if (options.isEmpty) return null;
-
-    // Sem medição, oferece criar na hora em vez de só avisar — ver
-    // `loadMeasurementsOrOfferToCreate`.
-    final allMeasurements = await loadMeasurementsOrOfferToCreate(
-      context: context,
-      ref: ref,
-      clientId: widget.clientId,
-    );
-    if (allMeasurements.isEmpty || !context.mounted) return null;
-
-    MeasurementWithDetails? chosen = allMeasurements.first;
-    if (allMeasurements.length > 1) {
-      chosen = await showModalBottomSheet<MeasurementWithDetails>(
-        context: context,
-        showDragHandle: true,
-        builder: (context) => SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  'Qual cômodo?',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              for (final m in allMeasurements)
-                ListTile(
-                  title: Text(m.measurement.name),
-                  onTap: () => Navigator.of(context).pop(m),
-                ),
-              const SizedBox(height: AppSpacing.md),
-            ],
-          ),
-        ),
-      );
-      if (chosen == null || !context.mounted) return null;
-    }
-
-    final derived = RoomDerivedQuantities.fromMeasurement(
-      lengthMeters: chosen.measurement.lengthMeters,
-      widthMeters: chosen.measurement.widthMeters,
-      heightMeters: chosen.measurement.heightMeters,
-      openings: chosen.openings,
-    );
-
-    if (!context.mounted) return null;
-    return showModalBottomSheet<double>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                'Qual grandeza?',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            for (final option in options)
-              ListTile(
-                title: Text(_measurementQuantityLabel(option)),
-                trailing: Text(
-                  _measurementQuantityValue(option, derived).toStringAsFixed(2),
-                ),
-                onTap: () => Navigator.of(context)
-                    .pop(_measurementQuantityValue(option, derived)),
-              ),
-            const SizedBox(height: AppSpacing.md),
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _showAddItemSheet(BuildContext context, Service service) async {
     final quantityController = TextEditingController();
     int? priceCents = service.defaultPriceCents;
@@ -686,7 +626,7 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
                 label: 'Quantidade (${serviceUnitLabel(service.unit)})',
                 controller: quantityController,
               ),
-              if (_measurementOptionsForUnit(service.unit).isNotEmpty) ...[
+              if (measurementQuantityOptions(service.unit).isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -695,9 +635,11 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
                     icon: const Icon(Icons.straighten_outlined, size: 18),
                     label: const Text('Usar cômodo medido'),
                     onPressed: () async {
-                      final value = await _pickMeasurementQuantity(
+                      final value = await pickMeasurementQuantity(
                         context,
-                        service.unit,
+                        ref,
+                        clientId: widget.clientId,
+                        unit: service.unit,
                       );
                       if (value != null) {
                         quantityController.text = value.toStringAsFixed(2);
@@ -799,7 +741,7 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
                 label: 'Quantidade (${serviceUnitLabel(unit)})',
                 controller: quantityController,
               ),
-              if (_measurementOptionsForUnit(unit).isNotEmpty) ...[
+              if (measurementQuantityOptions(unit).isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -808,9 +750,11 @@ class _ServicesStepState extends ConsumerState<_ServicesStep> {
                     icon: const Icon(Icons.straighten_outlined, size: 18),
                     label: const Text('Usar cômodo medido'),
                     onPressed: () async {
-                      final value = await _pickMeasurementQuantity(
+                      final value = await pickMeasurementQuantity(
                         context,
-                        unit,
+                        ref,
+                        clientId: widget.clientId,
+                        unit: unit,
                       );
                       if (value != null) {
                         quantityController.text = value.toStringAsFixed(2);
@@ -1672,7 +1616,13 @@ class _SendStepState extends ConsumerState<_SendStep> {
 
     final formatParam = format == BudgetShareFormat.pdf ? 'pdf' : 'imagem';
     AnalyticsService.trackEvent('pdf_generated', {'format': formatParam});
-    AnalyticsService.trackEvent('budget_shared', {'format': formatParam});
+    // `channel` é sempre 'outro': a folha de compartilhamento do sistema
+    // (share_plus) não informa qual app o usuário escolheu — inventar
+    // 'whatsapp' aqui seria dado falso no funil (ver APP_FACTORY_RULES.md §7).
+    AnalyticsService.trackEvent('budget_shared', {
+      'format': formatParam,
+      'channel': 'outro',
+    });
     unawaited(ReviewService.requestReviewIfAvailable());
 
     await repo.updateStatus(widget.budgetId, BudgetStatus.sent);
@@ -1685,49 +1635,3 @@ class _SendStepState extends ConsumerState<_SendStep> {
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 }
-
-// ---------------------------------------------------------------------------
-// Helpers (mesmos do budget_form_screen, reaproveitados)
-// ---------------------------------------------------------------------------
-
-enum _MeasurementQuantity {
-  wallArea,
-  floorArea,
-  ceilingArea,
-  perimeter,
-  effectivePerimeter,
-}
-
-String _measurementQuantityLabel(_MeasurementQuantity q) => switch (q) {
-      _MeasurementQuantity.wallArea => 'Área de parede',
-      _MeasurementQuantity.floorArea => 'Área de piso',
-      _MeasurementQuantity.ceilingArea => 'Área de teto',
-      _MeasurementQuantity.perimeter => 'Perímetro',
-      _MeasurementQuantity.effectivePerimeter => 'Perímetro útil',
-    };
-
-double _measurementQuantityValue(
-  _MeasurementQuantity q,
-  RoomDerivedQuantities d,
-) =>
-    switch (q) {
-      _MeasurementQuantity.wallArea => d.wallAreaSqM,
-      _MeasurementQuantity.floorArea => d.floorAreaSqM,
-      _MeasurementQuantity.ceilingArea => d.ceilingAreaSqM,
-      _MeasurementQuantity.perimeter => d.perimeterMeters,
-      _MeasurementQuantity.effectivePerimeter => d.effectivePerimeterMeters,
-    };
-
-List<_MeasurementQuantity> _measurementOptionsForUnit(ServiceUnit unit) =>
-    switch (unit) {
-      ServiceUnit.squareMeter => const [
-          _MeasurementQuantity.wallArea,
-          _MeasurementQuantity.floorArea,
-          _MeasurementQuantity.ceilingArea,
-        ],
-      ServiceUnit.linearMeter => const [
-          _MeasurementQuantity.perimeter,
-          _MeasurementQuantity.effectivePerimeter,
-        ],
-      _ => const [],
-    };

@@ -204,11 +204,11 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.home_outlined),
-            tooltip: 'Casa do cliente',
-            onPressed: _openHouse,
-          ),
+          // Medição saiu deste AppBar: tinha só um ícone de casa sem texto,
+          // e "medir" é o diferencial do app — esconder a ação atrás de um
+          // ícone ambíguo escondia o fluxo principal (ver auditoria 04/09).
+          // Agora é um botão textual visível no corpo, logo abaixo dos
+          // contatos. Aqui ficou só o menu de gerenciamento do cliente.
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () => _openClientMenu(context),
@@ -224,6 +224,24 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
         children: [
           if ((widget.client.phone ?? '').isNotEmpty)
             _buildContactActions(context),
+          // "Medir cômodo" como ação de texto visível — o profissional não
+          // precisa adivinhar que um ícone de casa leva à medição.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              0,
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _openHouse,
+                icon: const Icon(Icons.straighten_outlined, size: 18),
+                label: const Text('Medir cômodo'),
+              ),
+            ),
+          ),
           Expanded(
             child: _loading
                 ? const AppLoading()

@@ -11,23 +11,36 @@ import 'package:orcamentos/theme/app_theme.dart';
 /// Widget tests rodam o app inteiro, incluindo o banco local. Sem
 /// sobrescrever o provider, `AppDatabase()` tentaria abrir um arquivo via
 /// `path_provider`, indisponível no ambiente de teste — daí o override
-/// para um banco em memória (mesmo padrão dos testes de repositório).
-/// `showUpgradeAlertProvider` também é desligado: `UpgradeAlert` faz uma
-/// chamada de rede real pra loja que fica pendente em ambiente de teste.
+/// para um banco em memória (mesmo padrão dos testes de repositório;
+/// instância única por teste, fechada no `tearDown`, sem aviso de DB
+/// duplicada do Drift).
+///
+/// `showUpgradeAlertProvider` é desligado: `UpgradeAlert` faz uma chamada
+/// de rede real pra loja que fica pendente em ambiente de teste.
+/// `runSystemServicesProvider` desliga o que depende de plugin nativo —
+/// analytics (Firebase), notificações locais e checagem de patch OTA —
+/// que no teste não existem e apenas so­sobem ruído "falhou" no log.
 ///
 /// Banco em memória sempre começa sem onboarding visto, então todo teste
-/// passa primeiro pelas 3 telas de `OnboardingScreen` e toca "Pular" —
+/// passa primeiro pelas telas de `OnboardingScreen` e toca "Pular" —
 /// mesmo caminho que a primeira abertura real do app segue.
 void main() {
+  late AppDatabase database;
+
+  setUp(() {
+    database = AppDatabase.forTesting(NativeDatabase.memory());
+  });
+
+  tearDown(() => database.close());
+
   testWidgets('App builds and shows the home screen',
       (WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          appDatabaseProvider.overrideWithValue(
-            AppDatabase.forTesting(NativeDatabase.memory()),
-          ),
+          appDatabaseProvider.overrideWithValue(database),
           showUpgradeAlertProvider.overrideWithValue(false),
+          runSystemServicesProvider.overrideWithValue(false),
         ],
         child: const ObrionOrcamentosApp(),
       ),
@@ -53,10 +66,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          appDatabaseProvider.overrideWithValue(
-            AppDatabase.forTesting(NativeDatabase.memory()),
-          ),
+          appDatabaseProvider.overrideWithValue(database),
           showUpgradeAlertProvider.overrideWithValue(false),
+          runSystemServicesProvider.overrideWithValue(false),
         ],
         child: const ObrionOrcamentosApp(),
       ),

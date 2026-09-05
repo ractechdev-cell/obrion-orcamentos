@@ -50,6 +50,21 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
   bool _saving = false;
   bool _loading = true;
 
+  /// Espessura de camada (contrapiso, concreto) em centímetros, a
+  /// unidade que se fala em obra. **Não é persistida** — a espessura não é
+  /// uma propriedade do cômodo (o mesmo cômodo pode ter contrapiso de 5cm
+  /// ou 10cm), é contexto do serviço m³; entra aqui só para o profissional
+  /// ver o volume na hora e depois alimenta o item de orçamento.
+  final _thicknessCmController = TextEditingController();
+
+  /// Espessura convertida em metros, ou `null` quando não preenchida.
+  double? get _thicknessMeters {
+    final text = _thicknessCmController.text.trim();
+    if (text.isEmpty) return null;
+    final cm = double.tryParse(text.replaceAll(',', '.'));
+    return centimetersToMeters(cm);
+  }
+
   bool get _isEditing => widget.measurementId != null;
 
   /// Grandezas recalculadas a cada mudança de medida ou vão — ver "Nova
@@ -111,6 +126,7 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
     _lengthController.dispose();
     _widthController.dispose();
     _heightController.dispose();
+    _thicknessCmController.dispose();
     super.dispose();
   }
 
@@ -175,7 +191,7 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
     final derived = _derived;
 
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? 'Editar cômodo' : 'Medir Cômodo')),
+      appBar: AppBar(title: Text(_isEditing ? 'Editar cômodo' : 'Medir cômodo')),
       body: _loading
           ? const AppLoading()
           : Form(
@@ -190,6 +206,12 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
                     validator: requiredValidator('o nome'),
                   ),
                   const SizedBox(height: AppSpacing.md),
+                  // Duas linhas de dois campos em vez de uma única de
+                  // três: em tela de 320dp o touch target de cada medida
+                  // ficava apertado demais pra uma mão na obra (ver
+                  // `PROGRESSO_DESIGN_SAFETY_INDUSTRIAL.md`). O par
+                  // Comp/Larg + Altura/Espessura mantém o formulário curto
+                  // e cada campo legível.
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -212,13 +234,31 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
                           onChanged: (_) => setState(() {}),
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.sm),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Expanded(
                         child: AppNumberInput(
                           controller: _heightController,
                           label: 'Altura',
                           suffixText: 'm',
                           validator: positiveNumberValidator('a altura'),
+                          onChanged: (_) => setState(() {}),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: AppNumberInput(
+                          controller: _thicknessCmController,
+                          label: 'Espessura',
+                          suffixText: 'cm',
+                          hint: '5',
+                          // Opcional: útil só quando o serviço for m³
+                          // (contrapiso, concreto). Sem preencher, o
+                          // volume não aparece no painel derivado.
                           onChanged: (_) => setState(() {}),
                         ),
                       ),
@@ -249,6 +289,14 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
                             ),
                             OutlinedButton.icon(
                               onPressed: _addOpening,
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: Size.zero,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md,
+                                  vertical: AppSpacing.sm,
+                                ),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
                               icon: const Icon(Icons.add, size: 18),
                               label: const Text('Adicionar'),
                             ),
@@ -337,21 +385,34 @@ class _MeasurementFormScreenState extends ConsumerState<MeasurementFormScreen> {
                         _DerivedQuantityRow(
                           icon: Icons.grid_on_outlined,
                           label: 'Área de Piso',
-                          valueSqM: derived.floorAreaSqM,
+                          value: derived.floorAreaSqM,
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         _DerivedQuantityRow(
                           icon: Icons.roofing_outlined,
                           label: 'Área de Teto',
-                          valueSqM: derived.ceilingAreaSqM,
+                          value: derived.ceilingAreaSqM,
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         _DerivedQuantityRow(
                           icon: Icons.foundation_outlined,
                           label: 'Área de Parede',
                           caption: '(já descontando vãos)',
-                          valueSqM: derived.wallAreaSqM,
+                          value: derived.wallAreaSqM,
                         ),
+                        if (_thicknessMeters != null) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          _DerivedQuantityRow(
+                            icon: Icons.layers_outlined,
+                            label: 'Volume',
+                            caption:
+                                '(área de piso × espessura)',
+                            unitSuffix: ' m³',
+                            value: derived.volumeCubicMeters(
+                              _thicknessMeters!,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -450,14 +511,19 @@ class _DerivedQuantityRow extends StatelessWidget {
   const _DerivedQuantityRow({
     required this.icon,
     required this.label,
-    required this.valueSqM,
+    required this.value,
     this.caption,
+    this.unitSuffix = ' m²',
   });
 
   final IconData icon;
   final String label;
   final String? caption;
-  final double valueSqM;
+
+  /// Nome da grandeza em destaque — m² por padrão (piso/teto/parede), m³
+  /// para o volume derivado da espessura.
+  final String unitSuffix;
+  final double value;
 
   @override
   Widget build(BuildContext context) {
@@ -493,9 +559,9 @@ class _DerivedQuantityRow extends StatelessWidget {
             text: TextSpan(
               style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.onSurface),
               children: [
-                TextSpan(text: valueSqM.toStringAsFixed(2)),
+                TextSpan(text: value.toStringAsFixed(2)),
                 TextSpan(
-                  text: ' m²',
+                  text: unitSuffix,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

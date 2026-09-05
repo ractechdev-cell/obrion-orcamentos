@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../analytics/analytics_service.dart';
 import '../database/database.dart';
-import '../measurement/measurement_math.dart';
+import '../measurement/measurement_quantities.dart';
 import '../review/review_service.dart';
 import '../database/enums.dart';
 import '../pdf/budget_share_service.dart';
@@ -18,7 +18,6 @@ import '../providers/payments_repository_provider.dart';
 import '../providers/profile_repository_provider.dart';
 import '../providers/services_repository_provider.dart';
 import '../repositories/budgets_repository.dart';
-import '../repositories/measurements_repository.dart';
 import '../theme/app_semantic_colors.dart';
 import '../theme/app_spacing.dart';
 import '../utils/currency_format.dart';
@@ -51,76 +50,11 @@ String statusLabel(BudgetStatus status) {
 
 String formatCents(int cents) => formatCurrencyBrl(cents);
 
-/// Grandeza derivada de uma medição que pode virar quantidade de item de
-/// orçamento — ver docs/POSICIONAMENTO_E_FEATURES_APP1.md, Parte 4, item
-/// 3 ("medição → item de orçamento com quantidade preenchida", a promessa
-/// central do app: medir no local e sair com o orçamento pronto, em vez
-/// de redigitar o número na mão).
-enum _MeasurementQuantity {
-  wallArea,
-  floorArea,
-  ceilingArea,
-  perimeter,
-  effectivePerimeter,
-}
-
-String _measurementQuantityLabel(_MeasurementQuantity q) {
-  switch (q) {
-    case _MeasurementQuantity.wallArea:
-      return 'Área de parede';
-    case _MeasurementQuantity.floorArea:
-      return 'Área de piso';
-    case _MeasurementQuantity.ceilingArea:
-      return 'Área de teto';
-    case _MeasurementQuantity.perimeter:
-      return 'Perímetro';
-    case _MeasurementQuantity.effectivePerimeter:
-      return 'Perímetro útil';
-  }
-}
-
-double _measurementQuantityValue(
-  _MeasurementQuantity q,
-  RoomDerivedQuantities d,
-) {
-  switch (q) {
-    case _MeasurementQuantity.wallArea:
-      return d.wallAreaSqM;
-    case _MeasurementQuantity.floorArea:
-      return d.floorAreaSqM;
-    case _MeasurementQuantity.ceilingArea:
-      return d.ceilingAreaSqM;
-    case _MeasurementQuantity.perimeter:
-      return d.perimeterMeters;
-    case _MeasurementQuantity.effectivePerimeter:
-      return d.effectivePerimeterMeters;
-  }
-}
-
-/// Só oferece "usar medição" quando a unidade do serviço corresponde a
-/// alguma grandeza derivada — não faz sentido pra `un`/`ponto`/`diária`/
-/// `verba`.
-List<_MeasurementQuantity> _measurementOptionsForUnit(ServiceUnit unit) {
-  switch (unit) {
-    case ServiceUnit.squareMeter:
-      return const [
-        _MeasurementQuantity.wallArea,
-        _MeasurementQuantity.floorArea,
-        _MeasurementQuantity.ceilingArea,
-      ];
-    case ServiceUnit.linearMeter:
-      return const [
-        _MeasurementQuantity.perimeter,
-        _MeasurementQuantity.effectivePerimeter,
-      ];
-    case ServiceUnit.cubicMeter:
-    case ServiceUnit.unit:
-    case ServiceUnit.point:
-    case ServiceUnit.dailyRate:
-    case ServiceUnit.lumpSum:
-      return const [];
-  }
-}
+/// Opções de grandeza por unidade, rótulos e valores são centralizadas em
+/// `lib/measurement/measurement_quantities.dart` — incluindo o volume m³
+/// (que passou a pedir a espessura no fluxo de "usar cômodo medido").
+/// Este arquivo e o `budget_wizard_screen.dart` compartilham o mesmo
+/// serviço, sem duplicação.
 
 class BudgetFormScreen extends ConsumerStatefulWidget {
   const BudgetFormScreen({super.key, required this.clientId, this.budgetId});
@@ -146,6 +80,13 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
 
   String? _budgetId;
 
+  /// "Orçamento nº N" — âncora de continuidade com a lista e com o
+  /// `BudgetWizardScreen` (onde o rascunho foi montado): o número é o
+  /// mesmo em todos os lugares, então o profissional reconhece que está
+  /// no mesmo documento mesmo quando a tela muda (rascunho abre no
+  /// wizard, enviado abre aqui).
+  String? _budgetNumberLabel;
+
   @override
   void initState() {
     super.initState();
@@ -153,7 +94,16 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     if (_budgetId == null) {
       AnalyticsService.trackEvent('create_budget');
       _createDraft();
+    } else {
+      _loadBudgetNumber();
     }
+  }
+
+  Future<void> _loadBudgetNumber() async {
+    final id = _budgetId;
+    if (id == null) return;
+    final number = await ref.read(budgetsRepositoryProvider).getBudgetNumber(id);
+    if (mounted) setState(() => _budgetNumberLabel = 'Orçamento nº $number');
   }
 
   Future<void> _createDraft() async {
@@ -163,6 +113,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     if (mounted) {
       setState(() => _budgetId = budget.id);
     }
+    _loadBudgetNumber();
   }
 
   Future<void> _pickService(BuildContext context) async {
@@ -229,99 +180,6 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     }
   }
 
-  /// Ponte medição → item de orçamento: pede pro usuário escolher (se
-  /// houver mais de uma) qual medição do cliente usar, depois qual
-  /// grandeza dela — e devolve o valor pronto pra preencher a quantidade
-  /// (ainda editável depois). `null` se não houver medição cadastrada ou o
-  /// usuário cancelar em qualquer passo. Busca por `clientId`, não por
-  /// `budget.projectId` — orçamentos hoje nunca guardam projeto (nenhuma
-  /// tela passa esse valor), então a ligação real é sempre cliente → obra.
-  Future<double?> _pickMeasurementQuantity(
-    BuildContext context,
-    ServiceUnit unit,
-  ) async {
-    final options = _measurementOptionsForUnit(unit);
-    if (options.isEmpty) return null;
-
-    // Sem medição, oferece criar na hora em vez de só avisar — ver
-    // `loadMeasurementsOrOfferToCreate`.
-    final allMeasurements = await loadMeasurementsOrOfferToCreate(
-      context: context,
-      ref: ref,
-      clientId: widget.clientId,
-    );
-    if (allMeasurements.isEmpty || !context.mounted) return null;
-
-    MeasurementWithDetails? chosen = allMeasurements.first;
-    if (allMeasurements.length > 1) {
-      chosen = await showModalBottomSheet<MeasurementWithDetails>(
-        context: context,
-        showDragHandle: true,
-        builder: (context) => SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  'Qual cômodo?',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              for (final m in allMeasurements)
-                ListTile(
-                  title: Text(m.measurement.name),
-                  onTap: () => Navigator.of(context).pop(m),
-                ),
-              const SizedBox(height: AppSpacing.md),
-            ],
-          ),
-        ),
-      );
-      if (chosen == null || !context.mounted) return null;
-    }
-
-    final derived = RoomDerivedQuantities.fromMeasurement(
-      lengthMeters: chosen.measurement.lengthMeters,
-      widthMeters: chosen.measurement.widthMeters,
-      heightMeters: chosen.measurement.heightMeters,
-      openings: chosen.openings,
-    );
-
-    if (!context.mounted) return null;
-    return showModalBottomSheet<double>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                'Qual grandeza?',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            for (final option in options)
-              ListTile(
-                title: Text(_measurementQuantityLabel(option)),
-                trailing: Text(
-                  _measurementQuantityValue(option, derived).toStringAsFixed(2),
-                ),
-                onTap: () =>
-                    Navigator.of(context)
-                        .pop(_measurementQuantityValue(option, derived)),
-              ),
-            const SizedBox(height: AppSpacing.md),
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _showAddItemSheet(BuildContext context, Service service) async {
     final quantityController = TextEditingController();
     int? priceCents = service.defaultPriceCents;
@@ -349,7 +207,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 label: 'Quantidade (${serviceUnitLabel(service.unit)})',
                 controller: quantityController,
               ),
-              if (_measurementOptionsForUnit(service.unit).isNotEmpty) ...[
+              if (measurementQuantityOptions(service.unit).isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -358,9 +216,11 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     icon: const Icon(Icons.straighten_outlined, size: 18),
                     label: const Text('Usar cômodo medido'),
                     onPressed: () async {
-                      final value = await _pickMeasurementQuantity(
+                      final value = await pickMeasurementQuantity(
                         context,
-                        service.unit,
+                        ref,
+                        clientId: widget.clientId,
+                        unit: service.unit,
                       );
                       if (value != null) {
                         quantityController.text = value.toStringAsFixed(2);
@@ -464,7 +324,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 label: 'Quantidade (${serviceUnitLabel(unit)})',
                 controller: quantityController,
               ),
-              if (_measurementOptionsForUnit(unit).isNotEmpty) ...[
+              if (measurementQuantityOptions(unit).isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -473,9 +333,11 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     icon: const Icon(Icons.straighten_outlined, size: 18),
                     label: const Text('Usar cômodo medido'),
                     onPressed: () async {
-                      final value = await _pickMeasurementQuantity(
+                      final value = await pickMeasurementQuantity(
                         context,
-                        unit,
+                        ref,
+                        clientId: widget.clientId,
+                        unit: unit,
                       );
                       if (value != null) {
                         quantityController.text = value.toStringAsFixed(2);
@@ -996,11 +858,13 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     }
     final formatParam = format == BudgetShareFormat.pdf ? 'pdf' : 'imagem';
     AnalyticsService.trackEvent('pdf_generated', {'format': formatParam});
-    // Nota: a folha de compartilhamento do sistema (share_plus) não informa
-    // qual app o usuário escolheu — não dá pra registrar o parâmetro
-    // `channel` (whatsapp/email/outro) pedido no CLAUDE.md com os dados
-    // disponíveis hoje.
-    AnalyticsService.trackEvent('budget_shared', {'format': formatParam});
+    // `channel` é sempre 'outro': a folha de compartilhamento do sistema
+    // (share_plus) não informa qual app o usuário escolheu — inventar
+    // 'whatsapp' aqui seria dado falso no funil (ver APP_FACTORY_RULES.md §7).
+    AnalyticsService.trackEvent('budget_shared', {
+      'format': formatParam,
+      'channel': 'outro',
+    });
     // Momento de sucesso: acabou de compartilhar um orçamento de verdade.
     unawaited(ReviewService.requestReviewIfAvailable());
 
@@ -1039,7 +903,9 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Orçamento'),
+            // O número unifica com a lista e com o wizard: mesmo documento
+            // reconhecível mesmo mudando de tela.
+            title: Text(_budgetNumberLabel ?? 'Orçamento'),
             actions: [
               if (data.items.isNotEmpty)
                 IconButton(

@@ -20,6 +20,14 @@ import 'widgets/app_splash_screen.dart';
 /// teste (mesmo motivo de `appDatabaseProvider` ser sobrescrito em teste).
 final showUpgradeAlertProvider = Provider<bool>((ref) => true);
 
+/// Liga os serviços de plataforma chamados no boot — analytics,
+/// notificações locais e checagem de patch OTA. Desligado nos widget tests
+/// (`widget_test.dart`): sem isso o boot tenta falar com Firebase e com o
+/// plugin nativo de notificação, que não existem no ambiente de teste, e
+/// a cada execução sobe o mesmo ruído de "falhou" no log — dificultando
+/// enxergar uma falha real.
+final runSystemServicesProvider = Provider<bool>((ref) => true);
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -54,13 +62,21 @@ class _ObrionOrcamentosAppState extends ConsumerState<ObrionOrcamentosApp> {
   @override
   void initState() {
     super.initState();
-    AnalyticsService.trackEvent('app_open');
-    NotificationService.initialize();
+    if (ref.read(runSystemServicesProvider)) {
+      AnalyticsService.trackEvent('app_open');
+      NotificationService.initialize();
+    }
     _checkForPatch();
   }
 
   /// Checa por patches OTA do Shorebird. Se houver, baixa e reinicia.
   Future<void> _checkForPatch() async {
+    // Ambiente de teste: sem motor Shorebird e sem serviços do sistema, o
+    // estado de "checando patch" é pulado pra splash não ficar presa.
+    if (!ref.read(runSystemServicesProvider)) {
+      _checkingPatch = false;
+      return;
+    }
     final applied = await PatchUpdateService.checkAndUpdate();
     if (mounted && !applied) {
       setState(() => _checkingPatch = false);

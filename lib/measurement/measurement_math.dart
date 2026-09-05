@@ -1,6 +1,14 @@
 import '../database/database.dart';
 import '../database/enums.dart';
 
+/// Converte a entrada de espessura (em centímetros, a unidade que se fala
+/// em obra) para metros — a unidade que as fórmulas usam. `null` quando o
+/// valor é vazio, zero ou negativo (inválido pra camada).
+double? centimetersToMeters(double? centimeters) {
+  if (centimeters == null || centimeters <= 0) return null;
+  return centimeters / 100;
+}
+
 /// Grandezas derivadas a partir da geometria bruta do cômodo.
 ///
 /// Fórmulas do CLAUDE.md:
@@ -26,6 +34,19 @@ class RoomDerivedQuantities {
   final double wallAreaSqM;
   final double effectivePerimeterMeters;
   final double totalOpeningsAreaSqM;
+
+  /// Volume para uma espessura de camada — `area_piso × espessura`.
+  ///
+  /// A espessura não é uma propriedade do cômodo: o mesmo cômodo pode
+  /// servir pra um contrapiso de 5cm ou 10cm, então ela entra aqui como
+  /// parâmetro da capa do serviço (m³), nunca persistida na medição.
+  /// Mantém a matemática pura (sem UI): espessura não-negativa; negativa
+  /// (erro de digitação no formulário) resulta em volume 0 em vez de
+  /// valor negativo que vazaria pro orçamento.
+  double volumeCubicMeters(double slabThicknessMeters) {
+    final slab = slabThicknessMeters < 0 ? 0.0 : slabThicknessMeters;
+    return floorAreaSqM * slab;
+  }
 
   factory RoomDerivedQuantities.fromMeasurement({
     required double lengthMeters,

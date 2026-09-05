@@ -5,6 +5,24 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), 
 ## [Unreleased]
 
 ### Added
+- **Volume m³ na medição → orçamento** (auditoria 04/09/2026): `RoomDerivedQuantities.volumeCubicMeters(slabThicknessMeters)` — área do piso × espessura, matemática pura em `lib/measurement/measurement_math.dart`. A espessura não é persistida (não é propriedade do cômodo — o mesmo cômodo pode ter contrapiso de 5cm ou 10cm): é parâmetro no momento da cotação. Formulário de cômodo ganhou campo "Espessura (cm)" com Volume ao vivo no painel de grandezas; "Usar cômodo medido" para serviço m³ pergunta a espessura e devolve o volume como quantidade (wizard e formulário de gestão). Conversão cm→m centralizada em `centimetersToMeters`.
+- **Fluxo "usar cômodo medido" centralizado** (`lib/measurement/measurement_quantities.dart` + `lib/utils/measurement_flow.dart`): enum/opções de grandeza e o `pickMeasurementQuantity` com seleção de cômodo + espessura vivem numa fonte única — o wizard e o formulário de gestão compartilham o mesmo comportamento (era duplicação de ~90 linhas por arquivo).
+- **Ação "Medir cômodo" textual na ficha do cliente**: botão com rótulo visível no corpo da tela em vez do ícone de casa ambíguo que ficava no AppBar — o diferencial do app (medir) não fica mais escondido atrás de um ícone.
+- **`budget_shared` com `channel`**: evento agora envia `format` + `channel`. `channel` é sempre `'outro'` — a folha de compartilhamento do sistema (`share_plus`) não informa qual app o usuário escolheu, e inventar `'whatsapp'` seria dado falso no funil (ver `APP_FACTORY_RULES.md` §7).
+- **Continuidade do orçamento**: título do wizard e do formulário de gestão mostram "Orçamento nº N" (mesma numeração da aba Orçamentos) — o profissional reconhece o mesmo documento mesmo quando a tela muda (rascunho abre no wizard, enviado no formulário).
+- **`runSystemServicesProvider`** (`main.dart`): gate dos serviços de plataforma do boot (analytics, notificações locais, patch OTA) — desligado nos widget tests para o boot não tentar tocar Firebase/plugin nativo que não existem no ambiente de teste.
+
+### Changed
+- Layout do formulário de cômodo: 2 linhas de 2 campos (Comp./Larg., Altura/Espessura) em vez de uma única de 3 — touch target decente em tela de 320dp com uma mão.
+
+### Fixed
+- Cor hardcoded `Color(0xFFC2680A)` no indicador de etapas do wizard substituída por `AppColors.safetyAmber`; `AppWizardStepper` órfão (widget morto com a mesma cor hardcoded, sem nenhum consumidor) removido.
+- Widget test não sobe mais o ruído de "Firebase não inicializado"/"notificações falharam" a cada execução.
+
+### Removed
+- Duplicação `_MeasurementQuantity`/`_measurementOptionsForUnit` do `budget_wizard_screen.dart` e `budget_form_screen.dart` (movidos para o módulo compartilhado de medição).
+
+### Added
 - **Modelos de orçamento** (ver `docs/ROADMAP_UX_UI_E_FEATURES_APP1.md`, seção 14): schema v6→v7 (`budget_templates`/`budget_template_items`). Um modelo nasce a partir de um orçamento existente ("Salvar como modelo" no menu ⋮ do orçamento) — snapshot de itens, desconto, observações e descrição da obra; não é editável depois de criado (pra ajustar, exclui e salva de novo a partir de um orçamento atualizado — evita duplicar toda a UI de item só pra modelos). `BudgetTemplatesScreen` ("Meus Modelos", acessível pelo ícone 🔖 na aba Orçamentos) lista e exclui modelos; em modo seleção (aberta pelo wizard) devolve o modelo escolhido. Wizard Etapa 1 ganhou "Usar modelo salvo" no estado vazio. Sem paywall por enquanto (roadmap marca Pro, mas o módulo Purchases só chega na Fase 4 — travar sem checkout de verdade seria placebo).
 - **Reiniciar o app de verdade após patch OTA** (`lib/updates/patch_update_service.dart`, pacote `restart_app`): checa status do Shorebird no boot (`checkForUpdate()`) e, se houver patch, baixa e reinicia o processo via `Restart.restartApp()`. Corrige achado real no aparelho: `SystemNavigator.pop()` só manda a activity pra segundo plano, não mata o processo — o Flutter engine nunca recarregava o patch, e o usuário precisava fechar/reabrir manualmente. **Mudança nativa** (código Kotlin próprio do plugin) — exigiu um release completo único; depois disso volta a ser tudo patch OTA.
 - **Design system Safety Industrial aplicado** (`docs/stitch_document_theme_generator/`) — ver `docs/PROGRESSO_DESIGN_SAFETY_INDUSTRIAL.md` para o checklist por tela e as divergências deliberadas dos modelos.
